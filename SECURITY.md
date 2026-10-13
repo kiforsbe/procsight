@@ -3,7 +3,7 @@
 ## Supported versions
 
 ProcSight has no executable release or supported application version yet. The repository
-currently contains design/planning documents and project policy. Supported releases and
+currently contains an in-progress native application, design documents, and project policy. Supported releases and
 security-update expectations will be listed here when releases exist.
 
 ## Reporting a vulnerability

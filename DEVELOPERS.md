@@ -2,9 +2,17 @@
 
 ## Current state
 
-ProcSight is at the design/planning stage. Only documentation and repository policy files
-exist. There are no solution files, application sources, build scripts, tests, or CI/CD
-workflows yet. The implementation plan is awaiting review and execution-method selection.
+ProcSight implementation is underway. The native shell, local process/service collector,
+initial identity resolver, solution, build/launch scripts, and initial tests exist.
+Rules, provider analysis, and the complete UI are still in progress. No CI/CD workflows exist.
+
+```powershell
+./scripts/build.ps1
+./scripts/start.ps1
+dotnet test tests/ProcSight.Core.Tests
+dotnet test tests/ProcSight.Application.Tests
+dotnet test tests/ProcSight.Windows.Tests
+```
 
 Read the [design](docs/superpowers/specs/2026-10-13-procsight-design.md) and
 [implementation plan](docs/superpowers/plans/2026-10-13-procsight.md) before implementing.
@@ -19,8 +27,8 @@ Runtime package 2.2.0, and Windows SDK BuildTools 10.0.26100.4654.
 
 Implementation must confirm the actual Visual Studio/MSBuild and runtime prerequisites,
 pin dependencies and SDK configuration, and document a working unpackaged build/launch
-path. Add exact commands here when they are available and verified. There is no runnable
-setup command at the current stage.
+path. The current build uses dotnet/MSBuild and the unpackaged Windows App Runtime bootstrapper.
+Keep the build/launch commands above verified as the project evolves.
 
 ## Intended boundaries
 

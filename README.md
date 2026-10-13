@@ -4,9 +4,16 @@ ProcSight is a planned native Windows 11 process explorer built with C# and WinU
 It aims to explain what processes and services belong to, why they are running, and
 what evidence supports their classifications.
 
-**Status: design and implementation planning.** This repository contains the approved
-design, a proposed implementation plan, and project documentation. There is no runnable
-application, downloadable release, or implemented AI integration yet.
+**Status: implementation in progress.** The native shell and read-only local process/service
+collector are runnable. AI analysis, reusable rules, and the complete investigation interface
+are still being implemented; there is no published release yet.
+
+On Windows 11 with .NET SDK 10.0.301 and Windows App Runtime 2.2 installed:
+
+```powershell
+./scripts/build.ps1
+./scripts/start.ps1
+```
 
 ## Planned experience
 
@@ -20,7 +27,9 @@ application, downloadable release, or implemented AI integration yet.
 - User-configured OpenAI or compatible API endpoints, optional loopback local models,
   and separately enabled online research with source links.
 
-These are design commitments, not currently available features. The Windows native host
+The complete experience above is a design commitment; the current build provides local
+process/service tables, CPU/memory sampling, search, ownership candidates, and metadata details.
+The Windows native host
 in VidVNC informed the WinUI shell, spacing, preferences, and component boundaries.
 
 ## Privacy and command-line analysis
@@ -61,8 +70,7 @@ verdicts or authorization to change the computer.
 - [Changelog](CHANGELOG.md)
 - [Security policy](SECURITY.md)
 
-Build and launch instructions will be added alongside the first working implementation.
-See the developer guide for the intended toolchain and contribution process.
+See the developer guide for toolchain, verification, and contribution instructions.
 
 ## License
 

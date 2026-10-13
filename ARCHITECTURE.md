@@ -2,11 +2,17 @@
 
 ## Status and documentation convention
 
-ProcSight is in the design/planning stage. This document describes the intended first
-release, not an implemented application. The [design](docs/superpowers/specs/2026-10-13-procsight-design.md)
+ProcSight implementation is underway. The native shell, collector, shared contracts, and
+initial identity resolver exist; provider/rule/storage flows below remain planned until
+their tasks are implemented and verified. The [design](docs/superpowers/specs/2026-10-13-procsight-design.md)
 defines requirements; the [implementation plan](docs/superpowers/plans/2026-10-13-procsight.md)
 maps them to tasks. This root document is the living architecture reference and must
 track the actual implementation as it develops.
+
+Current code owners: [native shell](src/ProcSight.App/MainWindow.xaml.cs),
+[collector](src/ProcSight.Windows/Collection/WindowsSnapshotSource.cs),
+[CPU sampler](src/ProcSight.Windows/Collection/ProcessSampler.cs), and
+[identity resolver](src/ProcSight.Core/Identity/IdentityResolver.cs).
 
 Use UML liberally to explain structure, interactions, and lifecycle behavior. Store diagrams
 as editable Mermaid blocks alongside the prose so GitHub can render them. Prefer UML class,

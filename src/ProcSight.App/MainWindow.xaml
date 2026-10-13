@@ -1,0 +1,7 @@
+<Window x:Class="ProcSight.App.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<NavigationView x:Name="Navigation" IsBackButtonVisible="Collapsed" PaneDisplayMode="LeftCompact" SelectionChanged="Navigate">
+<NavigationView.MenuItems><NavigationViewItem Content="Processes" Tag="Processes" Icon="AllApps" IsSelected="True" /><NavigationViewItem Content="Services" Tag="Services" Icon="Repair" /><NavigationViewItem Content="Knowledge" Tag="Knowledge" Icon="Library" /></NavigationView.MenuItems>
+<Grid Padding="24" RowSpacing="16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+<TextBlock x:Name="PageTitle" Text="Processes" Style="{StaticResource TitleTextBlockStyle}" />
+<Grid x:Name="PageContent" Grid.Row="1" /></Grid>
+</NavigationView></Window>

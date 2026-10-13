@@ -7,6 +7,9 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Native WinUI 3 shell, live read-only process/service collection, CPU and memory sampling,
+  search, metadata details, initial ownership resolution, and local build/launch scripts.
+- Initial tests for identity contracts, navigation, sampling, ownership, and Windows collection.
 - Living root architecture reference with UML component/domain, sequence, and state views;
   developer and agent requirements to use UML liberally and maintain diagrams with changes.
 - Design for a native Windows 11 process/service explorer with evidence-backed
@@ -18,7 +21,7 @@ in this repository; planned product features are documented in the design and ro
 
 ### Known limitations
 
-- The application is not implemented or released; build/launch scripts and product tests
-  do not exist yet.
+- The application is under implementation and unreleased. AI/rules and the complete
+  investigation UI are not finished; disk/network/GPU measurements are not collected.
 - No GitHub remote or private vulnerability-reporting channel is configured in this
   checkout. CI/CD workflows are intentionally excluded.

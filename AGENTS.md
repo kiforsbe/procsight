@@ -7,10 +7,10 @@ Direct user instructions take precedence over repository guidance.
 
 ## Current project state
 
-ProcSight is a Windows 11 WinUI 3 process-explorer project at the design/planning stage.
-There is no application implementation yet. Do not claim planned features, build commands,
-or tests are already available. The first-release design is approved; implementation-plan
-review and execution-method selection remain pending. Update this status when that changes.
+ProcSight is being implemented on Windows 11 with WinUI 3. The native shell, local collector,
+domain contracts, and initial ownership resolver exist; AI/rules and the complete UI are
+still in progress. The user approved native implementation on a feature branch in this
+checkout. Do not describe planned features as complete. Update this status as work progresses.
 
 ## Product boundaries
 

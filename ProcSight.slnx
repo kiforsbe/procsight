@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ProcSight.App/ProcSight.App.csproj" />
+    <Project Path="src/ProcSight.Application/ProcSight.Application.csproj" />
+    <Project Path="src/ProcSight.Core/ProcSight.Core.csproj" />
+    <Project Path="src/ProcSight.Infrastructure/ProcSight.Infrastructure.csproj" />
+    <Project Path="src/ProcSight.Windows/ProcSight.Windows.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ProcSight.Application.Tests/ProcSight.Application.Tests.csproj" />
+    <Project Path="tests/ProcSight.Core.Tests/ProcSight.Core.Tests.csproj" />
+    <Project Path="tests/ProcSight.Windows.Tests/ProcSight.Windows.Tests.csproj" />
+  </Folder>
+</Solution>
