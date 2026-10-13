@@ -1,7 +1,8 @@
 # ProcSight: an AI-assisted Windows process explorer
 
 Date: 2026-10-13
-Status: approved conversational design; written specification awaiting user review.
+Status: approved for implementation planning on 2026-10-13, including the requested
+local-only and online full-command-line analysis options.
 
 ## Purpose and agreed scope
 
@@ -128,8 +129,21 @@ when the chosen Windows collection mechanism supplies attributable measurements;
 otherwise show unavailable, never fabricated zero. CPU and rate measurements require
 sampling intervals; initial samples remain pending. GPU measurement is deferred.
 
-Full command lines are excluded from routine cloud payloads. Local collection of
-command lines is opt-in because arguments may contain credentials or document paths.
+Command-line analysis has three explicit modes: Off (default), Local only, and
+Include in online analysis. Local only enables full-command-line collection and
+analysis by local rules and, if configured, a loopback local model endpoint. Include
+in online analysis additionally permits sending the full, verbatim command line to
+the selected online analysis provider. It is an explicit exception to normal payload
+redaction, with a payload preview and clear disclosure that arguments can contain
+credentials and personal paths. The app does not silently truncate or redact a line
+while calling it full; a collection or provider-size limit is shown as unavailable
+or omitted, with a reason.
+
+Command-line collection is best-effort without elevation. Raw command lines remain
+in memory and are excluded from persisted snapshots, logs, and rule literals. Store
+only bounded normalized role/path predicates and provenance needed for reuse. A mode
+change clears pending payloads and rebuilds them under the new policy; moving to Off
+also releases collected raw lines. Requests already sent cannot be recalled.
 Identity and grouping must work with partial access. Ordinary privilege is the
 default; protected or inaccessible processes retain visible partial records.
 
@@ -171,7 +185,9 @@ or network operations.
 
 Supported predicate families include content hash, verified signer, product metadata,
 executable name, normalized location pattern, package/application identity, verified
-parent context, and service association. Normalize local paths into symbolic roots
+parent context, service association, and normalized command-role context when command-line
+analysis is enabled. Command-role evidence carries its command-line origin and cannot
+embed raw arguments or secrets. Normalize local paths into symbolic roots
 where possible. A process name alone cannot establish identity, security, ownership,
 or unwanted status. Publisher metadata is not equivalent to a verified signer.
 
@@ -215,11 +231,23 @@ unverified package or API versions into the specification.
 Automatic cloud analysis starts only after provider setup and the user enables it.
 Before activation, show the categories of data sent and a representative sanitized
 payload. Redact usernames, machine identifiers, personal path segments, and secrets.
-Exclude full command lines, raw environment variables, file contents, and unrelated
-personal data. Keep local evidence identifiers stable without revealing original paths.
+Exclude full command lines unless Include in online analysis is explicitly enabled.
+Even in that mode, other metadata remains sanitized; raw environment variables,
+file contents, and unrelated personal data remain excluded. Keep local evidence
+identifiers stable without revealing original paths.
+
+Local only prohibits raw command lines and command-line-derived analysis text,
+evidence excerpts, or predicates from entering online payloads. Track provenance
+through stored knowledge so a local result cannot leak indirectly during later
+cloud re-analysis. Build any parallel cloud analysis from independently shareable
+metadata. Local model requests use explicitly configured loopback endpoints with
+redirects disabled; no remote fallback is allowed for command-line-bearing requests
+in Local only mode. The app controls its own routing, not a local server's behavior.
 
 Online research has a separate enable control and adapter capability. Use sanitized
 queries built from executable/product/signer identity, excluding personal paths.
+Full command lines are never search queries, regardless of command-line mode; online
+research receives only the independently sanitized research request.
 Never upload binaries or other local files. Preserve source URLs, retrieval timestamps,
 and what each source actually supports. If research is unavailable, identify that
 limitation and allow metadata-only analysis.
@@ -318,7 +346,10 @@ Use fixture-driven tests for the domain and adapters plus Windows integration ch
 - Rule precedence, conflicts, expiry, corrections, invalidation, and disabled-rule
   dependencies behave as described, including all classification axes.
 - Redaction prevents usernames, personal paths, secrets, and full command lines from
-  entering routine analysis and research payloads.
+  entering default analysis and research payloads. Local-only command lines and
+  derived knowledge cannot reach cloud adapters. Online mode includes the full
+  command line only at the configured analysis provider, never research queries,
+  logs, or persistence. Test mode changes while requests are queued.
 - Malformed provider results, prompt-injection text, invented source references,
   unavailable research, timeouts, rate limits, and budget exhaustion degrade visibly.
 - Analysis deduplication avoids repeated calls for equivalent instances, unchanged
