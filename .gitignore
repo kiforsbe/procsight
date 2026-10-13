@@ -1,0 +1,72 @@
+# Visual Studio and local editor state
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# .NET / WinUI build and generated output
+**/[Bb]in/
+**/[Oo]bj/
+/artifacts/
+/publish/
+/dist/
+/packages/
+*.nupkg
+*.snupkg
+*.msix
+*.msixbundle
+*.appx
+*.appxbundle
+*.appxsym
+*.appxupload
+
+# Tests, coverage, logs and diagnostics
+**/TestResults/
+**/coverage/
+*.trx
+*.coverage
+*.coveragexml
+*.log
+*.dmp
+*.etl
+
+# Local credentials and personal configuration
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pfx
+*.p12
+*.key
+*.pem
+secrets.json
+appsettings.Local.json
+appsettings.*.Local.json
+/local-data/
+/local-config/
+
+# Process metadata / knowledge databases must stay local.
+# Use synthetic JSON fixtures; deliberately review any database fixture before tracking it.
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+
+# OS and temporary files
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.tmp
+*.temp
+*~
+
+# Keep source, assets, package lock files and documentation tracked.
+# Update these rules whenever tooling or generated output changes.
