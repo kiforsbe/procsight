@@ -24,6 +24,13 @@ setup command at the current stage.
 
 ## Intended boundaries
 
+The living [architecture reference](ARCHITECTURE.md) explains the intended components,
+identity/evidence relationships, analysis interactions, rule lifecycle, and privacy routing
+with UML diagrams. Use UML liberally: maintain editable Mermaid class, sequence, and state
+views, and add activity/deployment views when they clarify new boundaries. Update diagrams
+and architecture prose in the same commit as relevant code changes; verify syntax/rendering
+and label planned versus implemented behavior accurately.
+
 The plan separates Core domain models/rules/privacy, Application orchestration, Windows
 collection/credential storage, Infrastructure persistence/provider adapters, and the
 WinUI App. Domain tests must not require WinUI initialization. Collection is read-only
@@ -57,6 +64,8 @@ Actions, deployment pipelines, or automatic publication without a subsequent use
   practices change.
 - Update [AGENTS.md](AGENTS.md) when architecture constraints, agent responsibilities,
   maintenance rules, or verification expectations change.
+- Update [ARCHITECTURE.md](ARCHITECTURE.md) and its UML diagrams when components, interfaces,
+  relationships, flows, lifecycle, storage, or trust boundaries change.
 - Update [.gitignore](.gitignore) when new tooling creates local/generated files; keep
   sources, assets, package lock files, and sanitized fixtures trackable.
 - Update [SECURITY.md](SECURITY.md) when supported releases, reporting routes, or security

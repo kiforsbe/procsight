@@ -7,6 +7,8 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Living root architecture reference with UML component/domain, sequence, and state views;
+  developer and agent requirements to use UML liberally and maintain diagrams with changes.
 - Design for a native Windows 11 process/service explorer with evidence-backed
   classifications, local reusable rules, automatic AI fallback, and optional online research.
 - Implementation plan with local-only and online full-command-line analysis options.

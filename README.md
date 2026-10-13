@@ -55,6 +55,7 @@ verdicts or authorization to change the computer.
 
 - [Design](docs/superpowers/specs/2026-10-13-procsight-design.md)
 - [Implementation plan](docs/superpowers/plans/2026-10-13-procsight.md)
+- [Architecture and UML diagrams](ARCHITECTURE.md)
 - [Developer guide](DEVELOPERS.md)
 - [Agent instructions](AGENTS.md)
 - [Changelog](CHANGELOG.md)
