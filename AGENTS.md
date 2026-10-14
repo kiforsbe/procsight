@@ -145,3 +145,12 @@ Async evidence reads must still match the active selection and pane generation b
 Table headers must align with the realized row grid across empty collection, population, resizing
 and horizontal scrolling. Use viewport plus extent when sizing headers; guard layout synchronization
 against redundant property writes. Page title and CommandBar actions share a vertical center.
+
+Restricted processes use Windows kernel sequence numbers, when available, to keep a stable
+collector-session lifetime even when handle-based creation-time reads are denied. Do not replace
+this with PID-only caching or fabricated timestamps. Confirm the sequence after metadata capture;
+missing/changed confirmation rejects rows. Unsupported API builds retain snapshot-scoped fallback.
+A kernel sequence proves process lifetime only, never executable identity, signature or parent ownership.
+Name-only automatic assessment stays Unknown; explicit Analyze can assess the limited evidence.
+Service icons use configured implementation, then host, as cosmetic sources only; they never imply
+loaded-module or publisher proof. Maintain stale-source checks in the shared off-thread icon pipeline.

@@ -216,7 +216,10 @@ public sealed partial class MainWindow
     private const string ServiceTemplate="""
     <DataTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
      <Grid Height="28" MinWidth="710"><Grid.ColumnDefinitions><ColumnDefinition Width="*" MinWidth="280"/><ColumnDefinition Width="140"/><ColumnDefinition Width="56"/><ColumnDefinition Width="108"/><ColumnDefinition Width="108"/></Grid.ColumnDefinitions>
-      <StackPanel Orientation="Horizontal" Margin="16,0,8,0" Spacing="8" VerticalAlignment="Center"><SymbolIcon Symbol="Repair" Width="16" Height="16"/><TextBlock Text="{Binding Name}" FontSize="13" TextTrimming="CharacterEllipsis"/></StackPanel>
+      <Grid Margin="16,0,8,0" VerticalAlignment="Center"><Grid.ColumnDefinitions><ColumnDefinition Width="24"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+       <Grid Width="16" Height="16" HorizontalAlignment="Left"><FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE713;" FontSize="16" Visibility="{Binding FallbackIconVisibility}"/><Image Source="{Binding Icon}" Width="16" Height="16"/></Grid>
+       <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="13" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+      </Grid>
       <TextBlock Grid.Column="1" Text="{Binding Status}" FontSize="12" Margin="8,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
       <TextBlock Grid.Column="2" Text="{Binding Pid}" FontSize="12" Margin="8,0" VerticalAlignment="Center" HorizontalAlignment="Right"/>
       <TextBlock Grid.Column="3" Text="{Binding ServiceState}" FontSize="12" Margin="8,0" VerticalAlignment="Center" HorizontalAlignment="Right"/>

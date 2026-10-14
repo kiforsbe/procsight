@@ -67,7 +67,7 @@ public sealed class ProcessRow : INotifyPropertyChanged
     public void Update(ProcessListRow projection)
     {
         var before=Projection is null?null:Values();
-        if(Entity is not null&&(Entity.Process?.Executable.FullPath!=projection.Entity.Process?.Executable.FullPath || Entity.Process?.Executable.FileIdentity!=projection.Entity.Process?.Executable.FileIdentity))
+        if(Entity is not null&&!StringComparer.OrdinalIgnoreCase.Equals(ProcessIconSource.Key(Entity),ProcessIconSource.Key(projection.Entity)))
         { Icon=null; Changed(nameof(Icon)); Changed(nameof(FallbackIconVisibility)); }
         if(Entity is not null&&Entity.Identity!=projection.Entity.Identity) analysis=null;
         Projection=projection; Entity=projection.Entity; Notify(before);

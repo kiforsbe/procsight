@@ -39,9 +39,14 @@ public sealed partial class MainWindow
             processes.AddRange(Enumerable.Range(0,60).Select(i=>processes[0] with { Key=new(2000+i,now,null),
                 Executable=new("python.exe",Product:"Python"),CommandLine=new($"python.exe script_{i:00}.py --token PRIVATE",now) }));
         }
+        var fixtureLifetime=new ProcSight.Windows.Collection.ProcessLifetimeTracker();
+        if(args.Length>5&&args[5]=="details-restricted") {
+            processes[2]=processes[2] with { Key=fixtureLifetime.Resolve(1002,null,77,Guid.NewGuid()),Executable=new("restricted.exe"),CommandLine=null,
+                MetadataIssues=[new("ExecutablePath",MetadataUnavailableReason.AccessDenied),new("Started",MetadataUnavailableReason.AccessDenied),new("CommandLine",MetadataUnavailableReason.AccessDenied)] };
+        }
         lastSnapshot=new(Guid.NewGuid(),now,processes,[],new(36,16L*1024*1024*1024,7L*1024*1024*1024));
         entities=new IdentityResolver().Resolve(lastSnapshot,[]);
-        var node=entities.First(e=>e.Process?.Executable.Name=="node.exe");
+        var node=entities.First(e=>e.Process?.Key.Pid==1002);
         analysis[node.Identity]=new(node.Identity,AnalysisState.Local,new([
             new(AssessmentAxis.Purpose,"DeveloperTool","Synthetic fixture: application worker",Confidence.Medium,[],now.AddDays(7),[DataOrigin.ShareableMetadata])],
             "Example editor",[],[],new HashSet<AssessmentAxis>{AssessmentAxis.Security,AssessmentAxis.Optionality},"Example editor — extension host","Worker"));
@@ -69,6 +74,16 @@ public sealed partial class MainWindow
                     new(AssessmentAxis.Security,"Unknown","No threat evidence was submitted.",Confidence.Low,[],now.AddDays(1),[DataOrigin.ShareableMetadata])],[])),payload);
             }
         }
+        if(args.Length>5&&args[5]=="details-restricted") analysis.Remove(node.Identity);
+        if(args.Length>5&&args[5]=="services") {
+            var iconFile=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),"notepad.exe");
+            lastSnapshot=lastSnapshot with { Services=[
+                new("SyntheticImplementation","Implementation icon service","Running","Auto",1002,null,ObservationState.Available,new("notepad.exe",iconFile)),
+                new("SyntheticHost","Configured host icon service","Running","Manual",1002,null,ObservationState.Available,HostExecutable:new("notepad.exe",iconFile)),
+                new("SyntheticFallback","Service icon unavailable","Stopped","Manual",null,null,ObservationState.Unavailable),
+                new("SyntheticLong","Long service name that must stay within the Name column and trim gracefully without covering assessment or PID","Running","Auto",null,null,ObservationState.Unavailable)] };
+            entities=new IdentityResolver().Resolve(lastSnapshot,[]); page="Services";
+        }
         RenderPage();
         if(args.Length>5&&args[5].StartsWith("details",StringComparison.Ordinal))
         { detailsOpen=true; table!.SelectedItem=rows.First(r=>r.Entity.Identity==node.Identity); UpdateDetailsLayout(); ShowDetail(table.SelectedItem as ViewModels.ProcessRow); }
@@ -77,6 +92,9 @@ public sealed partial class MainWindow
             try
             {
                 await Task.Delay(500);
+                if(args.Length>5&&args[5]=="services") {
+                    Navigation.SelectedItem=Navigation.MenuItems.OfType<Microsoft.UI.Xaml.Controls.NavigationViewItem>().First(i=>i.Tag?.ToString()=="Services"); page="Services"; RenderPage(); await Task.Delay(350);
+                }
                 if(args.Length>5&&args[5].StartsWith("rules",StringComparison.Ordinal)) {
                     if(args[5]!="rules-process") { Navigation.SelectedItem=Navigation.MenuItems.OfType<Microsoft.UI.Xaml.Controls.NavigationViewItem>().First(i=>i.Tag?.ToString()=="Knowledge"); page="Knowledge"; RenderPage(); }
                     else { page="Processes"; RenderPage(); detailsOpen=true; table!.SelectedItem=rows.First(r=>r.Entity.Identity==node.Identity); UpdateDetailsLayout(); ShowDetail(table.SelectedItem as ViewModels.ProcessRow); }
@@ -263,6 +281,23 @@ public sealed partial class MainWindow
                     AppWindow.Resize(new((int)(700*layoutScale),(int)(780*layoutScale))); await Task.Delay(200);
                     var layoutScroll=FindTableScrollViewer(table!)!; layoutScroll.ChangeView(layoutScroll.ScrollableWidth/2,null,null,true); await Task.Delay(150); CheckAlignment();
                     AppWindow.Resize(new((int)(1100*layoutScale),(int)(780*layoutScale))); await Task.Delay(200); CheckAlignment();
+                }
+                if(args.Length>5&&args[5]=="details-restricted") {
+                    var commandSection=detailPanel!.Children.OfType<Microsoft.UI.Xaml.Controls.Expander>().Single(e=>e.Tag as string=="command");
+                    commandSection.IsExpanded=true; var initialIdentity=node.Identity;
+                    for(var tick=0;tick<3;tick++) {
+                        lastSnapshot=lastSnapshot with { Id=Guid.NewGuid(),Processes=lastSnapshot.Processes.Select(p=>p.Key.Pid==1002?p with { Key=fixtureLifetime.Resolve(1002,null,77,Guid.NewGuid()) }:p).ToList() };
+                        entities=new IdentityResolver().Resolve(lastSnapshot,[]); RefreshRows(); await Task.Delay(80);
+                        var selected=table!.SelectedItem as ViewModels.ProcessRow;
+                        if(selected?.Entity.Identity!=initialIdentity||!ReferenceEquals(commandSection,detailPanel.Children.OfType<Microsoft.UI.Xaml.Controls.Expander>().Single(e=>e.Tag as string=="command"))||!commandSection.IsExpanded)
+                            throw new InvalidOperationException("Restricted process inspection reset during collection.");
+                    }
+                }
+                if(args.Length>5&&args[5]=="services") {
+                    if(rows.Count!=4||rows.Any(r=>r.Entity.Service is null)) throw new InvalidOperationException("Services fixture did not select the service page.");
+                    for(var attempt=0;attempt<20&&rows.Count(r=>r.Icon is not null)<2;attempt++) await Task.Delay(100);
+                    if(rows.Count(r=>r.Icon is not null)!=2||rows.Single(r=>r.Entity.Service!.Name=="SyntheticFallback").Icon is not null) throw new InvalidOperationException("Service icon/fallback selection failed.");
+                    WindowRoot.UpdateLayout();
                 }
                 var bitmap=new RenderTargetBitmap(); await bitmap.RenderAsync(WindowRoot);
                 var pixels=await bitmap.GetPixelsAsync();

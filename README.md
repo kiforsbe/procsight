@@ -181,3 +181,9 @@ as rules management. Open **Command line** for the collected local invocation, o
 for captions/classes. Assessments, executable metadata and signatures have separate sections.
 The pane retains its scroll position and expanded sections as live metadata refreshes; resource-only
 updates leave it intact. Rules are available directly from the details toolbar.
+
+Restricted processes retain a stable inspection lifetime on Windows builds exposing kernel process
+sequence numbers, even when creation-time access is denied. PID reuse starts a new lifetime. Missing
+identity metadata remains Unknown with an explicit **Analyze** option for a limited assessment; names
+alone do not establish identity or trust. Older builds use the conservative snapshot-scoped fallback.
+Services display configured implementation/host file icons where readable, with a native gear fallback.

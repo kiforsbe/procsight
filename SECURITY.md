@@ -116,3 +116,10 @@ The native process details model contains transient local fields, including comm
 Their values are excluded from normal JSON serialization and diagnostic record text. UI comparison
 strings also stay in memory only. Neither presentation shape is an online-analysis or storage DTO;
 provider payloads continue to require the explicit privacy projection.
+
+Kernel process sequence numbers may establish lifetime continuity for restricted processes without
+opening them. Their scope is tied to a collector session; it is not binary identity, signature proof
+or verified parent ownership. Final sequence confirmation rejects reused or unconfirmed rows. Optional
+API fallback retains snapshot scoping rather than guessing a lifetime from the PID. Creation times
+are retained only under a matching sequence and are never invented from first observation time.
+Service implementation/host icons are cosmetic configured-file presentation, not trust evidence.

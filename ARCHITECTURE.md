@@ -308,7 +308,8 @@ Successful local findings are reevaluated at their earliest rule/assessment/evid
 even while executable metadata stays unchanged. Policy revisions advance monotonically;
 an older observation cannot restore a newer policy's withdrawn permission.
 Name-only protected observations remain unknown and do not consume automatic jobs repeatedly
-as snapshot-scoped identities change. Manual investigation is still available within limits.
+even when snapshot-scoped fallback identities change. Confirmed kernel lifetimes keep manual
+investigation stable across collection; identity-unavailable assessments remain limited.
 Exact cached assessments also require their supporting local metadata to agree with current
 facts. Command-derived rules require a compatible command origin and controlled role context;
 they cannot silently classify a metadata-only observation after online command sharing is excluded.
@@ -541,7 +542,7 @@ classDiagram
 
 [WindowMetadataReader](src/ProcSight.Windows/Collection/WindowMetadataReader.cs) enumerates visible
 non-tool top-level desktop windows in the background collector. It checks HWND PID before/after
-caption reads and rechecks known process creation times. Unknown lifetimes remain snapshot-only
+caption reads and rechecks known process creation times. Unknown lifetimes remain conservative local observations
 observations. Limits are 4096 enumerated windows, 32 captured per process, 512 caption characters,
 and 255 class characters. Same-process caption messages use a 50ms timeout; other captions use
 the system's nonblocking foreign-caption API. Captions are not control contents or identity proof.
@@ -601,7 +602,8 @@ a normal process row with PID/resources and no expander or count. The top-level 
 retains its key across single/group transitions, preserving native viewport anchoring. Selection
 maps a former child to its remaining process row by lifetime key when its visual key changes.
 Blank Windows descriptions fall back to executable names. A stable
-visual slot for a creation-time-unavailable PID does not relax snapshot-scoped domain identity;
+visual slot for a creation-time-unavailable PID does not relax domain lifetime boundaries;
+kernel sequence scopes or conservative snapshot fallback determine the domain identity, and
 row analysis is replaced when its entity identity changes. Reconciliation retains row objects,
 notifies changed properties only, and preserves the viewport through native ItemsStackPanel
 anchoring. New processes may append and exited processes disappear.
@@ -860,3 +862,51 @@ ScrollViewer content extent and viewport width. Synchronization covers layout/ex
 as well as resizing and scrolling, with guarded assignments to avoid unnecessary layout work.
 CommandBar content aligns vertically with its actions. Keep the header and row column geometry
 identical when collection starts empty, the window resizes, or horizontal scrolling is active.
+
+## Restricted lifetime continuity and service icons
+
+[KernelProcessLifetimeReader](src/ProcSight.Windows/Collection/KernelProcessLifetimeReader.cs) optionally
+uses the Windows 11 SystemBasicProcessInformation API. Its sequence number distinguishes PID reuse
+without opening the target process. It is [documented by Microsoft](https://learn.microsoft.com/en-us/windows/win32/api/winternl/nf-winternl-ntquerysysteminformation?redirectedfrom=MSDN)
+for Windows 11 26100.4770 and later. Runtime resolution and bounded parsing permit conservative
+Toolhelp fallback on unavailable or unsupported builds.
+
+`ProcessLifetimeTracker` derives a collector-session/PID/sequence GUID for ProcessKey.SnapshotScope,
+which can now represent a confirmed lifetime scope instead of a fresh snapshot scope. It retains
+observed creation time through permission failures only while the kernel sequence still matches.
+[WindowsSnapshotSource](src/ProcSight.Windows/Collection/WindowsSnapshotSource.cs) enumerates those
+kernel records, reads metadata, then confirms sequences before publishing. Reused or unconfirmed
+rows are excluded; scope reuse never authenticates files or resolves parent ownership without the
+existing creation-time checks. Handle failures attach safe unavailability reasons. If the optional
+API is unavailable initially, unknown creation times retain conservative per-snapshot scopes.
+
+The [coordinator](src/ProcSight.Application/Analysis/AnalysisCoordinator.cs) keeps name-only automatic
+assessments Unknown with explicit limited-analysis guidance. Manual work against a stable lifetime
+can complete across polling; generated rules still require validated identifying evidence.
+[ProcessIconSource](src/ProcSight.Application/Presentation/ProcessIconSource.cs) selects configured
+service implementation or host file metadata for cosmetic display. [Icon loading](src/ProcSight.App/MainWindow.Icons.cs)
+remains bounded/cached/off-thread and checks the selected file key before publication. A change of
+source clears the row icon. Missing icons use a 16px Fluent gear; this is not loaded-module proof.
+
+This UML sequence view shows the lifetime and privilege boundary:
+
+```mermaid
+sequenceDiagram
+    participant Kernel as Optional kernel enumeration
+    participant Collector as WindowsSnapshotSource
+    participant Scope as ProcessLifetimeTracker
+    participant Target as Per-process metadata APIs
+    participant Resolver as Identity resolver / coordinator
+    Kernel-->>Collector: PID and lifetime sequence
+    Collector->>Target: Read available metadata without elevation
+    Target-->>Collector: Readable fields or safe denial reasons
+    Collector->>Scope: Resolve scope using session / PID / sequence
+    Scope-->>Collector: Stable scope and observed creation time if known
+    Collector->>Kernel: Confirm sequence after capture
+    alt Sequence still matches
+        Collector->>Resolver: Publish partial metadata under confirmed scope
+    else Missing or changed confirmation
+        Collector->>Collector: Exclude unconfirmed rows
+    end
+    Note over Scope,Resolver: Lifetime continuity does not prove executable identity or parent ownership
+```

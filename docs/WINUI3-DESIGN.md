@@ -97,3 +97,7 @@ selection. Service host signatures remain separate from implementation signature
 Process/service table headings share the row grid's actual width and horizontal offset, including
 when the initial collection is empty. Align CommandBar content vertically with its native actions;
 verify geometry through resizing rather than checking only a static screenshot.
+
+Service rows use a 16px Fluent gear fallback when their configured implementation/host file icon
+is unavailable. Keep the icon slot fixed and the service name in a constrained star column so long
+names trim before neighboring metadata. File icons are cosmetic, not authentication evidence.

@@ -1,6 +1,6 @@
 # Development verification
 
-Recorded 2026-10-14. ProcSight is an unreleased development preview, not a completed
+Recorded 2026-10-15. ProcSight is an unreleased development preview, not a completed
 release certification. No real API credentials, process dumps, or paid provider requests
 were used for automated verification.
 
@@ -17,10 +17,10 @@ Locked restore and native Release build passed with zero warnings/errors. Test r
 | Project | Passed | Focus |
 | --- | ---: | --- |
 | Core | 62 | Identity/privacy/rules and persisted opaque ChatGPT profile binding |
-| Application | 84 | Ordering/captions/activity and concise app/host naming despite old AI prose |
-| Infrastructure | 102 | Storage, OAuth/SSE/activity, safe failure reasons and empty-completion text preservation |
-| Windows | 26 | Native reads/icons/signatures and caption ownership/lifetime/timeout checks |
-| Total | 274 | No failed or skipped tests |
+| Application | 92 | Ordering/captions/activity and concise app/host naming despite old AI prose |
+| Infrastructure | 103 | Storage, OAuth/SSE/activity, safe failure reasons and empty-completion text preservation |
+| Windows | 33 | Native reads/icons/signatures and caption ownership/lifetime/timeout checks |
+| Total | 290 | No failed or skipped tests |
 
 Key behaviors covered include same-name owners at different paths, PID reuse, all three
 classification axes, rejected name-only rules, expired referenced evidence, changed-owner
@@ -258,3 +258,22 @@ dark runs passed; the existing scrollbar/full-height-header/sort fixture passed 
 Final Debug/locked Release builds passed with zero warnings/errors and all 274 tests passed.
 Native layout assertions, changed-document links and diff whitespace checks passed. Live DPI,
 Narrator and high-contrast acceptance remain outstanding.
+
+## Restricted-process continuity and service icons
+
+Synthetic lifetime tests cover stable session/sequence scopes, PID reuse, permission flapping,
+conservative missing-proof fallback, malformed buffer rejection and missing final confirmation.
+Bounded current-kernel and live collector checks passed on Windows build 26300 without printing or
+persisting an inventory. A delayed fake provider completes limited manual analysis across polling
+with the same lifetime scope. Name-only automatic analysis remains disabled rather than implying
+identity/trust. The native `details-restricted` fixture preserves the selected process and expanded
+command section through three collection ticks.
+
+Eight icon-source tests cover service implementation/host precedence, absent paths, changed file keys
+and cosmetic trust boundaries. Native `services` fixtures verify two real file icons and gear fallback
+in dark/light modes, including a long name constrained to its column.
+[Native service icons](images/services-icons-native.png) contain synthetic services only. Older Windows
+API fallback and the full protected-process/access-permission matrix remain unverified.
+Final locked Release verification passed 290 tests (62 Core, 92 Application, 103 Infrastructure,
+33 Windows) without failures/skips or build warnings/errors. Native fixtures, changed-document
+links, diff whitespace checks and all 17 architecture diagrams passed. No live provider calls ran.

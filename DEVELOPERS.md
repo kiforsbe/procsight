@@ -235,3 +235,19 @@ The Debug `layout` fixture starts with an empty table, then populates a long syn
 checks every header boundary/width against realized row cells. It also checks title/action vertical
 centers, narrow resize, horizontal scrolling and wide restore. Use it with light and dark themes;
 `scroll` separately verifies vertical scrollbar position, header hit height and sort direction.
+
+## Restricted process lifetime and service icons
+
+`KernelProcessLifetimeReader` dynamically resolves NtQuerySystemInformation and optionally reads
+SystemBasicProcessInformation (252 in the installed Windows SDK). It bounds native allocations,
+entry counts, offsets and string pointers. `ProcessLifetimeTracker` maps session/PID/kernel sequence
+to a stable opaque ProcessKey scope and retains previously observed creation time only for the
+same confirmed sequence. Failed final confirmation excludes rows; unsupported enumeration falls
+back to Toolhelp and existing snapshot scopes. The process-name-only automatic-analysis gate remains;
+manual analysis can finish against limited stable evidence without creating name-only reusable rules.
+
+`ProcessIconSource` selects process executable or configured service implementation/host metadata;
+QueueIcon and row invalidation share its key. Tests and native `services` fixtures cover real icon and
+16px gear fallback presentation. `details-restricted` asserts a denied process stays selected and keeps
+its details controls across collection. Windows lifetime tests also perform bounded current-kernel and
+live collector checks; do not commit a machine dump or raw inventory to demonstrate those checks.

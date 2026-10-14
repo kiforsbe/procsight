@@ -3,6 +3,7 @@ namespace ProcSight.Windows.Collection;
 public sealed class WindowsSnapshotSource : IWindowsSnapshotSource
 {
     private readonly ProcessSampler sampler = new();
+    private readonly ProcessLifetimeTracker lifetimes=new();
     private readonly SemaphoreSlim captureGate = new(1);
     private readonly ProcessMetadataReader metadata = new();
     private readonly ExecutableEnricher enricher = new();
@@ -52,7 +53,9 @@ public sealed class WindowsSnapshotSource : IWindowsSnapshotSource
         var id = Guid.NewGuid(); var now = DateTimeOffset.UtcNow;
         if (Interlocked.Exchange(ref forceServiceRefresh,0)==1||now - servicesAt > TimeSpan.FromSeconds(10))
         { services = ServiceEnumerator.Read(); servicesAt = now; }
-        var processTable = WindowsNativeMethods.ReadProcessTable();
+        var kernelTable=KernelProcessLifetimeReader.Read();
+        var processTable=kernelTable is null?WindowsNativeMethods.ReadProcessTable():kernelTable.ToDictionary(p=>p.Key,p=>(p.Value.Parent,Name:string.IsNullOrWhiteSpace(p.Value.Name)?"[System Process]":p.Value.Name));
+        var tableObservedAt=DateTimeOffset.UtcNow;
         var commandMetadata = ProcessMetadataReader.ReadCommandLineMetadata();
         var commands = commandMetadata.Commands;
         var rows = new List<ProcessSnapshot>();
@@ -61,8 +64,9 @@ public sealed class WindowsSnapshotSource : IWindowsSnapshotSource
                 ct.ThrowIfCancellationRequested();
                 var pid = process.Key;
                 var counters=WindowsNativeMethods.ReadCounters(pid);
-                var started = counters.Started;
-                var key = new ProcessKey(pid, started, started is null ? id : null);
+                if(counters.Started>tableObservedAt) continue; // PID changed after enumeration.
+                var key=lifetimes.Resolve(pid,counters.Started,kernelTable?.GetValueOrDefault(pid)?.Sequence,id);
+                var started=key.StartedAt;
                 var pathRead = WindowsNativeMethods.ReadImagePathWithReason(pid);
                 var path = pathRead.Path;
                 var name=path is not null?Path.GetFileName(path):process.Value.Name;
@@ -72,8 +76,14 @@ public sealed class WindowsSnapshotSource : IWindowsSnapshotSource
                     services.Where(s => s.HostPid == pid && (started is null || started<=servicesAt)).Select(s => s.Name).ToArray(),
                     commands.TryGetValue(pid, out var command) ? new(command, now) : null,
                     MetadataIssues: (pathRead.Reason is { } pathReason ? new[] { new MetadataIssue("ExecutablePath",pathReason) } : [])
+                        .Concat(started is null&&counters.StartReason is { } startReason?new[]{new MetadataIssue("Started",startReason)}:[])
                         .Concat(command is null ? new[] { new MetadataIssue("CommandLine",commandMetadata.Issues.GetValueOrDefault(pid,commandMetadata.MissingReason)) } : []).ToArray()));
         }
+        if(kernelTable is not null) {
+            var confirmed=KernelProcessLifetimeReader.Read();
+            rows=rows.Where(r=>KernelProcessLifetimeReader.ConfirmsLifetime(kernelTable[r.Key.Pid],confirmed?.GetValueOrDefault(r.Key.Pid))).ToList();
+        }
+        lifetimes.Prune(rows.Select(r=>r.Key.Pid).ToHashSet());
         sampler.Prune(rows.Select(r => r.Key).ToHashSet());
         var windows=WindowMetadataReader.Read(rows.Select(r=>r.Key).ToArray());
         rows=rows.Select(p=>p with { Windows=windows.GetValueOrDefault(p.Key.Pid) }).ToList();

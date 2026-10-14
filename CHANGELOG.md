@@ -7,6 +7,12 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Restricted process lifetime scopes use optional Windows kernel sequence numbers, preventing
+  repeated identity/details resets and allowing limited manual analysis to finish across collection.
+  PID reuse and failed confirmation invalidate the scope; name-only automatic analysis stays Unknown.
+- Services now show implementation/host file icons where available, with a properly sized native
+  gear fallback and names constrained to the Name column.
+
 - Fixed process/service toolbar title alignment and table headers that could be narrower than
   their rows. Header alignment now follows viewport/extent changes and horizontal scrolling.
 

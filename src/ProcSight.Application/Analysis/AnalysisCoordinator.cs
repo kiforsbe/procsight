@@ -82,7 +82,7 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
         Publish(entity,local.Assessments.Count>0?AnalysisState.Local:historical?AnalysisState.Stale:AnalysisState.Unknown,local);
         if(!manual && entity.Process is not null && !entity.Facts.ContainsKey("path") && !entity.Facts.ContainsKey("hash"))
         {
-            Publish(entity,AnalysisState.Unknown,local,"Only a process name is available. Automatic analysis waits for stable metadata; manual investigation remains available.");
+            Publish(entity,AnalysisState.Unknown,local,"Executable identity metadata is unavailable. Automatic analysis cannot authenticate a process from its name alone. Select Analyze for a limited assessment of the available metadata.");
             return;
         }
         if(local.UnresolvedAxes.Count==0&&!manual || !config.AutomaticEnabled&&!manual || config.Provider is null&&config.LocalModel is null) return;
