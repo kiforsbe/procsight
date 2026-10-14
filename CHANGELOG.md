@@ -7,6 +7,9 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Process names preserve established application identities and specific local host/invocation roles.
+  Explanatory AI identity prose no longer replaces table labels, including previously saved assessments.
+
 - Fixed ChatGPT plan inference discarding valid streamed explanations when the successful completion
   event contains an empty output array. Streamed output still requires completion and full validation.
 

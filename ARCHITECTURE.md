@@ -548,8 +548,12 @@ the system's nonblocking foreign-caption API. Captions are not control contents 
 
 ProcessSnapshot.Windows and caption/class properties are JsonIgnore; diagnostic ToString methods
 omit captions. They never enter facts, identity, knowledge, rules, or any provider/research
-projection. DisplayName appends a useful caption while retaining host/role labels; foreground and
-non-minimized windows take priority, with lexical fallback. Details exposes all observations.
+projection. DisplayName appends a useful caption while retaining host/role labels.
+Specific local invocation/service labels take precedence over AI executable labels. Established application
+identity is preserved; an assessed label can append an allowlisted role or name an otherwise unknown
+executable only when it passes concise-name checks. Explanatory signer/metadata prose remains in
+assessment details, even for old persisted labels. Captions prefer foreground then non-minimized
+windows, with lexical fallback. Details exposes all observations.
 Because window data is absent from identity/fingerprints, changing titles updates presentation
 without provider re-analysis or regrouping.
 

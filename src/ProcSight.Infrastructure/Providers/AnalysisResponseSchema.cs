@@ -11,7 +11,9 @@ public static class AnalysisResponseSchema
     Never claim a known threat without exact-hash attributable threat evidence.
     Provide a short evidence-backed identityLabel and a role chosen from Renderer, Utility,
     Worker, CLI, Updater, Service, Background helper, Unknown (or null if unsupported).
-    identityLabel must be at most 120 characters. Return only the requested JSON object.
+    identityLabel is a concise process name, at most 64 characters and 8 words. Preserve an established
+    product/application name. Do not include signer, metadata, trust, confidence or explanatory prose in
+    identityLabel; put those observations in assessment reasons instead. Return only the requested JSON object.
     Propose reusable declarative rules supported by these facts: exact hash, or multiple independent
     identity fields. Never generalize from a name alone. Rule assessmentIndexes reference assessments.
     Do not copy secrets, personal arguments or full command lines into reasons or predicates.

@@ -17,10 +17,10 @@ Locked restore and native Release build passed with zero warnings/errors. Test r
 | Project | Passed | Focus |
 | --- | ---: | --- |
 | Core | 52 | Identity/privacy/rules and persisted opaque ChatGPT profile binding |
-| Application | 66 | Ordering/Details/captions and bounded privacy-safe activity history |
+| Application | 71 | Ordering/captions/activity and concise app/host naming despite old AI prose |
 | Infrastructure | 99 | Storage, OAuth/SSE/activity, safe failure reasons and empty-completion text preservation |
 | Windows | 20 | Native reads/icons/signatures and caption ownership/lifetime/timeout checks |
-| Total | 237 | No failed or skipped tests |
+| Total | 242 | No failed or skipped tests |
 
 Key behaviors covered include same-name owners at different paths, PID reuse, all three
 classification axes, rejected name-only rules, expired referenced evidence, changed-owner

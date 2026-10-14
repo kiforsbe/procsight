@@ -23,6 +23,9 @@ executable identity separate from per-invocation/service roles. Bundled common r
 verified signer plus product/original-name gates and supply purpose only; they must not
 override unresolved learned conflicts or fresh user corrections. Command-derived display
 labels stay transient. Icon loading is bounded, cached, off-thread, and releases native handles.
+Table names prioritize specific local host/service roles and established app identity. AI labels
+must be concise names, never signer/evidence/trust explanations; unknown executables may use concise
+assessed names. Preserve useful local window captions and keep explanatory text in assessment details.
 
 ## Product boundaries
 

@@ -32,10 +32,7 @@ public static class ProcessRoleLabels
     public static string DisplayName(ResolvedEntity entity,string? assessedLabel=null)
     {
         var local=Describe(entity);
-        var generic=assessedLabel is null || string.Equals(assessedLabel,entity.Owner,StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(assessedLabel,entity.DisplayName,StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(assessedLabel,ProcSight.Core.Rules.KnownTaskCatalog.Match(entity)?.Label,StringComparison.OrdinalIgnoreCase);
-        var label=local.Specific&&generic?local.Label:assessedLabel ?? local.Label;
+        var label=SelectBaseLabel(entity,local,assessedLabel);
         var windows=entity.Process?.Windows;
         var title=windows?.Where(w=>!string.IsNullOrWhiteSpace(w.Title)).OrderByDescending(w=>w.Foreground)
             .ThenBy(w=>w.Minimized).ThenBy(w=>w.Title,StringComparer.Ordinal).FirstOrDefault()?.Title;
@@ -49,5 +46,30 @@ public static class ProcessRoleLabels
                 if(title.EndsWith(separator+alias,StringComparison.OrdinalIgnoreCase)) title=title[..^(separator.Length+alias!.Length)].Trim();
         }
         return title.Length==0||label.EndsWith(" — "+title,StringComparison.OrdinalIgnoreCase)?label:label+" — "+title;
+    }
+    private static string SelectBaseLabel(ResolvedEntity entity,RoleLabel local,string? assessment)
+    {
+        // Invocation/service evidence is more specific than an executable-wide AI identity.
+        if(local.Specific||!ConciseName(assessment)) return local.Label;
+        var candidate=assessment!.Trim();
+        var executable=entity.Process?.Executable;
+        var genericHost=executable?.Name.ToLowerInvariant() is "python.exe" or "pythonw.exe" or "py.exe" or "node.exe" or
+            "node_repl.exe" or "cmd.exe" or "pwsh.exe" or "powershell.exe" or "dotnet.exe" or "wscript.exe" or "cscript.exe" or "plexscripthost.exe";
+        var established=entity.Service is not null||ProcSight.Core.Rules.KnownTaskCatalog.Match(entity) is not null ||
+            !genericHost&&executable is not null&&(!string.IsNullOrWhiteSpace(executable.Product)||entity.DisplayName!=executable.Name);
+        if(!established) return candidate;
+        if(candidate.Equals(local.Label,StringComparison.OrdinalIgnoreCase)) return local.Label;
+        var prefix=local.Label+" — ";
+        if(candidate.StartsWith(prefix,StringComparison.OrdinalIgnoreCase)&&candidate[prefix.Length..] is
+            "Renderer" or "Utility" or "Worker" or "CLI" or "Updater" or "Service" or "Background helper")
+            return local.Label+" — "+candidate[prefix.Length..];
+        return local.Label;
+    }
+    private static bool ConciseName(string? value)
+    {
+        if(string.IsNullOrWhiteSpace(value)||value.Trim().Length>64||value.Any(char.IsControl)||value.IndexOfAny([';',':','='])>=0) return false;
+        if(value.Split(' ',StringSplitOptions.RemoveEmptyEntries).Length>8) return false;
+        return !System.Text.RegularExpressions.Regex.IsMatch(value,@"\b(metadata|evidence|signer|signed|publisher|identifies|identified|confidence|because|appears|likely|probably)\b",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase|System.Text.RegularExpressions.RegexOptions.CultureInvariant);
     }
 }

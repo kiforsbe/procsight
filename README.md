@@ -60,6 +60,8 @@ directly with its name, PID, and resources. Membership changes preserve the top-
 selection follows a remaining child when its group becomes a single process.
 
 Visible-window captions add local context to process names, such as `Notepad — document.txt`.
+Established app names and specific host/script roles take priority over AI label suggestions.
+AI signer/metadata explanations stay in assessment details; concise suggestions can still name unknown executables.
 Foreground windows take priority; host/script roles remain visible. Details lists collected
 captions, window classes, and foreground/minimized state. Window metadata stays transient and
 local, never entering provider payloads, learned rules, or process identity/grouping.
