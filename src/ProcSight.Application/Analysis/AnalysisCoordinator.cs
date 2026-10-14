@@ -77,12 +77,17 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
     {
         var knowledge=await store.ReadCandidatesAsync(entity,ct);
         if(config!=policy) return;
-        var local=engine.Evaluate(entity,knowledge,time.GetUtcNow());
+        var local=EvaluateLocal(entity,knowledge);
         ScheduleReview(entity,local,knowledge);
         var historical=knowledge.Assessments.Any(a=>a.ExpiresAt<=time.GetUtcNow()) || knowledge.Rules.Any(r=>
             (r.ReviewAt<=time.GetUtcNow()||r.ExpiresAt<=time.GetUtcNow()) && r.Predicates.All(p=>
                 entity.Facts.TryGetValue(p.Field,out var value)&&PredicateMatcher.Matches(p,value)));
         Publish(entity,local.Assessments.Count>0?AnalysisState.Local:historical?AnalysisState.Stale:AnalysisState.Unknown,local);
+        if(!manual && entity.Process is not null && !entity.Facts.ContainsKey("path") && !entity.Facts.ContainsKey("hash"))
+        {
+            Publish(entity,AnalysisState.Unknown,local,"Only a process name is available. Automatic analysis waits for stable metadata; manual investigation remains available.");
+            return;
+        }
         if(local.UnresolvedAxes.Count==0&&!manual || !config.AutomaticEnabled&&!manual || config.Provider is null&&config.LocalModel is null) return;
         CancellationToken token; lock(policyLock) token=policyCancellation.Token;
         Interlocked.Increment(ref outstanding);
@@ -113,7 +118,7 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
         if(authPaused) { Publish(work.Entity,AnalysisState.Failed,Empty(work.Entity),"Provider authentication paused; update settings."); return; }
         var config=work.Policy; var limits=config.Limits ?? new(); var date=DateOnly.FromDateTime(time.GetLocalNow().Date);
         var entity=work.Entity;
-        var knowledge=await store.ReadCandidatesAsync(entity,ct); var local=engine.Evaluate(entity,knowledge,time.GetUtcNow());
+        var knowledge=await store.ReadCandidatesAsync(entity,ct); var local=EvaluateLocal(entity,knowledge);
         if(local.UnresolvedAxes.Count==0&&!work.Manual) { Publish(entity,AnalysisState.Local,local); return; }
         if(!work.Manual&&!await ledger.TryReserveAsync(UsageKind.AutomaticJob,date,limits,ct))
         { Publish(entity,AnalysisState.BudgetPaused,local,"Daily analysis job limit reached."); return; }
@@ -151,13 +156,15 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
             var entry=new KnowledgeEntry(entity.Identity,time.GetUtcNow(),projected.Assessments,payload.Evidence,rules,knowledge.Corrections,
                 rules.Where(r=>r.State==RuleState.Active).Select(r=>r.Id).ToList(),projected.IdentityLabel,projected.Role);
             await store.SaveAsync(entry,ct);
-            local=engine.Evaluate(entity,await store.ReadCandidatesAsync(entity,ct),time.GetUtcNow());
+            local=EvaluateLocal(entity,await store.ReadCandidatesAsync(entity,ct));
             ScheduleReview(entity,local,await store.ReadCandidatesAsync(entity,ct));
             Publish(entity,local.UnresolvedAxes.Count>0?AnalysisState.Unknown:AnalysisState.Local,local);
             return;
         }
     }
     private static LocalAnalysis Empty(ResolvedEntity entity)=>new([],entity.Owner,[],[],Enum.GetValues<AssessmentAxis>().ToHashSet());
+    private LocalAnalysis EvaluateLocal(ResolvedEntity entity,KnowledgeEntry knowledge)=>KnownTaskCatalog.Supplement(entity,
+        engine.Evaluate(entity,knowledge,time.GetUtcNow()),knowledge,time.GetUtcNow());
     private void ScheduleReview(ResolvedEntity entity,LocalAnalysis local,KnowledgeEntry knowledge)
     {
         var matched=knowledge.Rules.Where(r=>local.MatchingRuleIds.Contains(r.Id)).ToList();

@@ -9,6 +9,10 @@ public sealed partial class MainWindow
         if(knowledge is null) return;
         var panel=new StackPanel { Spacing=12,Margin=new Thickness(24) };
         panel.Children.Add(new TextBlock { Text="Knowledge",FontSize=24 });
+        panel.Children.Add(new TextBlock { Text=$"{ProcSight.Core.Rules.KnownTaskCatalog.Definitions.Count} bundled common-task rules · purpose only · require verified identity metadata",TextWrapping=TextWrapping.Wrap });
+        var common=new Button { Content="Inspect bundled common-task rules…" };
+        common.Click+=async(_,_)=>await MessageAsync("Common-task catalog",System.Text.Json.JsonSerializer.Serialize(ProcSight.Core.Rules.KnownTaskCatalog.Definitions,new System.Text.Json.JsonSerializerOptions { WriteIndented=true }));
+        panel.Children.Add(common);
         var count=new TextBlock { Text="Loading reusable rules…",TextWrapping=TextWrapping.Wrap }; panel.Children.Add(count);
         var clear=new Button { Content="Clear generated knowledge…" }; clear.Click+=async(_,_)=>await ClearKnowledgeAsync(ClearScope.GeneratedKnowledge);
         var corrections=new Button { Content="Clear user corrections…" }; corrections.Click+=async(_,_)=>await ClearKnowledgeAsync(ClearScope.UserCorrections);

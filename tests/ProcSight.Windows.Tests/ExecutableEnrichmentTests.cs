@@ -4,6 +4,16 @@ using Xunit;
 namespace ProcSight.Windows.Tests;
 public sealed class ExecutableEnrichmentTests
 {
+    [Fact] public async Task ActualWindowsHostMatchesBundledReference()
+    {
+        var path=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),"svchost.exe");
+        var metadata=await new ExecutableEnricher().EnrichAsync(new ProcessMetadataReader().Read("svchost.exe",path),default);
+        var now=DateTimeOffset.UtcNow;
+        var process=new ProcessSnapshot(new(1,now,null),null,metadata,new(Observation<double>.Pending(),Observation<long>.Pending(),
+            Observation<double>.Pending(),Observation<double>.Pending(),now,null),[]);
+        var entity=Assert.Single(new ProcSight.Core.Identity.IdentityResolver().Resolve(new(Guid.NewGuid(),now,[process],[]),[]));
+        Assert.True(ProcSight.Core.Rules.KnownTaskCatalog.Evaluate(entity,now) is not null,$"Signature={metadata.Signature}; signer={metadata.VerifiedSigner}; original={metadata.OriginalName}; product={metadata.Product}");
+    }
     [Fact] public async Task ChangedFileInvalidatesHash()
     {
         var path = Path.GetTempFileName();

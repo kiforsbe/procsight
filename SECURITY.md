@@ -52,6 +52,12 @@ See [verification](docs/verification.md) for evidence and outstanding checks. Di
 and GPU measurements are unavailable/deferred. Protected-process access denial is normal
 partial collection; launching with administrator privilege is not required.
 
+Bundled common-task definitions identify known executable purpose using verified signer and
+product/original-name metadata. They do not establish safety, necessity, or the exact behavior
+of the current invocation. Local role labels derived from permitted command context are
+transient display data. Shell icon reads reject network paths, run off-thread, and release
+native handles; an icon is cosmetic and never identity or security evidence.
+
 AI classifications are not antivirus verdicts. A legitimate signer or cached explanation
 does not alone establish that a running process is safe.
 

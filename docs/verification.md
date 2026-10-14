@@ -16,11 +16,11 @@ Locked restore and native Release build passed with zero warnings/errors. Test r
 
 | Project | Passed | Focus |
 | --- | ---: | --- |
-| Core | 31 | Identity, ownership boundaries, privacy, rule validation/matching/expiry |
-| Application | 4 | Navigation, search, incomplete totals, 500-process projection/churn |
-| Infrastructure | 30 | SQLite, provider/research validation, coordinator, persistent learning |
-| Windows | 10 | Live read-only collection, native protected reads, enrichment, preferences, credentials |
-| Total | 75 | No failed or skipped tests |
+| Core | 37 | Identity/privacy/rules and common catalog gates, signer subjects, conflicts |
+| Application | 13 | Stable ordering, group churn, tree collapse, local roles/scripts, 500-process churn |
+| Infrastructure | 32 | Persistence/providers/coordinator, common-purpose evaluation offline |
+| Windows | 13 | Native reads, real icons, signed service-host matching, preferences/credentials |
+| Total | 95 | No failed or skipped tests |
 
 Key behaviors covered include same-name owners at different paths, PID reuse, all three
 classification axes, rejected name-only rules, expired referenced evidence, changed-owner
@@ -47,10 +47,17 @@ processes and assessments, then exits. It does not collect machine metadata, loa
 access credentials, or send provider requests. Dark wide-table and light narrow-detail
 captures were inspected. Header/row alignment and the light detail background were corrected
 from those captures. The renderer omits native caption buttons and Mica composition.
+The expanded-group fixture exercises expansion/collapse/re-expansion with the same selected
+group through the actual window handler. Its rendering shows distinct extension-host,
+renderer, and GPU-worker labels and a Shell-loaded Notepad icon. This verifies fixture state
+and rendering, not physical mouse delivery. Metric-order and single-member-group regressions
+are covered by portable tests; a real signed Windows service host validates catalog matching.
 
 ![Dark process table](images/processes-dark.png)
 
 ![Light narrow details](images/details-light.png)
+
+![Expanded group with specific local roles](images/tree-groups.png)
 
 A live credential-free launch exposed the native title bar, navigation, processes, group
 counts, CPU/memory totals, and search through accessibility inspection. The computer-use
@@ -58,7 +65,7 @@ capture returned the background window, and input failed with unavailable coordi
 geometry. Therefore desktop clicks, keyboard/screen-reader behavior, and live caption/Mica
 appearance are not claimed verified by that tool.
 
-Mermaid class, sequence, and state diagrams in [ARCHITECTURE.md](../ARCHITECTURE.md) were
+Six Mermaid class, sequence, and state diagrams in [ARCHITECTURE.md](../ARCHITECTURE.md) were
 parsed and rendered locally. Local documentation targets and whitespace were checked.
 
 ## Outstanding acceptance work
@@ -72,9 +79,14 @@ parsed and rendered locally. Local documentation targets and whitespace were che
   The 500-row test checks projection identity/churn, not a timed native UI performance claim.
 - Exercise recovery and storage fault injection while collection runs, and audit the complete
   package redistribution/license inventory before distributing executable releases.
-- Finish the independent whole-branch review. A fresh reviewer reported ownership-identity
+- Finish the baseline independent whole-branch review. A fresh reviewer reported ownership-identity
   and referenced-evidence/cache freshness findings, reproduced and fixed, then stopped because
   the account usage limit prevented review completion. No independent security audit is claimed.
 
+A focused independent review of this live-list/catalog change completed. Real certificate
+subject matching, conflict/correction precedence, and preservation of specific role labels
+were corrected and verified. A reported selection-action concern was checked against the
+existing post-reconciliation action refresh; collapse now selects the parent explicitly.
+
 Disk/network counters remain unavailable; GPU collection and management/cleanup actions are
-deferred. Generic native process symbols are used until executable icon collection is added.
+deferred. Missing/inaccessible executable artwork uses a fallback native symbol.

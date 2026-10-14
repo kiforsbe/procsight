@@ -19,6 +19,29 @@ public sealed class CountingProvider : IAnalysisProvider
 }
 public sealed class CoordinatorTests : IDisposable
 {
+    [Fact] public async Task NameOnlyProtectedSnapshotsDoNotSpendAutomaticJobsRepeatedly()
+    {
+        await using var coordinator=Coordinator();
+        for(var i=0;i<3;i++) {
+            var p=Samples.Process() with { Key=new(20,null,Guid.NewGuid()),Executable=new("unknown.exe") };
+            await coordinator.ObserveAsync(Samples.Snapshot(p),Policy(),default);
+            await coordinator.WaitForIdleAsync(default);
+        }
+        Assert.Equal(0,provider.Calls);
+    }
+    [Fact] public async Task BundledRulesExplainKnownTasksWithoutCloudPermission()
+    {
+        await using var coordinator=Coordinator();
+        var p=Samples.Process() with { Executable=new("svchost.exe",@"C:\Windows\System32\svchost.exe",
+            Product:"Microsoft Windows",Signature:SignatureStatus.Verified,VerifiedSigner:"Microsoft Windows",OriginalName:"svchost.exe") };
+        await coordinator.ObserveAsync(Samples.Snapshot(p),new(),default);
+        using var timeout=new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        await using var updates=coordinator.Updates(timeout.Token).GetAsyncEnumerator();
+        Assert.True(await updates.MoveNextAsync());
+        Assert.Equal("Windows service host",updates.Current.Result.IdentityLabel);
+        Assert.Contains(AssessmentAxis.Security,updates.Current.Result.UnresolvedAxes);
+        Assert.Equal(0,provider.Calls);
+    }
     private readonly string folder=Path.Combine(Path.GetTempPath(),Guid.NewGuid().ToString());
     private readonly CountingProvider provider=new();
     private AnalysisCoordinator Coordinator()

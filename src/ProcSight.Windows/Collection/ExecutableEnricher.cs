@@ -13,7 +13,7 @@ public sealed class ExecutableEnricher
             var info=new FileInfo(path); var stamp=$"{info.Length}:{info.LastWriteTimeUtc.Ticks}:{info.CreationTimeUtc.Ticks}";
             if(!cache.TryGetValue(path,out var cached)||cached.Stamp!=stamp) return false;
             result=cached.Value with { Name=metadata.Name,Product=metadata.Product,Company=metadata.Company,
-                Version=metadata.Version,PackageIdentity=metadata.PackageIdentity,Description=metadata.Description };
+                Version=metadata.Version,PackageIdentity=metadata.PackageIdentity,Description=metadata.Description,OriginalName=metadata.OriginalName };
             return true;
         }
         catch(Exception e) when(e is IOException or UnauthorizedAccessException) { return false; }
@@ -26,7 +26,7 @@ public sealed class ExecutableEnricher
             var info = new FileInfo(path); var stamp = $"{info.Length}:{info.LastWriteTimeUtc.Ticks}:{info.CreationTimeUtc.Ticks}";
             if (cache.TryGetValue(path,out var cached) && cached.Stamp == stamp)
                 return cached.Value with { Name=metadata.Name, Product=metadata.Product, Company=metadata.Company,
-                    Version=metadata.Version, PackageIdentity=metadata.PackageIdentity,Description=metadata.Description };
+                    Version=metadata.Version, PackageIdentity=metadata.PackageIdentity,Description=metadata.Description,OriginalName=metadata.OriginalName };
             await using var file = new FileStream(path,FileMode.Open,FileAccess.Read,FileShare.ReadWrite|FileShare.Delete,65536,true);
             var hash = Convert.ToHexString(await SHA256.HashDataAsync(file,ct));
             ct.ThrowIfCancellationRequested();

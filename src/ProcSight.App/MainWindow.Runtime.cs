@@ -94,6 +94,11 @@ public sealed partial class MainWindow
                 detail.Text+="\n\nHistorical findings (expired; not current):\n"+string.Join("\n",cached.Assessments.Where(a=>a.ExpiresAt<=DateTimeOffset.UtcNow)
                     .Select(a=>$"{a.Axis}: {a.Value}; expired {a.ExpiresAt.LocalDateTime:g}"));
             evidencePanel.Children.Clear();
+            if(KnownTaskCatalog.Match(entity) is { } common)
+            {
+                evidencePanel.Children.Add(new TextBlock { Text=$"Bundled rule: {common.Label} · verified signer/metadata match; purpose only",TextWrapping=TextWrapping.Wrap });
+                evidencePanel.Children.Add(new HyperlinkButton { Content="Common-task reference source",NavigateUri=new(common.SourceUrl) });
+            }
             var evidence=entity.Evidence.Concat(cached.Evidence).DistinctBy(e=>e.Id).ToList();
             foreach(var record in evidence.Take(20))
             {

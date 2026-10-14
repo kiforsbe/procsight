@@ -11,7 +11,7 @@ public enum SignatureStatus { Unavailable, Unsigned, Invalid, Verified }
 public sealed record ExecutableMetadata(string Name, string? FullPath = null,
     string? ContentHash = null, string? Version = null, string? Product = null,
     string? Company = null, SignatureStatus Signature = SignatureStatus.Unavailable,
-    string? VerifiedSigner = null, string? FileIdentity = null, string? PackageIdentity = null,string? Description=null);
+    string? VerifiedSigner = null, string? FileIdentity = null, string? PackageIdentity = null,string? Description=null,string? OriginalName=null);
 public sealed record ResourceSample(Observation<double> CpuPercent,
     Observation<long> WorkingSetBytes, Observation<double> DiskBytesPerSecond,
     Observation<double> NetworkBytesPerSecond, DateTimeOffset SampledAt, TimeSpan? Interval);

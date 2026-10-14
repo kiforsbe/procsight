@@ -95,9 +95,11 @@ test projects (including Windows integration), and `git diff --check`. Record ex
 and results, and maintain documented local build/test scripts. Automated checks use fake
 providers; real provider tests are explicit opt-in actions with synthetic data.
 
-The Debug executable accepts `--visual-fixture <absolute-png-path> [Dark|Light] [width] [details]`.
+The Debug executable accepts `--visual-fixture <absolute-png-path> [Dark|Light] [width] [details|groups]`.
 It renders the actual XAML tree using synthetic data, without collection, preferences,
-credential access, or provider calls, then exits. This mode is absent from Release builds.
+credential access, or provider calls, then exits. It may read a standard Windows icon asset.
+The `groups` fixture selects a group and exercises expansion/collapse/re-expansion without
+reselection, writing an ignored `.checks` companion. This mode is absent from Release builds.
 It captures content; native caption buttons and Mica composition are outside that bitmap.
 Use an ignored scratch path for temporary captures and deliberately review images before
 tracking them. See [Microsoft's rendering API](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.media.imaging.rendertargetbitmap.renderasync)
@@ -106,6 +108,12 @@ for capture limitations.
 The UI follows Task Manager's compact table and navigation patterns. Details adapt to the
 window width. Keep slow collection, hashing, database work, and HTTP off the dispatcher;
 presentation projections are portable and tested without WinUI initialization.
+
+`KnownTaskCatalog` contains shared, versioned-in-source purpose references. Add exact publisher
+and product/original-file identity gates plus a primary source for new entries. Test real
+certificate-subject formats and localized Windows metadata. Never infer security or optionality
+from a recognized executable name. Keep rule conflicts and fresh corrections authoritative.
+`ProcessRoleLabels` only creates local display labels; do not serialize them into shared facts.
 
 CI/CD workflows are intentionally excluded from this repository setup. Do not add GitHub
 Actions, deployment pipelines, or automatic publication without a subsequent user request.

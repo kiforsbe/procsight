@@ -14,7 +14,7 @@ public sealed class ProcessMetadataReader
             if (cache.TryGetValue(path, out var value) && value.Stamp == stamp) return value.Value;
             var version = FileVersionInfo.GetVersionInfo(path);
             var metadata = new ExecutableMetadata(name, path, Version: version.FileVersion,
-                Product: version.ProductName, Company: version.CompanyName,Description:version.FileDescription);
+                Product: version.ProductName, Company: version.CompanyName,Description:version.FileDescription,OriginalName:version.OriginalFilename);
             cache[path] = (stamp, metadata);
             return metadata;
         }

@@ -36,6 +36,8 @@
 *.log
 *.dmp
 *.etl
+*.png.checks
+*.png.error
 
 # Local credentials and personal configuration
 .env

@@ -7,6 +7,25 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Bundled machine-independent common-task catalog with source references and verified
+  metadata gates, plus provisional local renderer/worker/service role labels.
+- Windows Shell executable icons loaded asynchronously with a bounded in-memory cache.
+
+### Fixed
+
+- Live metric samples no longer continuously reorder rows or notify every cell. Sibling
+  order and viewport anchors persist until explicit sorting/refresh; single-member groups
+  retain their group identity as processes enter and exit.
+- Native chevron buttons expand/collapse selected application groups repeatedly, independently
+  of selection changes. Raw parent/child trees can also be collapsed.
+- Generic catalog identities preserve service-specific and invocation-specific names.
+- Common-rule matching handles actual certificate distinguished names and Windows `.mui`
+  original-file metadata; conflicts and fresh corrections retain precedence.
+- Name-only protected snapshots do not repeatedly consume automatic AI jobs as their
+  unavailable-lifetime identities change; manual investigation remains available.
+
+### Analysis foundation
+
 - Persistent local knowledge and validated declarative rules for purpose, security, and
   optionality; scoped user corrections, rule inspection/disable/delete, and retention.
 - OpenAI Responses and compatible/local analysis adapters, separately enabled web research,
@@ -46,6 +65,6 @@ in this repository; planned product features are documented in the design and ro
 
 - The application is an unreleased development preview. Live provider integration and the
   full desktop accessibility/scaling matrix remain unverified. Disk/network/GPU measurements
-  are not collected; native process icons currently use a generic symbol.
+  are not collected; inaccessible icon assets use a fallback symbol.
 - No GitHub remote or private vulnerability-reporting channel is configured in this
   checkout. CI/CD workflows are intentionally excluded.

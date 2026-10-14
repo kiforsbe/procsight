@@ -24,6 +24,9 @@ Additional code owners: [coordinator](src/ProcSight.Application/Analysis/Analysi
 [provider HTTP](src/ProcSight.Infrastructure/Providers/ProviderHttp.cs),
 [native table](src/ProcSight.App/MainWindow.Processes.cs), and
 [portable presentation](src/ProcSight.Application/Presentation/ProcessListProjection.cs).
+Live presentation also owns [local role labels](src/ProcSight.Application/Presentation/ProcessRoleLabels.cs);
+Windows supplies [executable icon pixels](src/ProcSight.Windows/Collection/ExecutableIconReader.cs).
+[KnownTaskCatalog](src/ProcSight.Core/Rules/KnownTaskCatalog.cs) supplies shared purpose references.
 
 Use UML liberally to explain structure, interactions, and lifecycle behavior. Store diagrams
 as editable Mermaid blocks alongside the prose so GitHub can render them. Prefer UML class,
@@ -98,10 +101,31 @@ classDiagram
         Sanitized identity queries
         Attributable sources
     }
+    class KnownTaskCatalog {
+        <<component>>
+        Verified metadata gates
+        Shared purpose references
+        Conflict and correction precedence
+    }
+    class LivePresentation {
+        <<component>>
+        Stable sibling order and keys
+        Independent expansion state
+        Transient local role labels
+    }
+    class ExecutableIcons {
+        <<adapter>>
+        Windows Shell and GDI pixels
+        Bounded async reads
+        Native handle cleanup
+    }
     NativeUI ..> WindowsCollector : observes snapshots
+    NativeUI ..> LivePresentation : reconciles rows without metric reorder
+    NativeUI ..> ExecutableIcons : caches cosmetic assets
     NativeUI ..> AnalysisCoordinator : investigates and observes
     AnalysisCoordinator ..> IdentityResolver : resolves entities
     AnalysisCoordinator ..> LocalAnalysisEngine : evaluates
+    AnalysisCoordinator ..> KnownTaskCatalog : supplements unresolved purpose
     AnalysisCoordinator ..> KnowledgeStore : reads and saves
     AnalysisCoordinator ..> PrivacyProjection : projects permitted data
     AnalysisCoordinator ..> AnalysisProvider : unresolved cases
@@ -199,6 +223,8 @@ Unknown or failed unchanged cases do not create a recurring request loop.
 Successful local findings are reevaluated at their earliest rule/assessment/evidence expiry,
 even while executable metadata stays unchanged. Policy revisions advance monotonically;
 an older observation cannot restore a newer policy's withdrawn permission.
+Name-only protected observations remain unknown and do not consume automatic jobs repeatedly
+as snapshot-scoped identities change. Manual investigation is still available within limits.
 Exact cached assessments also require their supporting local metadata to agree with current
 facts. Command-derived rules require a compatible command origin and controlled role context;
 they cannot silently classify a metadata-only observation after command collection is disabled.
@@ -210,6 +236,7 @@ sequenceDiagram
     participant I as Identity resolver
     participant K as Knowledge store
     participant L as Local analysis engine
+    participant B as Bundled common catalog
     participant P as Privacy projection
     participant R as Research adapter
     participant M as Analysis provider
@@ -221,6 +248,8 @@ sequenceDiagram
     K-->>A: Candidate knowledge
     A->>L: Evaluate current facts
     L-->>A: Findings and unresolved dimensions
+    A->>B: Supplement eligible purpose without overriding conflicts or corrections
+    B-->>A: Reference label and purpose, safety remains separate
     A-->>U: Local findings and live state
     alt Eligible local knowledge resolves case
         Note over A,M: No provider call
@@ -255,6 +284,14 @@ available. Results can enrich executable history after a process exits but canno
 a newly reused PID. Shutdown cancels queued work and stops collection.
 
 ## Rule lifecycle
+
+The bundled catalog contains 15 machine-independent reference definitions. It is versioned
+with source rather than mixed into the learned-rule database. Verified certificate subjects
+are parsed as distinguished names; product/original-file metadata gates matching. Windows
+localized `.exe.mui` original filenames are accepted only for the corresponding component.
+Catalog purpose fills an otherwise unresolved axis; it cannot settle conflicting learned
+purpose or override a fresh correction. Security and optionality remain independent unknowns.
+Knowledge and detail views expose the definitions and primary reference links.
 
 Rules are constrained declarative data. AI may propose rules for all axes, but automatic
 activation requires structural and semantic validation against attributable evidence.
@@ -365,6 +402,44 @@ The UI distinguishes local findings, queued/analyzing, unknown, stale, budget-pa
 failed states. It remains useful offline, without credentials, and with partial Windows access.
 External/model text cannot initiate machine actions or request arbitrary local reads.
 See [SECURITY.md](SECURITY.md) for reporting and intended security boundaries.
+
+## Live table state and assets
+
+Sampling updates cell values without sorting existing siblings. Explicit column sorting or
+Refresh establishes a new order. Group headers retain their keys with one member. A stable
+visual slot for a creation-time-unavailable PID does not relax snapshot-scoped domain identity;
+row analysis is replaced when its entity identity changes. Reconciliation retains row objects,
+notifies changed properties only, and preserves the viewport through native ItemsStackPanel
+anchoring. New processes may append and exited processes disappear.
+
+Application groups and raw parent/child nodes have separate expansion state. A native chevron
+action owns toggling, independently of selection; collapse selects its parent row. The UML
+state view describes one visible expandable node, not persisted knowledge state:
+
+```mermaid
+stateDiagram-v2
+    state Initial <<choice>>
+    [*] --> Initial
+    Initial --> Collapsed: Application group
+    Initial --> Expanded: Raw process parent
+    Collapsed --> Expanded: Chevron action
+    Expanded --> Collapsed: Chevron action without reselection
+    Collapsed --> Collapsed: Sample updates cells and count
+    Expanded --> Expanded: Sample updates cells and count
+    Collapsed --> Removed: Last process exits
+    Expanded --> Removed: Last process exits
+    Removed --> [*]
+```
+
+`ProcessRoleLabels` uses local metadata, host service associations, and permitted command
+tokens to explain generic children provisionally. A generic catalog/model executable label
+does not erase a specific service or invocation role. These display-only command-derived
+labels never enter entity facts, provider payloads, research, or persistence.
+
+Windows Shell supplies executable artwork off-thread; a two-reader gate and 512-entry memory
+cache bound work. Lookup rejects network/missing paths, frees HICON/GDI resources, and uses a
+fallback when unavailable. Pixels are cosmetic, never identity or security evidence. The App
+creates WinUI bitmaps on its dispatcher and checks asset identity before applying async results.
 
 ## Extensions and maintenance
 

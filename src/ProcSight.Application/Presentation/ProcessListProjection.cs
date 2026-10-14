@@ -3,9 +3,9 @@ using ProcSight.Core.Identity;
 namespace ProcSight.Application.Presentation;
 public enum ProcessSort { Name, Pid, Cpu, Memory }
 public sealed record ViewOptions(string Search="",bool Grouped=false,bool Services=false,ProcessSort Sort=ProcessSort.Name,
-    HashSet<string>? ExpandedGroups=null,string? ClassificationFilter=null);
+    HashSet<string>? ExpandedGroups=null,string? ClassificationFilter=null,IReadOnlyList<string>? PreviousOrder=null,HashSet<string>? CollapsedTree=null);
 public sealed record ProcessListRow(string Key,ResolvedEntity Entity,bool IsGroup,List<ResolvedEntity> Members,
-    string? GroupName,long MemoryBytes,bool CompleteMemory,double CpuPercent,bool CompleteCpu,int Depth=0);
+    string? GroupName,long MemoryBytes,bool CompleteMemory,double CpuPercent,bool CompleteCpu,int Depth=0,bool HasChildren=false,bool Expanded=false);
 public sealed record ProcessListState(List<ProcessListRow> Rows);
 public static class ProcessListProjection
 {
@@ -23,24 +23,29 @@ public static class ProcessListProjection
         ProcessListRow Row(ResolvedEntity e,List<ResolvedEntity>? members=null,string? group=null)
         {
             members ??=[e];
-            return new(group is null?e.Process?.Key.ToString()??e.Identity.Value:group,e,group is not null,members,
+            return new(group is null?RowKey(e):group,e,group is not null,members,
                 group is null?null:e.Owner,members.Sum(m=>m.Process?.Resources.WorkingSetBytes.Value??0),
                 members.All(m=>m.Process?.Resources.WorkingSetBytes.Value is not null),
                 members.Sum(m=>m.Process?.Resources.CpuPercent.Value??0),
                 members.All(m=>m.Process?.Resources.CpuPercent.Value is not null));
         }
-        List<ProcessListRow> Sort(IEnumerable<ProcessListRow> rows)=>options.Sort switch {
+        var prior=(options.PreviousOrder ?? []).Select((key,index)=>(key,index)).ToDictionary(p=>p.key,p=>p.index);
+        List<ProcessListRow> Sort(IEnumerable<ProcessListRow> rows) {
+            var sorted=options.Sort switch {
             ProcessSort.Pid=>rows.OrderBy(r=>r.Entity.Process?.Key.Pid??r.Entity.Service?.HostPid??0).ToList(),
             ProcessSort.Cpu=>rows.OrderByDescending(r=>r.CpuPercent).ThenBy(r=>r.Entity.DisplayName).ToList(),
             ProcessSort.Memory=>rows.OrderByDescending(r=>r.MemoryBytes).ThenBy(r=>r.Entity.DisplayName).ToList(),
-            _=>rows.OrderBy(r=>r.GroupName??r.Entity.DisplayName,StringComparer.CurrentCultureIgnoreCase).ToList() };
+            _=>rows.OrderBy(r=>r.GroupName??r.Entity.DisplayName,StringComparer.CurrentCultureIgnoreCase).ThenBy(r=>r.Key,StringComparer.Ordinal).ToList() };
+            return prior.Count==0?sorted:sorted.OrderBy(r=>prior.GetValueOrDefault(r.Key,int.MaxValue)).ToList();
+        }
         if(options.Grouped&&!options.Services)
         {
             var top=new List<ProcessListRow>();
             foreach(var group in visible.GroupBy(e=>e.Owner is null?e.Process!.Key.ToString():e.Owner+"|"+e.Facts.GetValueOrDefault("ownerIdentity",e.Owner)))
             {
                 var members=group.ToList();
-                top.Add(members.Count>1&&members[0].Owner is not null?Row(members[0],members,"group:"+group.Key):Row(members[0]));
+                var representative=members.FirstOrDefault(e=>e.Process?.Executable.Product==e.Owner) ?? members[0];
+                top.Add(representative.Owner is not null?Row(representative,members,"group:"+group.Key) with { HasChildren=true,Expanded=options.ExpandedGroups?.Contains("group:"+group.Key)==true }:Row(representative));
             }
             var rows=new List<ProcessListRow>();
             foreach(var row in Sort(top))
@@ -59,12 +64,21 @@ public static class ProcessListProjection
         void Add(ResolvedEntity entity,int depth)
         {
             if(!seen.Add(entity.Process!.Key.Pid)) return;
-            tree.Add(Row(entity) with { Depth=depth });
-            foreach(var child in Sort(visible.Where(e=>e.Process!.ParentPid==entity.Process.Key.Pid &&
-                ParentLinkValidator.IsVerified(e.Process,entity.Process)).Select(e=>Row(e)))) Add(child.Entity,Math.Min(depth+1,12));
+            var children=Sort(visible.Where(e=>e.Process!.ParentPid==entity.Process.Key.Pid &&
+                ParentLinkValidator.IsVerified(e.Process,entity.Process)).Select(e=>Row(e)));
+            var expanded=options.CollapsedTree?.Contains(RowKey(entity))!=true;
+            tree.Add(Row(entity) with { Depth=depth,HasChildren=children.Count>0,Expanded=expanded });
+            foreach(var child in children)
+                if(expanded) Add(child.Entity,Math.Min(depth+1,12)); else Hide(child.Entity);
+        }
+        void Hide(ResolvedEntity entity) {
+            if(!seen.Add(entity.Process!.Key.Pid)) return;
+            foreach(var child in visible.Where(e=>e.Process!.ParentPid==entity.Process.Key.Pid&&ParentLinkValidator.IsVerified(e.Process,entity.Process))) Hide(child);
         }
         foreach(var root in Sort(visible.Where(e=>!HasParent(e)).Select(e=>Row(e)))) Add(root.Entity,0);
         foreach(var rest in visible.Where(e=>!seen.Contains(e.Process!.Key.Pid))) Add(rest,0);
         return new(tree);
     }
+    public static string RowKey(ResolvedEntity entity)=>entity.Process is not { } p?entity.Identity.Value:
+        p.Key.StartedAt is not null?p.Key.ToString():$"unverified:{p.Key.Pid}:{p.Executable.FullPath ?? p.Executable.Name}";
 }

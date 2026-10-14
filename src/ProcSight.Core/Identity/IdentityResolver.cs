@@ -54,7 +54,7 @@ public sealed class IdentityResolver
     {
         var facts = new Dictionary<string, string> { ["name"] = executable.Name };
         foreach (var (key, value) in new[] { ("path", executable.FullPath), ("hash", executable.ContentHash),
-            ("product", executable.Product), ("version", executable.Version), ("package", executable.PackageIdentity) })
+            ("product", executable.Product), ("version", executable.Version), ("package", executable.PackageIdentity), ("originalName",executable.OriginalName) })
             if (!string.IsNullOrWhiteSpace(value)) facts[key] = value;
         if (executable.Signature == SignatureStatus.Verified && executable.VerifiedSigner is { } signer) facts["signer"] = signer;
         return facts;

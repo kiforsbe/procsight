@@ -24,7 +24,7 @@ and debug or **Ctrl+F5** to build and run without debugging. See the
 
 ## Current experience
 
-![Native WinUI process table with synthetic data](docs/images/processes-dark.png)
+![Native WinUI process tree with synthetic role data](docs/images/tree-groups.png)
 
 This is the actual XAML rendering, using synthetic processes and a synthetic analysis label.
 
@@ -39,8 +39,23 @@ This is the actual XAML rendering, using synthetic processes and a synthetic ana
   and separately enabled online research with source links.
 
 The table uses compact rows, resource totals, classification filters, and optional details.
-Disk/network are explicitly unavailable; GPU collection is deferred. Process icons currently
-use a generic native symbol. Collection remains useful without an API key or network connection.
+Disk/network are explicitly unavailable; GPU collection is deferred. Executable icons are
+loaded from Windows Shell and cached; inaccessible or missing assets use a fallback symbol.
+Live samples update cells while preserving sibling order and scroll position. Click a column
+or Refresh to reorder; use each row's chevron to expand/collapse independently of selection.
+Right/Left expand/collapse selected nodes; Left also returns from a child to its parent.
+Collection remains useful without an API key or network connection.
+
+Generic child processes receive provisional local role labels when permitted metadata or
+command context identifies a renderer, GPU worker, extension host, language server, or service
+host. Specific roles remain visible after a generic executable assessment arrives. Derived
+command labels are display-only and never enter provider payloads or persistence.
+
+A bundled catalog supplies 15 common-task purpose rules for Windows components, browsers,
+and developer runtimes. These are shared definitions with reference links, gated by verified
+signer and product/original-name metadata. They do not declare a task safe or essential.
+Learned findings and fresh user corrections take precedence; purpose conflicts remain unresolved.
+Inspect the bundled catalog in Knowledge. Command collection still follows the chosen privacy mode.
 The Windows native host
 in VidVNC informed the WinUI shell, spacing, preferences, and component boundaries.
 

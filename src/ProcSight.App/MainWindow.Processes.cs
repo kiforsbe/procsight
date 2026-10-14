@@ -49,7 +49,7 @@ public sealed partial class MainWindow
         detailsButton=new AppBarButton { Label="Details",Icon=new SymbolIcon(Symbol.Document) };
         detailsButton.Click+=(_,_)=> { detailsOpen=!detailsOpen; UpdateDetailsLayout(); ShowDetail(table?.SelectedItem as ProcessRow); };
         var refresh=new AppBarButton { Label="Refresh",Icon=new SymbolIcon(Symbol.Refresh) };
-        refresh.Click+=(_,_)=> { collector.RequestRefresh(); if(status is not null) status.Text="Refreshing local metadata…"; };
+        refresh.Click+=(_,_)=> { collector.RequestRefresh(); RefreshRows(reorder:true); if(status is not null) status.Text="Refreshing local metadata…"; };
         commands.PrimaryCommands.Add(analyzeButton); commands.PrimaryCommands.Add(detailsButton); commands.PrimaryCommands.Add(refresh);
         var grouped=new AppBarToggleButton { Label="Group by application",Icon=new SymbolIcon(Symbol.AllApps),IsChecked=presentation.Grouped };
         grouped.Click+=(_,_)=> { presentation=presentation with { Grouped=grouped.IsChecked==true }; SavePresentation(); RefreshRows(); };
@@ -90,25 +90,40 @@ public sealed partial class MainWindow
                 BorderThickness=new Thickness(0),CornerRadius=new CornerRadius(0),HorizontalAlignment=HorizontalAlignment.Stretch,
                 HorizontalContentAlignment=i>=3?HorizontalAlignment.Right:HorizontalAlignment.Left,VerticalContentAlignment=VerticalAlignment.Bottom,
                 Padding=new Thickness(i==0?16:8,0,8,8) };
-            button.Click+=(_,_)=> { if(column is 0 or 2 or 3 or 4) { sort=column switch {2=>ProcessSort.Pid,3=>ProcessSort.Cpu,4=>ProcessSort.Memory,_=>ProcessSort.Name}; RefreshRows(); } };
+            button.Click+=(_,_)=> { if(column is 0 or 2 or 3 or 4) { sort=column switch {2=>ProcessSort.Pid,3=>ProcessSort.Cpu,4=>ProcessSort.Memory,_=>ProcessSort.Name}; RefreshRows(reorder:true); } };
             var border=new Border { Child=button,BorderThickness=new Thickness(i==0?0:1,0,0,0),BorderBrush=header.BorderBrush };
             Grid.SetColumn(border,i); header.Children.Add(border);
         }
         surface.Children.Add(header);
         table=new ListView { ItemsSource=rows,SelectionMode=ListViewSelectionMode.Single,
+            ItemContainerTransitions=new Microsoft.UI.Xaml.Media.Animation.TransitionCollection(),
+            ItemsPanel=(ItemsPanelTemplate)XamlReader.Load("""
+            <ItemsPanelTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"><ItemsStackPanel ItemsUpdatingScrollMode="KeepItemsInView"/></ItemsPanelTemplate>
+            """),
             ItemContainerStyle=(Style)XamlReader.Load("""
             <Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" TargetType="ListViewItem">
             <Setter Property="MinHeight" Value="28"/><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="CornerRadius" Value="0"/></Style>
-            """),ItemTemplate=(DataTemplate)XamlReader.Load(page=="Services"?ServiceTemplate:ProcessTemplate) };
+            """),ItemTemplate=page=="Services"?(DataTemplate)XamlReader.Load(ServiceTemplate):(DataTemplate)WindowRoot.Resources["ProcessTemplate"] };
         table.SelectionChanged+=(_,_)=>
         {
             if(refreshingRows) return;
-            if(table.SelectedItem is ProcessRow { IsGroup:true } group)
-            { if(!expandedGroups.Add(group.Key)) expandedGroups.Remove(group.Key); RefreshRows(); }
             UpdateSelectionActions(); ShowDetail(table.SelectedItem as ProcessRow);
         };
         table.DoubleTapped+=(_,_)=> { if(table.SelectedItem is ProcessRow { IsGroup:false }) { detailsOpen=true; UpdateDetailsLayout(); ShowDetail(table.SelectedItem as ProcessRow); } };
+        table.KeyDown+=(_,args)=>
+        {
+            if(table.SelectedItem is not ProcessRow selected) return;
+            if(selected.Projection.HasChildren && (args.Key==global::Windows.System.VirtualKey.Right&&!selected.Projection.Expanded ||
+                args.Key==global::Windows.System.VirtualKey.Left&&selected.Projection.Expanded))
+            { ToggleExpansion(new Button { Tag=selected.Key },new RoutedEventArgs()); args.Handled=true; }
+            else if(args.Key==global::Windows.System.VirtualKey.Left && selected.Projection.Depth>0)
+            {
+                var index=rows.IndexOf(selected);
+                var parent=rows.Take(index).LastOrDefault(r=>r.Projection.Depth<selected.Projection.Depth);
+                if(parent is not null) { table.SelectedItem=parent; table.ScrollIntoView(parent); args.Handled=true; }
+            }
+        };
         Grid.SetRow(table,1); surface.Children.Add(table);
         tableHost=new ScrollViewer { Content=surface,HorizontalScrollBarVisibility=ScrollBarVisibility.Auto,
             HorizontalScrollMode=ScrollMode.Auto,VerticalScrollMode=ScrollMode.Disabled,VerticalScrollBarVisibility=ScrollBarVisibility.Disabled };
@@ -151,21 +166,6 @@ public sealed partial class MainWindow
         if(memorySummary is not null) memorySummary.Text=lastSnapshot.SystemResources?.MemoryPercent is { } memory?$"{memory:F0}%":"—";
         UpdateSelectionActions();
     }
-    private const string ProcessTemplate="""
-    <DataTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-     <Grid Height="28" MinWidth="848"><Grid.ColumnDefinitions><ColumnDefinition Width="*" MinWidth="280"/><ColumnDefinition Width="140"/><ColumnDefinition Width="56"/><ColumnDefinition Width="80"/><ColumnDefinition Width="96"/><ColumnDefinition Width="96"/><ColumnDefinition Width="100"/></Grid.ColumnDefinitions>
-      <Grid Margin="16,0,8,0" ToolTipService.ToolTip="{Binding Owner}"><Grid.ColumnDefinitions><ColumnDefinition Width="24"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-       <SymbolIcon Symbol="Document" Width="16" Height="16" Opacity="0.7"/><TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="13" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-      </Grid>
-      <Border Grid.Column="1" BorderThickness="1,0,0,0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"><TextBlock Text="{Binding Status}" FontSize="12" Margin="8,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{Binding Status}"/></Border>
-      <Border Grid.Column="2" BorderThickness="1,0,0,0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"><TextBlock Text="{Binding Pid}" FontSize="12" Margin="8,0" VerticalAlignment="Center" HorizontalAlignment="Right"/></Border>
-      <Border Grid.Column="3" Background="{Binding CpuBrush}" BorderThickness="1,0,0,0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"><TextBlock Text="{Binding Cpu}" FontSize="12" Margin="8,0" VerticalAlignment="Center" HorizontalAlignment="Right"/></Border>
-      <Border Grid.Column="4" Background="{Binding MemoryBrush}" BorderThickness="1,0,0,0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"><TextBlock Text="{Binding Memory}" FontSize="12" Margin="8,0" VerticalAlignment="Center" HorizontalAlignment="Right"/></Border>
-      <Border Grid.Column="5" BorderThickness="1,0,0,0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"><TextBlock Text="—" FontSize="12" Margin="8,0" VerticalAlignment="Center" HorizontalAlignment="Right"/></Border>
-      <Border Grid.Column="6" BorderThickness="1,0,0,0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"><TextBlock Text="—" FontSize="12" Margin="8,0" VerticalAlignment="Center" HorizontalAlignment="Right"/></Border>
-     </Grid>
-    </DataTemplate>
-    """;
     private const string ServiceTemplate="""
     <DataTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
      <Grid Height="28" MinWidth="710"><Grid.ColumnDefinitions><ColumnDefinition Width="*" MinWidth="280"/><ColumnDefinition Width="140"/><ColumnDefinition Width="56"/><ColumnDefinition Width="108"/><ColumnDefinition Width="108"/></Grid.ColumnDefinitions>

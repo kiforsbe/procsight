@@ -14,6 +14,13 @@ build, and all four test projects. See `docs/verification.md` for actual checks 
 live API/desktop validation. The user approved this feature branch and checkout; preserve
 their shared VS Code files. Do not imply release readiness from synthetic tests alone.
 
+Live-list updates preserve sibling order and keys; explicit sort/refresh may reorder.
+Expand/collapse belongs to a native chevron action, never SelectionChanged. Keep generic
+executable identity separate from per-invocation/service roles. Bundled common rules require
+verified signer plus product/original-name gates and supply purpose only; they must not
+override unresolved learned conflicts or fresh user corrections. Command-derived display
+labels stay transient. Icon loading is bounded, cached, off-thread, and releases native handles.
+
 ## Product boundaries
 
 - First release: understand and investigate processes/services, without modifying them.
