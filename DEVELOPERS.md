@@ -216,3 +216,17 @@ Metadata-derived names are descriptive; hash predicates still govern a file-spec
 
 `rules-actions` is a synthetic native automation-peer fixture covering selection refresh,
 state changes, delete/cancel confirmation, source filtering and search/reset without provider calls.
+
+## Structured process details
+
+`ProcessDetails.Sections` produces transient, locally displayed field groups. Field values are
+JSON-ignored and diagnostic strings omit them; this is not a persistence or provider DTO.
+`MainWindow.ProcessDetails.cs` owns the native pane, compares display inputs without resource
+samples, and preserves top-level expansion/scroll state for the same selection/lifetime. Evidence
+loads run off-thread and require matching selection plus pane generation before applying results.
+The legacy text formatter remains for existing callers and tests and shares safe unavailable reasons.
+Debug fixtures `details`, `details-command`, and `details-stability` capture the native pane;
+`details-stability` asserts preservation across resource and actual metadata updates.
+`details-evidence` additionally checks nested evidence expansion/scroll and reopening. Presentation
+state follows ProcessKey or service name; analysis identity changes invalidate evidence scope while
+retaining the lifetime's presentation state. Scroll restoration is bounded by available content.

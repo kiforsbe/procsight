@@ -45,7 +45,7 @@ public sealed partial class MainWindow
         analysis[node.Identity]=new(node.Identity,AnalysisState.Local,new([
             new(AssessmentAxis.Purpose,"DeveloperTool","Synthetic fixture: application worker",Confidence.Medium,[],now.AddDays(7),[DataOrigin.ShareableMetadata])],
             "Example editor",[],[],new HashSet<AssessmentAxis>{AssessmentAxis.Security,AssessmentAxis.Optionality},"Example editor — extension host","Worker"));
-        if(args.Length>5&&args[5].StartsWith("rules",StringComparison.Ordinal)) {
+        if(args.Length>5&&(args[5].StartsWith("rules",StringComparison.Ordinal)||args[5]=="details-evidence")) {
             fixtureRulesDatabase=Path.Combine(Path.GetTempPath(),"procsight-rules-fixture-"+Guid.NewGuid()+".db");
             knowledge=new(fixtureRulesDatabase);
             coordinator=new(knowledge,knowledge,(_,_)=>throw new InvalidOperationException("Fixture has no provider."));
@@ -55,7 +55,7 @@ public sealed partial class MainWindow
                 Provenance:new("chatgpt","example-model",AnalysisDestination.CloudModel,now));
             knowledge.SaveAsync(new(node.Identity,now,[purpose],node.Evidence,[learned],[]),default).GetAwaiter().GetResult();
             var update=analysis[node.Identity]; analysis[node.Identity]=update with { Result=update.Result with { MatchingRuleIds=[learned.Id],AppliedRuleIds=[learned.Id] } };
-            page=args[5]!="rules-process"?"Knowledge":"Processes";
+            page=args[5].StartsWith("rules",StringComparison.Ordinal)&&args[5]!="rules-process"?"Knowledge":"Processes";
         }
         if(args.Length>5&&args[5].StartsWith("settings",StringComparison.Ordinal)) page="Settings";
         if(args.Length>5&&args[5].StartsWith("activity",StringComparison.Ordinal)) {
@@ -70,7 +70,7 @@ public sealed partial class MainWindow
             }
         }
         RenderPage();
-        if(args.Length>5&&args[5]=="details")
+        if(args.Length>5&&args[5].StartsWith("details",StringComparison.Ordinal))
         { detailsOpen=true; table!.SelectedItem=rows.First(r=>r.Entity.Identity==node.Identity); UpdateDetailsLayout(); ShowDetail(table.SelectedItem as ViewModels.ProcessRow); }
         WindowRoot.Loaded+=async(_,_)=>
         {
@@ -200,8 +200,38 @@ public sealed partial class MainWindow
                     File.WriteAllText(output+".checks","Group expands/collapses without reselection; selected child survives as a standalone process with PID and no group header when siblings exit.");
                     await Task.Delay(250); WindowRoot.UpdateLayout();
                 }
-                if(args.Length>5&&args[5]=="details")
+                if(args.Length>5&&args[5].StartsWith("details",StringComparison.Ordinal))
                 { detailsOpen=true; table!.SelectedItem=rows.First(r=>r.Entity.Identity==node.Identity); UpdateDetailsLayout(); ShowDetail(table.SelectedItem as ViewModels.ProcessRow); }
+                if(args.Length>5&&args[5] is "details-stability" or "details-command") {
+                    var commandSection=detailPanel!.Children.OfType<Microsoft.UI.Xaml.Controls.Expander>().Single(e=>e.Tag as string=="command");
+                    commandSection.IsExpanded=true; await Task.Delay(350);
+                    detailScroll!.ChangeView(null,args[5]=="details-stability"?200:450,null,true); await Task.Delay(100);
+                    if(args[5]=="details-stability") {
+                        var originalPanel=commandSection; var originalOffset=detailScroll.VerticalOffset;
+                        lastSnapshot=lastSnapshot with { Processes=lastSnapshot.Processes.Select(p=>p with { Resources=p.Resources with { CpuPercent=Observation<double>.Available(8) } }).ToList() };
+                        entities=new IdentityResolver().Resolve(lastSnapshot,[]); RefreshRows(); await Task.Delay(100);
+                        if(!ReferenceEquals(originalPanel,detailPanel.Children.OfType<Microsoft.UI.Xaml.Controls.Expander>().Single(e=>e.Tag as string=="command"))||!originalPanel.IsExpanded||Math.Abs(detailScroll.VerticalOffset-originalOffset)>1)
+                            throw new InvalidOperationException("Resource refresh disturbed details.");
+                        lastSnapshot=lastSnapshot with { Processes=lastSnapshot.Processes.Select(p=>p.Key==node.Process!.Key?p with { Executable=p.Executable with { Version="2.0",Signature=SignatureStatus.Verified,VerifiedSigner="Fixture signer" } }:p).ToList() };
+                        entities=new IdentityResolver().Resolve(lastSnapshot,[]); RefreshRows(); await Task.Delay(150);
+                        if(!detailPanel.Children.OfType<Microsoft.UI.Xaml.Controls.Expander>().Single(e=>e.Tag as string=="command").IsExpanded||Math.Abs(detailScroll.VerticalOffset-originalOffset)>1)
+                            throw new InvalidOperationException("Metadata refresh lost detail state.");
+                    }
+                }
+                if(args.Length>5&&args[5]=="details-evidence") {
+                    detailsOpen=false; UpdateDetailsLayout(); await Task.Delay(150);
+                    detailsOpen=true; UpdateDetailsLayout(); ShowDetail(table!.SelectedItem as ViewModels.ProcessRow); await Task.Delay(150);
+                    var outer=detailPanel!.Children.OfType<Microsoft.UI.Xaml.Controls.Expander>().Single(e=>e.Tag as string=="evidence");
+                    outer.IsExpanded=true;
+                    var record=evidencePanel!.Children.OfType<Microsoft.UI.Xaml.Controls.Expander>().First(e=>(e.Tag as string)?.StartsWith("record-")==true);
+                    record.IsExpanded=true; var recordKey=(string)record.Tag;
+                    await Task.Delay(350); detailScroll!.ChangeView(null,800,null,true); await Task.Delay(100);
+                    var before=detailScroll.VerticalOffset;
+                    lastSnapshot=lastSnapshot with { Processes=lastSnapshot.Processes.Select(p=>p.Key==node.Process!.Key?p with { Executable=p.Executable with { Version="3.0" } }:p).ToList() };
+                    entities=new IdentityResolver().Resolve(lastSnapshot,[]); RefreshRows(); await Task.Delay(450);
+                    if(!evidencePanel.Children.OfType<Microsoft.UI.Xaml.Controls.Expander>().Single(e=>e.Tag as string==recordKey).IsExpanded||Math.Abs(detailScroll.VerticalOffset-before)>1)
+                        throw new InvalidOperationException("Evidence refresh lost nested expansion or scroll.");
+                }
                 var bitmap=new RenderTargetBitmap(); await bitmap.RenderAsync(WindowRoot);
                 var pixels=await bitmap.GetPixelsAsync();
                 Directory.CreateDirectory(Path.GetDirectoryName(output)!);

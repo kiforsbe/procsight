@@ -87,3 +87,9 @@ For each UI change, capture actual XAML with synthetic data at wide and narrow w
 light and dark themes. Check that captions, long conditions, command overflow and scrollbars
 remain usable. A screenshot validates appearance, not accessibility; record untested checks
 in [verification.md](verification.md). Keep this guide current when shared UI conventions change.
+
+Process details use the same typography, theme resources, padded expandable sections and command
+bar as rules inspection. Keep summary identity/PID visible, group assessments separately from raw
+metadata, and retain local command/window context under labeled sections. Resource ticks must not
+rebuild the pane; preserve expansion and scroll state through real metadata changes for the same
+selection. Service host signatures remain separate from implementation signatures and module proof.

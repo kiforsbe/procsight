@@ -175,3 +175,9 @@ The rules library uses compact selectable rows and a structured details pane. At
 select a rule to open details, then use **Back to rules**. Enable/disable applies to the selected
 learned rule; Delete and knowledge-clear actions live in command overflow and require confirmation.
 The [WinUI 3 design guide](docs/WINUI3-DESIGN.md) documents the native UI conventions.
+
+Process and service details use the same native typography, command toolbar and expander sections
+as rules management. Open **Command line** for the collected local invocation, or **Visible windows**
+for captions/classes. Assessments, executable metadata and signatures have separate sections.
+The pane retains its scroll position and expanded sections as live metadata refreshes; resource-only
+updates leave it intact. Rules are available directly from the details toolbar.

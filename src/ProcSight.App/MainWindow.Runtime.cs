@@ -70,16 +70,6 @@ public sealed partial class MainWindow
         }
         catch(OperationCanceledException) { }
     }
-    private string FormatAnalysis(ResolvedEntity entity)
-    {
-        if(!analysis.TryGetValue(entity.Identity,out var value)) return "Analysis: Unknown. Available local metadata is shown above.";
-        return $"Analysis: {value.State}\nIdentity: {value.Result.IdentityLabel ?? entity.DisplayName}\nRole: {value.Result.Role ?? entity.Facts.GetValueOrDefault("commandRole","Unknown")}\n"+
-            string.Join("\n\n",Enum.GetValues<AssessmentAxis>().Select(axis=>value.Result.Assessments.FirstOrDefault(a=>a.Axis==axis) is { } a?
-                $"{a.Axis}: {a.Value} ({a.Confidence} confidence)\n{a.Reason}\nReview by: {a.ExpiresAt.LocalDateTime:g}\nOrigins: {string.Join(", ",a.Origins)}":
-                $"{axis}: Unknown — insufficient current evidence."))+
-            $"\n\nApplied rules: {(value.Result.AppliedRuleIds is { } applied?applied.Count.ToString():"Not recorded")} · Matching rules: {value.Result.MatchingRuleIds.Count}\n"+string.Join("\n",value.Result.Issues)+
-            (value.Error is null?"":"\n"+value.Error);
-    }
     private async Task PreviewAsync()
     {
         var entity=(table?.SelectedItem as ViewModels.ProcessRow)?.Entity ?? entities.FirstOrDefault();
@@ -89,51 +79,6 @@ public sealed partial class MainWindow
         var payload=new AnalysisProjection().Build(entity,policy,destination);
         await MessageAsync("Analysis payload preview",JsonSerializer.Serialize(payload,new JsonSerializerOptions { WriteIndented=true })+
             (policy.CommandLineMode!=CommandLineMode.Off&&payload.CommandLine is null?"\n\nFull command line is unavailable or not permitted for this destination.":""));
-    }
-    private async Task ShowEvidenceAsync(ResolvedEntity entity)
-    {
-        if(evidencePanel is null || knowledge is null) return;
-        try
-        {
-            var cached=await Task.Run(()=>knowledge.ReadCandidatesAsync(entity,lifetime.Token),lifetime.Token);
-            if((table?.SelectedItem as ViewModels.ProcessRow)?.Entity is not { } selected||selected.Identity!=entity.Identity||
-                selected.Process?.Key!=entity.Process?.Key||selected.Service?.Name!=entity.Service?.Name) return;
-            if(detail is not null && analysis.TryGetValue(entity.Identity,out var finding) && finding.State==AnalysisState.Stale)
-                detail.Text+="\n\nHistorical findings (expired; not current):\n"+string.Join("\n",cached.Assessments.Where(a=>a.ExpiresAt<=DateTimeOffset.UtcNow)
-                    .Select(a=>$"{a.Axis}: {a.Value}; expired {a.ExpiresAt.LocalDateTime:g}"));
-            evidencePanel.Children.Clear();
-            var current=analysis.GetValueOrDefault(entity.Identity)?.Result;
-            evidencePanel.Children.Add(new TextBlock { Text=$"Rules: {current?.AppliedRuleIds?.Count??0} applied · {current?.MatchingRuleIds.Count??0} matched",TextWrapping=TextWrapping.Wrap,FontWeight=Microsoft.UI.Text.FontWeights.SemiBold });
-            foreach(var id in current?.MatchingRuleIds??[]) {
-                if(cached.Rules.FirstOrDefault(r=>r.Id==id) is not { } rule) continue;
-                var inspect=new Button { Content=new TextBlock { Text=RuleInspection.ApplicationStatus(id,current)+" · "+RuleInspection.Title(rule,cached.Evidence),TextWrapping=TextWrapping.Wrap },HorizontalAlignment=HorizontalAlignment.Stretch };
-                ToolTipService.SetToolTip(inspect,RuleInspection.Source(rule));
-                inspect.Click+=async(_,_)=>await InspectRuleAsync(rule,entity,current); evidencePanel.Children.Add(inspect);
-                evidencePanel.Children.Add(new TextBlock { Text=RuleInspection.Source(rule),TextWrapping=TextWrapping.Wrap,FontSize=12 });
-            }
-            if(KnownTaskCatalog.Match(entity) is { } common)
-            {
-                var inspect=new Button { Content=new TextBlock { Text=RuleInspection.ApplicationStatus(common.Id,current)+" · Bundled: "+common.Label,TextWrapping=TextWrapping.Wrap },HorizontalAlignment=HorizontalAlignment.Stretch };
-                inspect.Click+=async(_,_)=>await InspectBundledRuleAsync(common,entity,current); evidencePanel.Children.Add(inspect);
-            }
-            if(ProcessRoleLabels.Describe(entity) is { UsesCommandContext:true } hint)
-                evidencePanel.Children.Add(new TextBlock { Text="Local command hint (display only): "+hint.Label+"\n"+hint.Explanation,TextWrapping=TextWrapping.Wrap });
-            if(cached.Corrections.Any(c=>c.Assessment.ExpiresAt>DateTimeOffset.UtcNow))
-                evidencePanel.Children.Add(new TextBlock { Text="Applicable user corrections (selection may override matching rules)",TextWrapping=TextWrapping.Wrap });
-            foreach(var correction in cached.Corrections.Where(c=>c.Assessment.ExpiresAt>DateTimeOffset.UtcNow))
-                evidencePanel.Children.Add(new TextBlock { Text=$"User correction · {correction.Scope}\n{correction.Assessment.Axis}: {correction.Assessment.Value}\n{correction.Assessment.Reason}",TextWrapping=TextWrapping.Wrap });
-            var evidence=entity.Evidence.Concat(cached.Evidence).DistinctBy(e=>e.Id).ToList();
-            foreach(var record in evidence.Take(20))
-            {
-                var button=new Button { Content=$"Evidence: {record.Kind} · {record.Origin}",HorizontalAlignment=HorizontalAlignment.Stretch };
-                button.Click+=async(_,_)=>await MessageAsync("Supporting evidence",RuleInspection.Describe(record));
-                evidencePanel.Children.Add(button);
-                if(Uri.TryCreate(record.SourceUrl,UriKind.Absolute,out var uri)&&uri.Scheme=="https")
-                    evidencePanel.Children.Add(new HyperlinkButton { Content="Open evidence source",NavigateUri=uri });
-            }
-        }
-        catch(OperationCanceledException) { }
-        catch { if(evidencePanel is not null) evidencePanel.Children.Clear(); }
     }
     private async Task MessageAsync(string title,string message)
     {

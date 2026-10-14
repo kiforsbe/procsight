@@ -134,3 +134,10 @@ Keep its project conventions current with shared UI changes. Use actual native c
 resources, compact selectable lists, adaptive details, structured evidence, and contextual feedback.
 Capture synthetic wide/narrow light/dark views; screenshots do not replace keyboard, Narrator,
 high-contrast or scaling validation. Do not broaden a rule's scope when deriving a readable name.
+
+Process/service details now use the native design guide: structured assessments and metadata,
+separate signature and configured-host proof, expandable local command/window context, and a
+compact toolbar with correction/payload preview in overflow. Preserve expansion and scroll state
+for the same process lifetime; resource-only ticks must not rebuild details. Transient field values
+and UI comparison strings can contain local private data: never persist, log or send them online.
+Async evidence reads must still match the active selection and pane generation before publishing.

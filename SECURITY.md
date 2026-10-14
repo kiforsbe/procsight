@@ -111,3 +111,8 @@ separate from a failed signature read; unavailable does not mean unsigned or mal
 AI rule provenance records configured provider, model, destination and generation time. It is
 an audit aid, not proof that an assessment is correct or a process is safe. Existing evidence,
 scope, privacy and lifecycle validation still apply before enabling or applying a learned rule.
+
+The native process details model contains transient local fields, including commands and captions.
+Their values are excluded from normal JSON serialization and diagnostic record text. UI comparison
+strings also stay in memory only. Neither presentation shape is an online-analysis or storage DTO;
+provider payloads continue to require the explicit privacy projection.

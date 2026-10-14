@@ -16,7 +16,12 @@ public sealed partial class MainWindow : Window
     private readonly Dictionary<string, ProcessRow> knownRows = [];
     private IReadOnlyList<ResolvedEntity> entities = [];
     private string page = "Processes", search = "";
-    private TextBlock? detail;
+    private StackPanel? detailPanel;
+    private ScrollViewer? detailScroll;
+    private string? detailFingerprint;
+    private string? detailSelectionKey;
+    private string? detailEvidenceScope;
+    private int detailVersion;
     private TextBlock? status;
     private ListView? table;
     private MachineSnapshot lastSnapshot=new(Guid.NewGuid(),DateTimeOffset.UtcNow,[],[]);
@@ -136,18 +141,6 @@ public sealed partial class MainWindow : Window
         var state=row.IsGroup?expandedGroups:collapsedTree;
         if(!state.Add(key)) state.Remove(key);
         RefreshRows();
-    }
-    private void ShowDetail(ProcessRow? row)
-    {
-        if (!detailsOpen || detail is null) return;
-        if(row is null) { detail.Text="Select a process or service to inspect its identity and evidence."; evidencePanel?.Children.Clear(); return; }
-        var e = row.Entity;
-        var localRole=ProcessRoleLabels.Describe(e);
-        detail.Text = $"{row.Name}\n\nOwnership: {e.Owner ?? "Unknown"}\n\n" +
-            (localRole.UsesCommandContext?$"Local role: {localRole.Label}\n{localRole.Explanation}\n\n":"")+
-            ProcessDetails.FormatIdentity(e,policy.CommandLineMode) +
-            "\n\n" + FormatAnalysis(e);
-        _=ShowEvidenceAsync(e);
     }
     private void SavePresentation()
     { if(preferences is null) return; try { preferences.Save(policy,presentation); } catch { runtimeWarning="View preferences could not be saved."; } }

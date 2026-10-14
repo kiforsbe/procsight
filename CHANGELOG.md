@@ -7,6 +7,9 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Native structured process/service details with assessment, executable, signature, command-line,
+  window and evidence sections; compact commands and stable expansion/scroll across live updates.
+
 - Microsoft-sourced Windows 11 / WinUI 3 design guide and native rules redesign: compact selectable
   rows, meaningful metadata names, adaptive details, structured evidence/provenance, theme-aware
   typography, command overflow and explicit delete confirmation.

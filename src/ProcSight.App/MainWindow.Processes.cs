@@ -155,25 +155,15 @@ public sealed partial class MainWindow
         // The ListView owns both axes; its vertical bar stays inside the visible viewport.
         tableHost=surface;
         processBody.Children.Add(tableHost);
-        var detailPanel=new StackPanel { Spacing=12,Padding=new Thickness(20) };
-        var close=new Button { Content="Back to list",HorizontalAlignment=HorizontalAlignment.Left };
-        close.Click+=(_,_)=> { detailsOpen=false; UpdateDetailsLayout(); }; detailPanel.Children.Add(close);
-        var inspectRules=new Button { Content="Inspect rules…",HorizontalAlignment=HorizontalAlignment.Left };
-        inspectRules.Click+=async(_,_)=> {
-            if((table?.SelectedItem as ViewModels.ProcessRow)?.Entity is { } entity) await InspectProcessRulesAsync(entity);
-        };
-        detailPanel.Children.Add(inspectRules);
-        detail=new TextBlock { Text="Select a process or service to inspect its identity and evidence.",TextWrapping=TextWrapping.Wrap,IsTextSelectionEnabled=true };
-        detailPanel.Children.Add(detail); evidencePanel=new StackPanel { Spacing=4 }; detailPanel.Children.Add(evidencePanel);
-        var correct=new Button { Content="Correct classification…" }; correct.Click+=async(_,_)=>await CorrectSelectedAsync();
-        var preview=new Button { Content="Preview analysis payload…" }; preview.Click+=async(_,_)=>await PreviewAsync();
-        detailPanel.Children.Add(correct); detailPanel.Children.Add(preview);
+        detailPanel=new StackPanel { Spacing=12,Padding=new Thickness(16) };
+        detailFingerprint=null; detailSelectionKey=null; detailVersion++;
         detailsBorder=(Border)XamlReader.Load("""
-            <Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" Width="360" Visibility="Collapsed"
+            <Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" Width="420" Visibility="Collapsed"
                 Background="{ThemeResource LayerFillColorDefaultBrush}" BorderThickness="1,0,0,0"
                 BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" />
             """);
-        detailsBorder.Child=new ScrollViewer { Content=detailPanel };
+        detailScroll=new ScrollViewer { Content=detailPanel,HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled };
+        detailsBorder.Child=detailScroll;
         Grid.SetColumn(detailsBorder,1); processBody.Children.Add(detailsBorder);
         processBody.SizeChanged+=(_,_)=>UpdateDetailsLayout();
         status=new TextBlock { Text="Collecting local metadata…",FontSize=11,Opacity=.65,Margin=new Thickness(16,0,8,0),VerticalAlignment=VerticalAlignment.Center,TextTrimming=TextTrimming.CharacterEllipsis };
@@ -208,9 +198,9 @@ public sealed partial class MainWindow
     {
         if(processBody is null||detailsBorder is null||tableHost is null) return;
         detailsBorder.Visibility=detailsOpen?Visibility.Visible:Visibility.Collapsed;
-        var narrow=processBody.ActualWidth<1000;
+        var narrow=processBody.ActualWidth<1050;
         Grid.SetColumn(detailsBorder,detailsOpen&&narrow?0:1);
-        detailsBorder.Width=detailsOpen&&narrow?double.NaN:360;
+        detailsBorder.Width=detailsOpen&&narrow?double.NaN:420;
         tableHost.Visibility=detailsOpen&&narrow?Visibility.Collapsed:Visibility.Visible;
     }
     private void RefreshResourceSummary()

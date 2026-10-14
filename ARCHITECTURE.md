@@ -809,3 +809,48 @@ stateDiagram-v2
         Both use shared structured content.
     end note
 ```
+
+## Structured local process investigation
+
+[ProcessDetails.Sections](src/ProcSight.Application/Presentation/ProcessDetails.cs) creates local,
+transient field groups for process or service identity, executable metadata, signature/file identity,
+commands, visible windows, hosted services and collection availability. Field values are JSON-ignored
+and excluded from diagnostic record text. The native pane is owned by
+[MainWindow.ProcessDetails](src/ProcSight.App/MainWindow.ProcessDetails.cs), sharing native section,
+field and typography helpers with rule inspection. Service host/implementation proofs remain separate.
+
+A transient comparison key includes displayed local metadata and analysis results but excludes
+resource samples. Unchanged views are retained, reducing reconstruction and repeated database reads.
+When displayed metadata changes for the same selection/lifetime, the pane restores top-level
+expansion state and scroll position. A different selection starts fresh. Local comparison strings
+can contain private command context and must never enter persistence, logs or providers.
+Evidence results require both current selection/lifetime and pane generation to prevent an older
+async read from overwriting newly selected or rebuilt details. Group selection requests an individual
+process rather than displaying the representative child's metadata as group-wide evidence.
+
+This UML sequence view describes updates and the local evidence boundary:
+
+```mermaid
+sequenceDiagram
+    participant Live as Live collection / analysis
+    participant Pane as Native details pane
+    participant Model as Local presentation fields
+    participant Store as Knowledge store
+    Live->>Pane: Update selected process
+    Pane->>Model: Build local metadata sections
+    Model-->>Pane: JSON-ignored private values and safe unavailable reasons
+    alt Display inputs unchanged
+        Pane->>Pane: Retain controls and scroll
+    else Display inputs changed
+        Pane->>Pane: Save selection-scoped expansion / scroll
+        Pane->>Pane: Rebuild structured view and increment generation
+        Pane->>Store: Read candidate evidence off UI thread
+        Store-->>Pane: Stored rules and evidence
+        alt Selection and generation still match
+            Pane->>Pane: Render rule and evidence sections
+        else Selection or generation changed
+            Pane->>Pane: Discard stale completion
+        end
+    end
+    Note over Pane,Model: Local commands and captions never become provider payloads through presentation
+```

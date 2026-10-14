@@ -17,10 +17,10 @@ Locked restore and native Release build passed with zero warnings/errors. Test r
 | Project | Passed | Focus |
 | --- | ---: | --- |
 | Core | 62 | Identity/privacy/rules and persisted opaque ChatGPT profile binding |
-| Application | 80 | Ordering/captions/activity and concise app/host naming despite old AI prose |
+| Application | 84 | Ordering/captions/activity and concise app/host naming despite old AI prose |
 | Infrastructure | 102 | Storage, OAuth/SSE/activity, safe failure reasons and empty-completion text preservation |
 | Windows | 26 | Native reads/icons/signatures and caption ownership/lifetime/timeout checks |
-| Total | 270 | No failed or skipped tests |
+| Total | 274 | No failed or skipped tests |
 
 Key behaviors covered include same-name owners at different paths, PID reuse, all three
 classification axes, rejected name-only rules, expired referenced evidence, changed-owner
@@ -228,3 +228,20 @@ Full Narrator, high-contrast, keyboard-only traversal and text/DPI scaling remai
 Final locked Release verification passed: 62 Core, 80 Application, 102 Infrastructure and 26 Windows
 tests (270 total), with zero failures/skips and zero build warnings/errors. Normal Debug build,
 changed-document links and diff whitespace checks passed too.
+
+## Structured native process details
+
+Synthetic native fixtures rendered process details at wide/narrow sizes in light/dark themes,
+including expanded local command context. `details-stability` asserts that resource ticks retain
+controls, and version/signature/signer enrichment for the same ProcessKey retains expanded
+sections and a valid scroll offset. `details-evidence` covers reopen, nested evidence expansion
+and metadata refresh preserving evidence scroll. Selection-scoped and analysis-identity-scoped
+state are distinct, so enrichment refreshes evidence without resetting the lifetime's presentation.
+
+Portable tests cover grouped local command/window display, restricted reasons, JSON/diagnostic
+exclusion of private field values, and separation of service host/implementation signatures.
+Screenshots: [native pane](images/process-details-native.png), [local command](images/process-command-native.png).
+Full Narrator, high-contrast, keyboard-only and text/DPI scaling acceptance remain outstanding.
+Final locked Release verification passed all 274 tests (62 Core, 84 Application, 102 Infrastructure,
+26 Windows), with zero failures/skips and zero build warnings/errors. Normal Debug, native fixtures,
+all 16 architecture diagrams, documentation links and diff whitespace checks passed.
