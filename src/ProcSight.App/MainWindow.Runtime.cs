@@ -13,6 +13,7 @@ using ProcSight.Windows.Storage;
 using ProcSight.Application.Presentation;
 using System.Security.Cryptography;
 using System.Text.Json;
+using ProcSight.Infrastructure.Authentication;
 namespace ProcSight.App;
 public sealed partial class MainWindow
 {
@@ -21,9 +22,12 @@ public sealed partial class MainWindow
     private PresentationPreferences presentation=new();
     private PreferencesStore preferences=null!;
     private readonly CredentialStore credentials=new();
+    private ChatGptSessionService? chatGpt;
+    private ChatGptSessionService ChatGpt=>chatGpt ??=new(credentials);
     private SqliteKnowledgeStore knowledge=null!,usage=null!;
     private AnalysisCoordinator coordinator=null!;
     private readonly Dictionary<AnalysisIdentity,AnalysisUpdate> analysis=[];
+    private readonly AnalysisActivityLog aiActivity=new();
     private string? runtimeWarning;
     private readonly HttpClient providerHttp=ProviderHttp.Create();
     private void LoadRuntime()
@@ -43,9 +47,11 @@ public sealed partial class MainWindow
             if(saved is null) credentials.Set("context-key",Convert.ToBase64String(key));
         }
         catch { key=RandomNumberGenerator.GetBytes(32); runtimeWarning="Credential storage unavailable; local context keys will not survive restart."; }
-        coordinator=new(knowledge,usage,CreateProvider,CreateResearch,contextKey:key);
+        coordinator=new(knowledge,usage,CreateProvider,CreateResearch,contextKey:key,activity:aiActivity);
     }
-    private IAnalysisProvider CreateProvider(ProviderSettings settings,bool local) => settings.Id=="openai"&&!local
+    private IAnalysisProvider CreateProvider(ProviderSettings settings,bool local) => settings.Id=="chatgpt"&&!local
+        ? new ChatGptPlanProvider(settings,ct=>settings.AccountId is { } id?ChatGpt.GetAccessTokenAsync(id,ct):Task.FromResult<string?>(null),providerHttp)
+        : settings.Id=="openai"&&!local
         ? new OpenAiResponsesProvider(settings,()=>credentials.Get(settings.Id),providerHttp) :
         new CompatibleChatProvider(settings,()=>credentials.Get(settings.Id),providerHttp,local:local);
     private IResearchProvider? CreateResearch(ProviderSettings settings)=>settings.Id=="openai"?

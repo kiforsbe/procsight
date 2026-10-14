@@ -2,6 +2,19 @@
 
 ## Current state
 
+The [ChatGPT integration design](docs/superpowers/specs/2026-10-14-chatgpt-plan-design.md) and
+[plan](docs/superpowers/plans/2026-10-14-chatgpt-plan.md) document the direct open-source OAuth adapter.
+Authentication owns a temporary IPv4 loopback callback, JWKS validation, protected account/token records,
+and renewable sessions; `ChatGptPlanProvider` uses the public Responses SSE API. No client secret,
+API key, Node helper, hosted login backend, or additional dependency is needed for this profile.
+Tests use synthetic signed tokens, fake HTTP, in-memory protected storage, and real loopback callbacks.
+Never inspect or copy another application's credentials to validate this integration.
+The Debug `--visual-fixture <absolute.png> Dark 1000 settings` option renders actual Settings using
+in-memory credentials, without real account reads or network traffic.
+Use `activity` or `activity-details` as the fixture's final argument to render the AI activity page
+with synthetic requests/results and an optional selected result. The coordinator's optional
+`AnalysisActivityLog` records actual research/provider attempts; keep it isolated from analysis failures.
+
 ProcSight is an unreleased development preview. The native collector/UI, identity resolution,
 privacy projection, rules, SQLite knowledge, provider/research adapters, and coordinator exist.
 No CI/CD workflows exist. [Verification](docs/verification.md) separates automated coverage

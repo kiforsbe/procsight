@@ -57,6 +57,7 @@ public sealed partial class MainWindow : Window
         PageContent.Children.Clear();
         if(page=="Settings") { RenderSettings(); return; }
         if(page=="Knowledge") { RenderKnowledge(); return; }
+        if(page=="AI activity") { RenderActivity(); return; }
         RenderProcessPage();
     }
     private void SearchChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)

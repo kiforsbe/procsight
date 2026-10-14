@@ -15,7 +15,8 @@ using System.Threading.Channels;
 namespace ProcSight.Application.Analysis;
 public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledger,
     Func<ProviderSettings,bool,IAnalysisProvider> providers,
-    Func<ProviderSettings,IResearchProvider?>? research=null,TimeProvider? clock=null,byte[]? contextKey=null) : IAsyncDisposable
+    Func<ProviderSettings,IResearchProvider?>? research=null,TimeProvider? clock=null,byte[]? contextKey=null,
+    AnalysisActivityLog? activity=null) : IAsyncDisposable
 {
     private sealed record Work(ResolvedEntity Entity,AnalysisPolicy Policy,CancellationToken PolicyToken,bool Manual);
     private readonly Channel<Work> queue=Channel.CreateBounded<Work>(128);
@@ -127,7 +128,18 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
             // Reserve the HTTP request and maximum one billable web-tool call before dispatch.
             if(!await ledger.TryReserveAsync(UsageKind.BillableCall,date,limits,ct) || !await ledger.TryReserveAsync(UsageKind.BillableCall,date,limits,ct))
             { Publish(entity,AnalysisState.BudgetPaused,local,"Research call budget reached."); return; }
-            var researched=await researchProvider.ResearchAsync(projection.BuildResearchRequest(entity,config),ct);
+            var request=projection.BuildResearchRequest(entity,config);
+            var researchPayload=new AnalysisPayload(entity.Identity,request.IdentityTerms,[],null,config.Revision,AnalysisDestination.CloudModel);
+            var researchActivity=activity?.Begin(researchPayload,selected,entity.DisplayName,entity.Process?.Key.Pid,
+                entity.Service?.Name,AnalysisActivityKind.Research);
+            ResearchResult researched;
+            try
+            {
+                researched=await researchProvider.ResearchAsync(request,ct);
+                activity?.CompleteResearch(researchActivity,researched);
+            }
+            catch(OperationCanceledException) { activity?.Fail(researchActivity,true); throw; }
+            catch { activity?.Fail(researchActivity); throw; }
             if(researched.Error is null) entity=entity with { Evidence=[..entity.Evidence,..researched.Evidence] };
         }
         var payload=projection.Build(entity,config,useLocal?AnalysisDestination.LocalModel:AnalysisDestination.CloudModel);
@@ -136,7 +148,17 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
             ct.ThrowIfCancellationRequested(); if(work.Policy!=policy || !CommandLinePolicy.CanDispatch(payload,policy)) return;
             if(!useLocal&&!await ledger.TryReserveAsync(UsageKind.BillableCall,date,limits,ct))
             { Publish(entity,AnalysisState.BudgetPaused,local,"Daily provider-call limit reached."); return; }
-            var result=await provider.AnalyzeAsync(payload,ct);
+            var attemptActivity=activity?.Begin(payload,selected,entity.DisplayName,entity.Process?.Key.Pid,entity.Service?.Name,
+                attempt:retry+1);
+            ProviderResult result;
+            try
+            {
+                result=await provider.AnalyzeAsync(payload,ct);
+                // Record the response immediately, before cancellation or rule validation/storage.
+                activity?.Complete(attemptActivity,result,payload);
+            }
+            catch(OperationCanceledException) { activity?.Fail(attemptActivity,true); throw; }
+            catch { activity?.Fail(attemptActivity); throw; }
             if(result.Error is { } error)
             {
                 if(error.Kind==ProviderErrorKind.Auth) authPaused=true;

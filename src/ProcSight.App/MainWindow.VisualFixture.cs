@@ -17,6 +17,9 @@ public sealed partial class MainWindow
         var args=Environment.GetCommandLineArgs();
         if(args.Length is <3 or >6 || args[1]!="--visual-fixture") return false;
         var output=Path.GetFullPath(args[2]);
+        if(args.Length>5&&args[5].StartsWith("settings",StringComparison.Ordinal)) {
+            chatGpt=new(new FixtureCredentials()); page="Settings";
+        }
         presentation=new(Theme:args.Length>3&&args[3]=="Light"?"Light":"Dark",Grouped:args.Length>5&&args[5]=="groups"); sort=ProcSight.Application.Presentation.ProcessSort.Name;
         ConfigureChrome(); WindowRoot.Background=new SolidColorBrush(presentation.Theme=="Light"?Microsoft.UI.Colors.White:global::Windows.UI.Color.FromArgb(255,32,32,32));
         if(args.Length>4&&int.TryParse(args[4],out var width)&&width is >=600 and <=1600)
@@ -41,6 +44,18 @@ public sealed partial class MainWindow
         analysis[node.Identity]=new(node.Identity,AnalysisState.Local,new([
             new(AssessmentAxis.Purpose,"DeveloperTool","Synthetic fixture: application worker",Confidence.Medium,[],now.AddDays(7),[DataOrigin.ShareableMetadata])],
             "Example editor",[],[],new HashSet<AssessmentAxis>{AssessmentAxis.Security,AssessmentAxis.Optionality},"Example editor — extension host","Worker"));
+        if(args.Length>5&&args[5].StartsWith("settings",StringComparison.Ordinal)) page="Settings";
+        if(args.Length>5&&args[5].StartsWith("activity",StringComparison.Ordinal)) {
+            page="AI activity";
+            for(var i=0;i<8;i++) {
+                var payload=new AnalysisPayload(new("fixture-activity-"+i),new(){["name"]=i%2==0?"node.exe":"example-service.exe",["product"]="Example editor"},[],null,0,AnalysisDestination.CloudModel);
+                var request=aiActivity.Begin(payload,new("chatgpt",new("https://api.openai.com/v1"),"example-model"),i%2==0?"Example editor — Renderer":"Example service",i%2==0?1000+i:null);
+                if(i==7) continue;
+                aiActivity.Complete(request,i==6?new(null,new(ProviderErrorKind.RateLimited,"Synthetic limit")):new(new([
+                    new(AssessmentAxis.Purpose,"DeveloperTool","Synthetic fixture: this worker renders the application's interface.",Confidence.Medium,[],now.AddDays(1),[DataOrigin.ShareableMetadata]),
+                    new(AssessmentAxis.Security,"Unknown","No threat evidence was submitted.",Confidence.Low,[],now.AddDays(1),[DataOrigin.ShareableMetadata])],[])),payload);
+            }
+        }
         RenderPage();
         if(args.Length>5&&args[5]=="details")
         { detailsOpen=true; table!.SelectedItem=rows.First(r=>r.Entity.Identity==node.Identity); UpdateDetailsLayout(); ShowDetail(table.SelectedItem as ViewModels.ProcessRow); }
@@ -49,6 +64,24 @@ public sealed partial class MainWindow
             try
             {
                 await Task.Delay(500);
+                if(args.Length>5&&args[5].StartsWith("settings",StringComparison.Ordinal)) {
+                    Navigation.SelectedItem=Navigation.SettingsItem; page="Settings"; RenderPage();
+                    if(args[5]=="settings-expanded"&&PageContent.Children.FirstOrDefault() is Microsoft.UI.Xaml.Controls.ScrollViewer { Content:Microsoft.UI.Xaml.Controls.StackPanel settingsPanel })
+                        settingsPanel.Children.OfType<Microsoft.UI.Xaml.Controls.Expander>().First().IsExpanded=true;
+                    await Task.Delay(250); WindowRoot.UpdateLayout();
+                }
+                if(args.Length>5&&args[5].StartsWith("activity",StringComparison.Ordinal)) {
+                    Navigation.SelectedItem=Navigation.MenuItems.OfType<Microsoft.UI.Xaml.Controls.NavigationViewItem>().First(i=>i.Tag?.ToString()=="AI activity");
+                    page="AI activity"; RenderPage(); await Task.Delay(250); WindowRoot.UpdateLayout();
+                    if(args[5]=="activity-details") {
+                        Microsoft.UI.Xaml.Controls.ListView? FindList(DependencyObject parent) {
+                            if(parent is Microsoft.UI.Xaml.Controls.ListView found) return found;
+                            for(var i=0;i<VisualTreeHelper.GetChildrenCount(parent);i++) if(FindList(VisualTreeHelper.GetChild(parent,i)) is { } nested) return nested;
+                            return null;
+                        }
+                        var activityList=FindList(PageContent)!; activityList.SelectedIndex=2; await Task.Delay(150);
+                    }
+                }
                 if(args.Length>5&&args[5]=="scroll") {
                     var scrolling=FindTableScrollViewer(table!) ?? throw new InvalidOperationException("Missing native scrolling viewport.");
                     if(scrolling.ScrollableWidth<=0 || scrolling.ScrollableHeight<=0) throw new InvalidOperationException("Fixture must overflow both axes.");
@@ -114,6 +147,13 @@ public sealed partial class MainWindow
             finally { Close(); }
         };
         Activate(); return true;
+    }
+    private sealed class FixtureCredentials : ProcSight.Application.Settings.ICredentialStore
+    {
+        private readonly Dictionary<string,string> values=[];
+        public string? Get(string id)=>values.GetValueOrDefault(id);
+        public void Set(string id,string value)=>values[id]=value;
+        public void Remove(string id)=>values.Remove(id);
     }
 }
 #endif

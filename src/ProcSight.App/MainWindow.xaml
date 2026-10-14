@@ -36,6 +36,7 @@
     <NavigationViewItem Content="Processes" Tag="Processes" Icon="AllApps" IsSelected="True" />
     <NavigationViewItem Content="Services" Tag="Services" Icon="Repair" />
     <NavigationViewItem Content="Knowledge" Tag="Knowledge" Icon="Library" />
+    <NavigationViewItem Content="AI activity" Tag="AI activity" Icon="Clock" />
    </NavigationView.MenuItems>
    <Border Margin="0,0,12,12" Background="{ThemeResource LayerFillColorDefaultBrush}"
     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8">

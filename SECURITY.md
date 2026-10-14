@@ -35,6 +35,14 @@ constitute an independent security audit or verified behavior of a remote/local 
   later re-analysis. Local model routing is loopback-only with redirects disabled.
 - No raw command lines in stored snapshots, logs, rule literals, or research queries.
 - API credentials protected by Windows credential storage.
+- ChatGPT plan sessions and their account catalog use protected generation-addressed credential chunks.
+  Browser authorization uses PKCE, state and nonce with a temporary IPv4 loopback callback. ID tokens
+  require OpenAI JWKS signature/issuer/audience/expiry validation and direct plan-use scope checks.
+  Model and inference requests use fixed public OpenAI HTTPS endpoints. Tokens and authorization URLs
+  must never enter logs or diagnostics. Sign-in alone does not permit automatic process transmission.
+- The AI activity history holds at most 200 request summaries and privacy-projected assessments
+  in memory. It excludes full commands, paths, captions, credentials, transport bodies and exception
+  text, and provides no export/file logging. Pause prevents new entries; Clear removes current history.
 - Evidence and scope validation before generated rules become active; external/model
   text cannot execute commands or grant local capabilities.
 - Known limitations, missing data, stale findings, and conflicting evidence remain visible.

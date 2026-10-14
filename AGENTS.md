@@ -50,6 +50,14 @@ labels stay transient. Icon loading is bounded, cached, off-thread, and releases
   data and derived knowledge must not enter online payloads. Raw command lines must not
   enter persistence, logs, rule literals, or research queries.
 - API keys belong in Windows-protected credential storage, not tracked files or diagnostics.
+- ChatGPT plan OAuth is separate from API-key billing. Bind model/settings to the selected opaque
+  account ID, protect tokens and account catalog, and validate state/PKCE/nonce/JWKS and granted scopes.
+  Serialize rotating refreshes across app instances. Never use ChatGPT private backend endpoints,
+  log authorization URLs/tokens, or silently fall back to API-key charges. Sign-in does not enable analysis.
+- AI activity is a product-level, memory-only history of actual provider attempts and projected
+  results. Keep its 200-entry bound, immutable snapshots and failure isolation. Never retain raw
+  payloads, commands, paths, window captions, snippets or provider exception text; show only safe
+  metadata summaries and command-inclusion flags. Do not mislabel local cache/rule hits as AI calls.
 - External text and model results are untrusted data; generated rules cannot execute code.
 - Follow the approved component boundaries; keep blocking work off the UI thread.
 - Management and cleanup are later phases with their own design work.

@@ -16,11 +16,11 @@ Locked restore and native Release build passed with zero warnings/errors. Test r
 
 | Project | Passed | Focus |
 | --- | ---: | --- |
-| Core | 51 | Identity/privacy/rules, local command availability and online identifying-field gates |
-| Application | 60 | Stable ordering, singleton/group transitions, local Details and private captions |
-| Infrastructure | 33 | Persistence/providers/coordinator, private invocation scopes and rule reuse |
+| Core | 52 | Identity/privacy/rules and persisted opaque ChatGPT profile binding |
+| Application | 66 | Ordering/Details/captions and bounded privacy-safe activity history |
+| Infrastructure | 89 | Storage, OAuth/rotation/models/SSE and actual activity/retry/cancellation instrumentation |
 | Windows | 20 | Native reads/icons/signatures and caption ownership/lifetime/timeout checks |
-| Total | 164 | No failed or skipped tests |
+| Total | 227 | No failed or skipped tests |
 
 Key behaviors covered include same-name owners at different paths, PID reuse, all three
 classification axes, rejected name-only rules, expired referenced evidence, changed-owner
@@ -65,7 +65,7 @@ capture returned the background window, and input failed with unavailable coordi
 geometry. Therefore desktop clicks, keyboard/screen-reader behavior, and live caption/Mica
 appearance are not claimed verified by that tool.
 
-Nine Mermaid class, sequence, and state diagrams in [ARCHITECTURE.md](../ARCHITECTURE.md) were
+Twelve Mermaid class, sequence, and state diagrams in [ARCHITECTURE.md](../ARCHITECTURE.md) were
 parsed and rendered locally. Local documentation targets and whitespace were checked.
 
 ## Outstanding acceptance work
@@ -141,3 +141,34 @@ collection, requested-PID filtering, changed-lifetime rejection, and bounded rea
 unresponsive own-window thread. Window classes/captions remain transient and local.
 Focused independent review caught the synchronous own-window caption risk; the timeout fix and
 native regression now pass. Full desktop acceptance remains separate from these API checks.
+
+## ChatGPT plan, Settings and AI activity
+
+Synthetic OAuth checks cover callback state/PKCE, nonce, signed issuer/audience/expiration,
+missing grants, returning client/subject mismatch, protected Unicode token chunking, rotated-token
+reuse across service restart, serial renewal, mutex cancellation and revocation retry. Temporary
+renewal response-body/network failures remain transient instead of permanently pausing authentication.
+SSE tests require completed validated output and cover partial/refused/malformed/error streams,
+exact response/output bounds, cancellation, account errors and fixed public endpoints.
+
+The user completed browser sign-in in the Debug app. A read-only model-discovery check using
+ProcSight's protected session received HTTP 200 with 10 model records and 7 visible choices.
+The approximately 600 KiB catalog exposed the old 256 KiB limit; the discovery-only 2 MiB bound
+now returns all 7 selectable models. Synthetic large-catalog/over-limit tests cover the regression.
+Only status, counts, JSON field names and size were displayed; credentials, account identity,
+model instruction content and process metadata were not printed or committed. Live inference,
+live switching/revocation, and provider-side retention behavior remain outstanding.
+
+Native Debug fixtures rendered the rebuilt Settings at wide/narrow sizes and inspected an
+expanded light-theme connection panel. AI activity fixtures render success/failure/running rows
+and selected returned explanations. They use synthetic entries and memory-only credentials;
+no real account or machine collection is used for screenshots. Normal Debug and Release builds
+passed with zero warnings/errors. These are renderer checks, not complete pointer/accessibility acceptance.
+
+Activity tests cover the 200-entry bound, immutable safe snapshots, pause/clear/in-flight behavior,
+command-bearing output projection, location/secret omission, observer failure isolation and actual
+provider/research attempts/retries/cancellation. Local cache hits do not produce AI requests.
+
+![Native Settings cards](images/settings-dark.png)
+
+![Native AI activity with selected results](images/ai-activity.png)

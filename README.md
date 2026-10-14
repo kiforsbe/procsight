@@ -6,7 +6,7 @@ what evidence supports their classifications.
 
 **Status: development preview; no published release.** Live collection, local rules and
 knowledge, provider adapters, optional research, and the investigation interface are
-implemented. Automated checks use synthetic metadata and fake providers; live API behavior
+implemented. Automated checks use synthetic metadata and fake providers; live inference behavior
 and the complete desktop accessibility/scaling matrix remain unverified.
 
 On Windows 11 with .NET SDK 10.0.301 and Windows App Runtime 2.2 installed:
@@ -37,6 +37,11 @@ This is the actual XAML rendering, using synthetic processes and a synthetic ana
   cases. Validated rules are reused for matching processes, reducing repeated API calls.
 - User-configured OpenAI or compatible API endpoints, optional loopback local models,
   and separately enabled online research with source links.
+- Direct **Continue with ChatGPT** connection for eligible ChatGPT plans, with account-specific
+  models and protected renewable sessions. Live model discovery has been checked; live inference remains unverified.
+- An **AI activity** page showing queried processes/services, provider/model, retries, returned
+  classifications and explanations, research evidence counts, and failures. The last 200 requests
+  stay in memory, with filtering, Pause recording and Clear; raw transport/debug data is omitted.
 
 The table uses compact rows, resource totals, classification filters, and optional details.
 Disk/network are explicitly unavailable; GPU collection is deferred. Executable icons are
@@ -105,8 +110,16 @@ attached after provider responses, preserving application boundaries without tra
 AI assessments are explanations with evidence and uncertainty. They are not antivirus
 verdicts or authorization to change the computer.
 
-Automatic analysis and research start disabled. Configure a model and endpoint in Settings,
-save the API key in Windows Credential Manager, and use the synthetic connection test before
+Settings follows the Windows 11 Task Manager card layout: Appearance, AI connections,
+Analysis and privacy, and Advanced, with expandable options and responsive controls.
+For ChatGPT plan usage, expand **ChatGPT account**, select **Continue with ChatGPT**, complete
+browser consent, choose an available model, select **ChatGPT plan** as provider, and save.
+Use **Use another account** to register another account; sign-out disables automatic analysis
+for the connected profile. Plan usage shares the user's ChatGPT allowance; no API-key billing fallback occurs.
+API-key profiles remain separately billed. Research currently requires the OpenAI API-key profile.
+
+Automatic analysis and research start disabled. Configure a model and connection in Settings,
+save API keys in Windows Credential Manager when using API-key profiles, and use the synthetic connection test before
 enabling automatic analysis. Default daily limits are 20 automatic jobs and 60 billable
 calls, including retries and reserved research calls. OpenAI research requires a model that
 supports web search; compatible/local providers currently supply analysis only.

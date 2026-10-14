@@ -7,6 +7,15 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Direct open-source ChatGPT plan sign-in, protected account/session storage, model discovery,
+  renewal/revocation, and bounded streamed analysis without API-key billing fallback.
+- Native Windows 11 Settings cards and expanders, responsive controls, and explicit account/model
+  selection. Live ChatGPT inference validation remains outstanding.
+- Readable AI activity history for process/service queries, retries, returned assessments, research
+  counts, and connection tests. History is bounded to 200 memory-only entries, with pause/filter/clear.
+- Fixed ChatGPT model discovery rejecting the live model catalog: discovery accepts up to 2 MiB;
+  token and identity responses retain their smaller 256 KiB bound.
+
 - Local visible-window captions in process names, plus window classes and foreground/minimized
   state in Details. Caption changes do not alter identity or trigger provider re-analysis.
 - Host — hosted child names for Python/PowerShell/Plex/Windows scripts, Python modules, Command Prompt

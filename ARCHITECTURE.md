@@ -41,9 +41,90 @@ verify the diagram source and rendering. Avoid diagrams that merely repeat a fil
 
 ## Component boundaries
 
+### ChatGPT plan connection
+
+The [session adapter](src/ProcSight.Infrastructure/Authentication/ChatGptSessionService.cs) owns
+open-source public-client OAuth, multiple issued client/account registrations, model discovery,
+renewal and revocation. [Protected records](src/ProcSight.Infrastructure/Authentication/ChatGptProtectedStore.cs)
+split large tokens into generation-addressed Windows credential chunks; the committed index is
+published after all chunks exist. The account catalog is protected too. Preferences contain only
+an opaque account-binding ID, provider/model selection and policy, never OAuth tokens or email.
+[Named session/credential locks](src/ProcSight.Infrastructure/Authentication/ChatGptSessionLock.cs)
+serialize cross-process refresh rotation and record publication; operations reload records under
+the lock. Browser sign-in is bounded to three minutes and callbacks to 16 KiB/10-second reads.
+
+[ChatGptPlanProvider](src/ProcSight.Infrastructure/Providers/ChatGptPlanProvider.cs) implements
+IAnalysisProvider with fixed public HTTPS endpoints, fresh OAuth access tokens and a bounded
+Responses SSE stream. A completed, non-refused, validated result is required before rule acceptance.
+Its transport accepts at most 1 MiB of events and 256 KiB of output over 60 seconds; it never
+substitutes an API key. Existing coordinator budgets/retries still apply to transient failures.
+Authentication failures pause analysis, while temporary refresh/body errors preserve transient
+classification. Research remains available only through the explicit OpenAI API-key profile.
+
+[Settings](src/ProcSight.App/MainWindow.Settings.cs) uses responsive native icon cards and expanders.
+[Account controls](src/ProcSight.App/MainWindow.ChatGpt.cs) track a draft account/model separately
+from the active analysis policy, reject stale asynchronous model loads, and require Save before
+changing provider configuration. Sign-out cancels/drains current work and disables automatic analysis
+for its profile before revoking/clearing credentials. Sign-in alone never enables automatic analysis.
+Account and model discovery transmit no process metadata; inference uses the existing cloud projection.
+These are implemented protocol boundaries. The user completed browser sign-in and the live catalog
+was checked through the saved session; live inference and full account-switch/revocation acceptance
+remain unverified. Model catalogs have a separate 2 MiB cap because their metadata can exceed 256 KiB;
+token and identity/JWKS responses retain the smaller bound. Catalog instruction fields are ignored.
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Settings as Native Settings
+    participant OAuth as Session adapter
+    participant Browser as System browser
+    participant Auth as OpenAI authorization
+    participant Vault as Windows protected credentials
+    participant Provider as ChatGPT plan provider
+    participant API as Public Responses API
+    User->>Settings: Continue with ChatGPT
+    Settings->>OAuth: Begin sign-in
+    OAuth->>Vault: Reuse opaque host ID / issued registration
+    OAuth->>Browser: Authorization with state, nonce and PKCE
+    Browser->>Auth: Authenticate and consent
+    Auth-->>OAuth: IPv4 loopback code / state / client ID
+    OAuth->>Auth: Exchange code, verify JWKS identity and scopes
+    OAuth->>Vault: Protect validated registration and tokens
+    OAuth-->>Settings: Account and available models
+    User->>Settings: Select model, sharing policy and Save
+    Settings->>Provider: Existing sanitized cloud payload
+    Provider->>OAuth: Fresh token, serialized renewal if needed
+    Provider->>API: Bearer request, store=false, stream=true
+    API-->>Provider: SSE events through response.completed
+    Provider-->>Settings: Validated explanation / declarative rules
+```
+
+```mermaid
+stateDiagram-v2
+    [*] --> Disconnected
+    Disconnected --> Authorizing: User starts browser sign-in
+    Authorizing --> Connected: Valid identity and direct-plan grant
+    Authorizing --> Disconnected: Cancel / invalid callback / denied grant
+    Connected --> Renewing: Token near expiry
+    Renewing --> Connected: Publish rotated credentials
+    Renewing --> Connected: Temporary failure / preserve session for retry
+    Renewing --> Reauthorize: Authentication failure
+    Reauthorize --> Authorizing: User reconnects saved registration
+    Connected --> SigningOut: Stop and drain profile work
+    SigningOut --> Disconnected: Revoke renewable session / clear local tokens
+    note right of Disconnected
+        Issued registration and host ID are retained.
+        Unconfirmed remote revocation is disclosed.
+    end note
+```
+
+Protocol source: [OpenAI open-source sign-in](https://developers.openai.com/siwc/token-sharing-open-source/sign-in)
+and [session management](https://developers.openai.com/siwc/token-sharing-open-source/profiles-and-sessions).
+
 The first release is an ordinary-privilege C#/WinUI 3 application on Windows 11. Collection,
 identity enrichment, rules, storage, and provider work run away from the UI thread. The app
-does not need a background service, Node.js server, or a local network listener.
+does not need a background service or Node.js server. ChatGPT browser sign-in temporarily opens an
+IPv4 loopback callback listener; ordinary process collection has no listening network endpoint.
 
 The UML dependency view shows implemented interfaces, not process deployment. Arrows mean
 "uses"; adapters implement interfaces owned by Application/Core, so dependencies on provider
@@ -397,6 +478,55 @@ External/model text cannot initiate machine actions or request arbitrary local r
 See [SECURITY.md](SECURITY.md) for reporting and intended security boundaries.
 
 ## Live table state and assets
+
+### AI activity history
+
+[AnalysisActivityLog](src/ProcSight.Application/Analysis/AnalysisActivityLog.cs) holds immutable
+request summaries in a thread-safe ring of at most 200 entries, newest first. The coordinator
+begins an entry immediately around each actual provider/research call, including retries, and
+completes it with success, failure or cancellation. Cached/local-rule outcomes create no AI entry.
+The [Settings connection test](src/ProcSight.App/MainWindow.Settings.cs) records synthetic requests
+through the same API. Observer/logging failures cannot fail analysis; clearing/evicting an in-flight
+entry does not recreate it when its result arrives. Pausing blocks new entries but finishes prior ones.
+
+Summaries retain local process name/PID or service identity, selected provider/model, timing, attempt
+number, safe metadata values/categories and a command-inclusion flag. They never retain the payload
+or raw command. Returned assessments pass OutputPrivacyFilter before location/secret sanitization;
+research keeps only the evidence count. Proposed rule counts are not claims that rules were activated.
+No file/export/database storage exists for activity. [Native AI activity](src/ProcSight.App/MainWindow.Activity.cs)
+offers status filtering, pause/clear and selected result details, updates rows without replacing the
+whole list, and stops its UI refresh timer on unload.
+
+```mermaid
+classDiagram
+    class AnalysisCoordinator {
+        Actual provider and research attempts
+    }
+    class AnalysisActivityLog {
+        Enabled
+        Begin()
+        Complete()
+        Clear()
+        Snapshot()
+    }
+    class AnalysisActivityEntry {
+        Process or service
+        Provider and model
+        Safe request summary
+        Projected results and status
+    }
+    class OutputPrivacyFilter {
+        Project()
+    }
+    class NativeActivityPage {
+        Filter and selected details
+        Pause and clear
+    }
+    AnalysisCoordinator --> AnalysisActivityLog : begin and finish each attempt
+    AnalysisActivityLog o-- "0..200" AnalysisActivityEntry : transient immutable history
+    AnalysisActivityLog --> OutputPrivacyFilter : sanitize before retaining results
+    NativeActivityPage --> AnalysisActivityLog : local snapshots only
+```
 
 ### Local window observations
 
