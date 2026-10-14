@@ -17,10 +17,10 @@ Locked restore and native Release build passed with zero warnings/errors. Test r
 | Project | Passed | Focus |
 | --- | ---: | --- |
 | Core | 62 | Identity/privacy/rules and persisted opaque ChatGPT profile binding |
-| Application | 77 | Ordering/captions/activity and concise app/host naming despite old AI prose |
+| Application | 80 | Ordering/captions/activity and concise app/host naming despite old AI prose |
 | Infrastructure | 102 | Storage, OAuth/SSE/activity, safe failure reasons and empty-completion text preservation |
 | Windows | 26 | Native reads/icons/signatures and caption ownership/lifetime/timeout checks |
-| Total | 267 | No failed or skipped tests |
+| Total | 270 | No failed or skipped tests |
 
 Key behaviors covered include same-name owners at different paths, PID reuse, all three
 classification axes, rejected name-only rules, expired referenced evidence, changed-owner
@@ -209,3 +209,22 @@ with synthetic data and no provider calls. Release and normal Debug builds passe
 Full protected-process/other-user service acceptance remains unverified on a representative matrix.
 All 14 architecture Mermaid diagrams parsed and rendered, and changed-document relative links
 and `git diff --check` passed. These checks do not establish live protected-process coverage.
+
+## Native rules redesign
+
+The rules library follows [WINUI3-DESIGN.md](WINUI3-DESIGN.md), with Microsoft source links and
+separate project choices. Synthetic native fixtures rendered wide and narrow selected views in
+both light and dark themes; visual inspection corrected theme-bound secondary text and expanded
+content padding. Naming tests reject unrelated metadata for a hash-scoped rule and inspection
+reports effective default Windows location gates. Concurrent reloads queue a fresh read after
+rule mutation and suppress snapshots already known to be outdated.
+
+Native automation-peer fixtures exercised Refresh preserving selection, disable, enable, delete
+requiring confirmation, Cancel preserving the rule, confirmed deletion updating SQLite/list counts,
+source filtering and search/reset. They do not access real credentials, providers or machine dumps.
+Screenshots: [dark library](images/rules-library-dark.png), [light library](images/rules-library-light.png),
+[narrow details](images/rules-details-narrow.png). All 15 architecture diagrams parsed and rendered.
+Full Narrator, high-contrast, keyboard-only traversal and text/DPI scaling remain unverified.
+Final locked Release verification passed: 62 Core, 80 Application, 102 Infrastructure and 26 Windows
+tests (270 total), with zero failures/skips and zero build warnings/errors. Normal Debug build,
+changed-document links and diff whitespace checks passed too.

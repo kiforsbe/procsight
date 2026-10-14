@@ -126,3 +126,11 @@ contribution. AI rule provenance comes from trusted coordinator settings, not mo
 and must contain no account identifiers or credentials. Collection `MetadataIssue` fields remain
 local and JSON-ignored; preserve partial records and safe reason codes without exception text
 or invented explanations about ownership.
+
+## Native UI design maintenance
+
+Read and apply [the Windows 11 / WinUI 3 design guide](docs/WINUI3-DESIGN.md) before changing UI.
+Keep its project conventions current with shared UI changes. Use actual native controls and theme
+resources, compact selectable lists, adaptive details, structured evidence, and contextual feedback.
+Capture synthetic wide/narrow light/dark views; screenshots do not replace keyboard, Narrator,
+high-contrast or scaling validation. Do not broaden a rule's scope when deriving a readable name.

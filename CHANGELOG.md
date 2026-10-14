@@ -7,6 +7,10 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Microsoft-sourced Windows 11 / WinUI 3 design guide and native rules redesign: compact selectable
+  rows, meaningful metadata names, adaptive details, structured evidence/provenance, theme-aware
+  typography, command overflow and explicit delete confirmation.
+
 - Searchable Rules & knowledge library, per-process/service rule inspection, contributing versus
   matching rule status, supporting evidence and recorded AI provider/model provenance.
 - Restricted metadata reads preserve partial processes/services and display safe unavailability

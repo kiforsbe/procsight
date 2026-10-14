@@ -9,6 +9,23 @@ public sealed class RuleInspectionTests
         Samples.Now.AddDays(7),Samples.Now.AddDays(7),[new(PredicateKind.Exact,"hash","fixture-hash",["fixture-evidence"])],
         [new(AssessmentAxis.Purpose,"Application","Fixture reason",Confidence.Medium,["fixture-evidence"],Samples.Now.AddDays(7),[DataOrigin.ShareableMetadata])],["fixture-evidence"],100);
     [Fact] public void LegacyRulesDoNotInventAnAiProvider()=>Assert.Contains("not recorded",RuleInspection.Source(Rule()));
+    [Fact] public void BundledWindowsInspectionIncludesDefaultLocationGates()
+    {
+        var definition=ProcSight.Core.Rules.KnownTaskCatalog.Definitions.First(d=>d.Executable=="svchost.exe"&&d.ServiceName is null);
+        Assert.Equal("System32, SysWOW64, SystemApps",RuleInspection.Locations(definition));
+    }
+    [Fact] public void FileScopedRuleUsesAssociatedMetadataForReadableName()
+    {
+        var rule=Rule();
+        var evidence=new EvidenceRecord("fixture-evidence",DataOrigin.ShareableMetadata,Samples.Now,null,"File",new(){["hash"]="fixture-hash",["name"]="worker.exe",["product"]="Example editor"});
+        Assert.Equal("Example editor",RuleInspection.Name(rule,[evidence]));
+    }
+    [Fact] public void UnrelatedMetadataCannotNameAHashScopedRule()
+    {
+        var rule=Rule();
+        var evidence=new EvidenceRecord("fixture-evidence",DataOrigin.ShareableMetadata,Samples.Now,null,"File",new(){["hash"]="different-hash",["name"]="unrelated.exe"});
+        Assert.Equal("File-specific rule",RuleInspection.Name(rule,[evidence]));
+    }
     [Fact] public void AiRuleShowsReadableSourceAndConditions()
     {
         var rule=Rule() with { Provenance=new("chatgpt","fixture-model",AnalysisDestination.CloudModel,Samples.Now) };

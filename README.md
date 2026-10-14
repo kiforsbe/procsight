@@ -170,3 +170,8 @@ rules explicitly lack provider/model history; provenance does not establish trus
 
 Protected processes and services retain readable fields and show safe reasons for unavailable
 metadata, including access denied, missing files, or read failures. No elevation is required.
+
+The rules library uses compact selectable rows and a structured details pane. At narrow widths,
+select a rule to open details, then use **Back to rules**. Enable/disable applies to the selected
+learned rule; Delete and knowledge-clear actions live in command overflow and require confirmation.
+The [WinUI 3 design guide](docs/WINUI3-DESIGN.md) documents the native UI conventions.

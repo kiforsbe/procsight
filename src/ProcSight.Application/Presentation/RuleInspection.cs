@@ -8,13 +8,27 @@ public static class RuleInspection
         "hash"=>"File hash","name"=>"Executable","product"=>"Product","signer"=>"Verified signer","path"=>"File location",
         "owner"=>"Application owner","ownerIdentity"=>"Application scope","service"=>"Service","package"=>"Package identity",
         "commandContext"=>"Invocation context","commandRole"=>"Invocation category",_=>Words(field) };
-    private static string Value(string field,string value)=>field is "commandContext" or "ownerIdentity"?"Private matching fingerprint":value;
+    public static string Value(string field,string value)=>field is "commandContext" or "ownerIdentity"?"Private matching fingerprint":value;
+    public static string Name(RuleDefinition rule,IReadOnlyList<EvidenceRecord>? evidence=null)
+    {
+        foreach(var field in new[]{"product","service","name"})
+            if(rule.Predicates.FirstOrDefault(p=>p.Field==field)?.Value is { Length:>0 } value) return value;
+        var hash=rule.Predicates.FirstOrDefault(p=>p.Field=="hash")?.Value;
+        if(hash is not null) {
+            var record=evidence?.FirstOrDefault(e=>rule.EvidenceIds.Concat(rule.Predicates.SelectMany(p=>p.EvidenceIds)).Contains(e.Id)&&e.Facts.GetValueOrDefault("hash")==hash);
+            foreach(var field in new[]{"product","name"})
+                if(record?.Facts.GetValueOrDefault(field) is { Length:>0 } value) return value;
+            return "File-specific rule";
+        }
+        return "Scoped rule";
+    }
+    public static string Classifications(RuleDefinition rule)=>string.Join(" / ",rule.Assessments.Select(a=>Words(a.Value)));
+    public static string Locations(KnownTaskDefinition definition)=>definition.PublisherOnly?"Publisher reference; location gate does not apply":
+        definition.WindowsComponent?string.Join(", ",definition.PathScopes??["System32","SysWOW64","SystemApps"]):"No additional location constraint";
     public static string Source(RuleDefinition rule)=>rule.Provenance is { } p?
         $"AI-generated · {p.ProviderId switch { "chatgpt"=>"ChatGPT plan","openai"=>"OpenAI API","compatible"=>"Compatible API","local"=>"Local model",_=>p.ProviderId }} · {p.Model}":
         rule.Origin==DataOrigin.UserCorrection?"User correction":"Learned rule · provider/model not recorded";
-    public static string Title(RuleDefinition rule)=>
-        (rule.Predicates.FirstOrDefault(p=>p.Field=="product")?.Value??rule.Predicates.FirstOrDefault(p=>p.Field=="name")?.Value??"Rule "+rule.Id.ToString()[..8])+
-        " · "+string.Join(" / ",rule.Assessments.Select(a=>Words(a.Value)));
+    public static string Title(RuleDefinition rule,IReadOnlyList<EvidenceRecord>? evidence=null)=>Name(rule,evidence)+" · "+Classifications(rule);
     public static string State(RuleDefinition rule,DateTimeOffset now)=>rule.State!=RuleState.Active?rule.State.ToString():
         rule.ExpiresAt<=now?"Expired":rule.ReviewAt<=now?"Review overdue":"Active";
     public static string ApplicationStatus(Guid id,LocalAnalysis? analysis)=>analysis?.AppliedRuleIds?.Contains(id)==true?"Applied":
@@ -22,7 +36,7 @@ public static class RuleInspection
     public static string Describe(RuleDefinition rule,IReadOnlyList<EvidenceRecord> evidence,DateTimeOffset now,
         ResolvedEntity? entity=null,LocalAnalysis? analysis=null)
     {
-        var lines=new List<string> { Title(rule),Source(rule),"State: "+State(rule,now),"Rule ID: "+rule.Id,
+        var lines=new List<string> { Title(rule,evidence),Source(rule),"State: "+State(rule,now),"Rule ID: "+rule.Id,
             $"Created: {rule.CreatedAt.LocalDateTime:g}",$"Review: {rule.ReviewAt.LocalDateTime:g}",$"Expires: {rule.ExpiresAt.LocalDateTime:g}" };
         if(rule.Provenance is { } p) lines.Add($"Generated: {p.GeneratedAt.LocalDateTime:g} · {(p.Destination==AnalysisDestination.LocalModel?"Local model":"Online provider")}");
         if(entity is not null) lines.Add("For selected process/service: "+ApplicationStatus(rule.Id,analysis));

@@ -773,3 +773,39 @@ sequenceDiagram
     Snapshot->>Projection: Allowed evidence only
     Note over Snapshot,Projection: MetadataIssue is JSON-ignored with no exception text or raw command diagnostics
 ```
+
+## Native rules list/details presentation
+
+The [design guide](docs/WINUI3-DESIGN.md) applies to the shell's shared native presentation.
+[MainWindow.Knowledge](src/ProcSight.App/MainWindow.Knowledge.cs) loads rule and evidence records
+on worker tasks, constructs a searchable source/state-filtered collection, preserves selected IDs
+when available, and selects side-by-side or stacked details based on actual content width.
+[RuleInspection.Name](src/ProcSight.Application/Presentation/RuleInspection.cs) uses explicit
+identity predicates first, then metadata from referenced evidence with the same exact hash.
+Names are contextual labels; they do not change rule predicates or validate trust.
+
+[RulePresentation](src/ProcSight.App/MainWindow.RulePresentation.cs) supplies shared native content
+for the nonmodal library and existing process dialogs. Classification, condition, evidence and
+provenance sections preserve the separate privacy/trust meanings. Commands invalidate coordinator
+knowledge only after storage succeeds. Enabling still requires fresh supported evidence; deletion
+requires explicit inline confirmation so inspectors never create nested modal dialogs. Bundled
+reference definitions remain read-only. No new persistence or provider contracts are introduced.
+
+The UML state view describes the responsive investigation flow:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Browse
+    Browse --> Details: Select rule
+    Details --> Browse: Back at narrow width
+    Details --> Details: Enable or disable succeeds / refresh records
+    Details --> ConfirmDelete: Delete command in overflow
+    ConfirmDelete --> Details: Cancel
+    ConfirmDelete --> Browse: Confirm and storage succeeds
+    ConfirmDelete --> ConfirmDelete: Storage fails / inline feedback
+    note right of Details
+        Wide layout keeps list visible.
+        Narrow layout shows one pane.
+        Both use shared structured content.
+    end note
+```

@@ -204,3 +204,15 @@ Debug visual fixtures accept `rules` and `rules-process` for synthetic library a
 `RuleContributionTests`, `RuleInspectionTests`, and `RuleProvenanceTests` cover attribution and
 legacy persistence. `MetadataAccessTests` and `MetadataAvailabilityTests` cover restricted reads,
 partial records, safe reasons, and local-only collection diagnostics. Do not use machine dumps.
+
+## Windows 11 UI conventions
+
+[WINUI3-DESIGN.md](docs/WINUI3-DESIGN.md) synthesizes Microsoft's native guidance and documents
+ProcSight choices. Apply it when changing the UI. Rules use two-line selectable rows and adaptive
+list/details panes, with maintenance in CommandBar overflow. `MainWindow.RulePresentation.cs`
+builds structured shared content for both the library and process inspection dialogs. Native
+Debug `rules-detail` fixtures select a synthetic learned rule; `rules` shows the unselected list.
+Metadata-derived names are descriptive; hash predicates still govern a file-specific rule.
+
+`rules-actions` is a synthetic native automation-peer fixture covering selection refresh,
+state changes, delete/cancel confirmation, source filtering and search/reset without provider calls.

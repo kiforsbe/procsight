@@ -49,13 +49,13 @@ public sealed partial class MainWindow
             fixtureRulesDatabase=Path.Combine(Path.GetTempPath(),"procsight-rules-fixture-"+Guid.NewGuid()+".db");
             knowledge=new(fixtureRulesDatabase);
             coordinator=new(knowledge,knowledge,(_,_)=>throw new InvalidOperationException("Fixture has no provider."));
-            var purpose=analysis[node.Identity].Result.Assessments[0];
+            var purpose=analysis[node.Identity].Result.Assessments[0] with { EvidenceIds=[node.Evidence[0].Id] };
             var learned=new RuleDefinition(Guid.NewGuid(),1,RuleState.Active,DataOrigin.ShareableMetadata,now,now.AddDays(7),now.AddDays(7),
                 [new(PredicateKind.Exact,"hash",node.Facts["hash"],[node.Evidence[0].Id])],[purpose],[node.Evidence[0].Id],100,
                 Provenance:new("chatgpt","example-model",AnalysisDestination.CloudModel,now));
             knowledge.SaveAsync(new(node.Identity,now,[purpose],node.Evidence,[learned],[]),default).GetAwaiter().GetResult();
             var update=analysis[node.Identity]; analysis[node.Identity]=update with { Result=update.Result with { MatchingRuleIds=[learned.Id],AppliedRuleIds=[learned.Id] } };
-            page=args[5]=="rules"?"Knowledge":"Processes";
+            page=args[5]!="rules-process"?"Knowledge":"Processes";
         }
         if(args.Length>5&&args[5].StartsWith("settings",StringComparison.Ordinal)) page="Settings";
         if(args.Length>5&&args[5].StartsWith("activity",StringComparison.Ordinal)) {
@@ -78,9 +78,60 @@ public sealed partial class MainWindow
             {
                 await Task.Delay(500);
                 if(args.Length>5&&args[5].StartsWith("rules",StringComparison.Ordinal)) {
-                    if(args[5]=="rules") { Navigation.SelectedItem=Navigation.MenuItems.OfType<Microsoft.UI.Xaml.Controls.NavigationViewItem>().First(i=>i.Tag?.ToString()=="Knowledge"); page="Knowledge"; RenderPage(); }
+                    if(args[5]!="rules-process") { Navigation.SelectedItem=Navigation.MenuItems.OfType<Microsoft.UI.Xaml.Controls.NavigationViewItem>().First(i=>i.Tag?.ToString()=="Knowledge"); page="Knowledge"; RenderPage(); }
                     else { page="Processes"; RenderPage(); detailsOpen=true; table!.SelectedItem=rows.First(r=>r.Entity.Identity==node.Identity); UpdateDetailsLayout(); ShowDetail(table.SelectedItem as ViewModels.ProcessRow); }
                     await Task.Delay(350); WindowRoot.UpdateLayout();
+                    if(args[5] is "rules-detail" or "rules-actions") {
+                        Microsoft.UI.Xaml.Controls.ListView? FindRulesList(DependencyObject parent) {
+                            if(parent is Microsoft.UI.Xaml.Controls.ListView found) return found;
+                            for(var i=0;i<VisualTreeHelper.GetChildrenCount(parent);i++) if(FindRulesList(VisualTreeHelper.GetChild(parent,i)) is { } nested) return nested;
+                            return null;
+                        }
+                        var ruleList=FindRulesList(PageContent) ?? throw new InvalidOperationException("Missing rules list.");
+                        if(ruleList.Items.Count!=374) throw new InvalidOperationException("Rules were not loaded.");
+                        ruleList.SelectedIndex=0; await Task.Delay(350); WindowRoot.UpdateLayout();
+                        if(args[5]=="rules-actions") {
+                            T? FindControl<T>(DependencyObject parent,Func<T,bool> predicate) where T:DependencyObject {
+                                if(parent is T match&&predicate(match)) return match;
+                                for(var i=0;i<VisualTreeHelper.GetChildrenCount(parent);i++) if(FindControl(VisualTreeHelper.GetChild(parent,i),predicate) is { } nested) return nested;
+                                return null;
+                            }
+                            void Invoke(Microsoft.UI.Xaml.Controls.Button button) {
+                                var peer=Microsoft.UI.Xaml.Automation.Peers.FrameworkElementAutomationPeer.CreatePeerForElement(button);
+                                var provider=(Microsoft.UI.Xaml.Automation.Provider.IInvokeProvider)peer.GetPattern(Microsoft.UI.Xaml.Automation.Peers.PatternInterface.Invoke);
+                                provider.Invoke();
+                            }
+                            Microsoft.UI.Xaml.Controls.AppBarButton Action(string label) {
+                                var bar=FindControl<Microsoft.UI.Xaml.Controls.CommandBar>(PageContent,b=>b.PrimaryCommands.Concat(b.SecondaryCommands).OfType<Microsoft.UI.Xaml.Controls.AppBarButton>().Any(a=>a.Label==label));
+                                return bar?.PrimaryCommands.Concat(bar.SecondaryCommands).OfType<Microsoft.UI.Xaml.Controls.AppBarButton>().First(a=>a.Label==label)??throw new InvalidOperationException("Missing rule action: "+label);
+                            }
+                            var selectedRuleId=(ruleList.SelectedItem as RuleLibraryItem)?.Id;
+                            Invoke(Action("Refresh")); await Task.Delay(400);
+                            if((ruleList.SelectedItem as RuleLibraryItem)?.Id!=selectedRuleId) throw new InvalidOperationException("Refresh lost selection.");
+                            Invoke(Action("Disable rule")); await Task.Delay(400);
+                            if((await knowledge.GetRulesAsync(default)).Single().State!=RuleState.Disabled) throw new InvalidOperationException("Disable did not save.");
+                            Invoke(Action("Enable rule")); await Task.Delay(400);
+                            if((await knowledge.GetRulesAsync(default)).Single().State!=RuleState.Active) throw new InvalidOperationException("Enable did not save.");
+                            Invoke(Action("Delete rule")); await Task.Delay(100);
+                            if((await knowledge.GetRulesAsync(default)).Count!=1) throw new InvalidOperationException("Delete skipped confirmation.");
+                            var cancel=FindControl<Microsoft.UI.Xaml.Controls.Button>(PageContent,b=>b.Content as string=="Cancel")!;
+                            Invoke(cancel); await Task.Delay(100);
+                            if((await knowledge.GetRulesAsync(default)).Count!=1) throw new InvalidOperationException("Cancel deleted the rule.");
+                            Invoke(Action("Delete rule")); await Task.Delay(100);
+                            var confirm=FindControl<Microsoft.UI.Xaml.Controls.Button>(PageContent,b=>b.Content as string=="Delete rule")!;
+                            Invoke(confirm); await Task.Delay(400);
+                            if((await knowledge.GetRulesAsync(default)).Count!=0||ruleList.Items.Count!=373) throw new InvalidOperationException("Confirmed delete did not refresh.");
+                            var sourceFilter=FindControl<Microsoft.UI.Xaml.Controls.ComboBox>(PageContent,b=>b.Items.Contains("All sources"))!;
+                            sourceFilter.SelectedIndex=1; await Task.Delay(100);
+                            if(ruleList.Items.Count!=0) throw new InvalidOperationException("Source filter did not update.");
+                            sourceFilter.SelectedIndex=0;
+                            var ruleSearch=FindControl<Microsoft.UI.Xaml.Controls.TextBox>(PageContent,b=>b.PlaceholderText.StartsWith("Search rules"))!;
+                            ruleSearch.Text=".NET application host"; await Task.Delay(100);
+                            if(ruleList.Items.Count!=1) throw new InvalidOperationException("Search did not narrow the list: "+ruleList.Items.Count);
+                            ruleSearch.Text=""; await Task.Delay(100);
+                            if(ruleList.Items.Count!=373) throw new InvalidOperationException("Search reset did not restore bundled rules.");
+                        }
+                    }
                 }
                 if(args.Length>5&&args[5].StartsWith("settings",StringComparison.Ordinal)) {
                     Navigation.SelectedItem=Navigation.SettingsItem; page="Settings"; RenderPage();

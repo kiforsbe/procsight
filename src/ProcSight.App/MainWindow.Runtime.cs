@@ -106,7 +106,7 @@ public sealed partial class MainWindow
             evidencePanel.Children.Add(new TextBlock { Text=$"Rules: {current?.AppliedRuleIds?.Count??0} applied · {current?.MatchingRuleIds.Count??0} matched",TextWrapping=TextWrapping.Wrap,FontWeight=Microsoft.UI.Text.FontWeights.SemiBold });
             foreach(var id in current?.MatchingRuleIds??[]) {
                 if(cached.Rules.FirstOrDefault(r=>r.Id==id) is not { } rule) continue;
-                var inspect=new Button { Content=new TextBlock { Text=RuleInspection.ApplicationStatus(id,current)+" · "+RuleInspection.Title(rule),TextWrapping=TextWrapping.Wrap },HorizontalAlignment=HorizontalAlignment.Stretch };
+                var inspect=new Button { Content=new TextBlock { Text=RuleInspection.ApplicationStatus(id,current)+" · "+RuleInspection.Title(rule,cached.Evidence),TextWrapping=TextWrapping.Wrap },HorizontalAlignment=HorizontalAlignment.Stretch };
                 ToolTipService.SetToolTip(inspect,RuleInspection.Source(rule));
                 inspect.Click+=async(_,_)=>await InspectRuleAsync(rule,entity,current); evidencePanel.Children.Add(inspect);
                 evidencePanel.Children.Add(new TextBlock { Text=RuleInspection.Source(rule),TextWrapping=TextWrapping.Wrap,FontSize=12 });
