@@ -2,9 +2,10 @@
 
 ## Status and documentation convention
 
-ProcSight implementation is underway. The native shell, collector, shared contracts, and
-initial identity resolver exist; provider/rule/storage flows below remain planned until
-their tasks are implemented and verified. The [design](docs/superpowers/specs/2026-10-13-procsight-design.md)
+ProcSight is an unreleased native development preview. The collector, domain contracts,
+identity resolver, privacy/rule engine, SQLite storage, provider adapters, coordinator, and
+investigation UI below are implemented. Automated verification uses synthetic providers;
+live-provider and full desktop acceptance remain outstanding. The [design](docs/superpowers/specs/2026-10-13-procsight-design.md)
 defines requirements; the [implementation plan](docs/superpowers/plans/2026-10-13-procsight.md)
 maps them to tasks. This root document is the living architecture reference and must
 track the actual implementation as it develops.
@@ -13,6 +14,16 @@ Current code owners: [native shell](src/ProcSight.App/MainWindow.xaml.cs),
 [collector](src/ProcSight.Windows/Collection/WindowsSnapshotSource.cs),
 [CPU sampler](src/ProcSight.Windows/Collection/ProcessSampler.cs), and
 [identity resolver](src/ProcSight.Core/Identity/IdentityResolver.cs).
+
+Additional code owners: [coordinator](src/ProcSight.Application/Analysis/AnalysisCoordinator.cs),
+[privacy projection](src/ProcSight.Core/Privacy/AnalysisProjection.cs),
+[output privacy filter](src/ProcSight.Core/Privacy/OutputPrivacyFilter.cs),
+[rule validation](src/ProcSight.Core/Rules/RuleValidator.cs),
+[local evaluation](src/ProcSight.Core/Rules/LocalAnalysisEngine.cs),
+[SQLite](src/ProcSight.Infrastructure/Knowledge/SqliteKnowledgeStore.cs),
+[provider HTTP](src/ProcSight.Infrastructure/Providers/ProviderHttp.cs),
+[native table](src/ProcSight.App/MainWindow.Processes.cs), and
+[portable presentation](src/ProcSight.Application/Presentation/ProcessListProjection.cs).
 
 Use UML liberally to explain structure, interactions, and lifecycle behavior. Store diagrams
 as editable Mermaid blocks alongside the prose so GitHub can render them. Prefer UML class,
@@ -31,7 +42,7 @@ The first release is an ordinary-privilege C#/WinUI 3 application on Windows 11.
 identity enrichment, rules, storage, and provider work run away from the UI thread. The app
 does not need a background service, Node.js server, or a local network listener.
 
-The UML dependency view shows intended interfaces, not process deployment. Arrows mean
+The UML dependency view shows implemented interfaces, not process deployment. Arrows mean
 "uses"; adapters implement interfaces owned by Application/Core, so dependencies on provider
 or storage behavior do not couple the coordinator to a concrete HTTP or SQLite implementation.
 
@@ -109,6 +120,13 @@ the identity is snapshot-scoped, preventing stale findings from transferring to 
 Parent links require lifetime validation. An executable identity and its invocation/ownership
 context are separate: the same Node.js binary can serve unrelated applications.
 
+Ownership candidates include an opaque identity derived from product and owner executable
+path; equal product names at different paths stay distinct. Automatic learned rules retain
+that ownership predicate when available. Native file descriptions provide readable labels
+for generic Windows product metadata; model labels can further explain individual roles.
+Command context uses a Windows-protected HMAC key and retains a separate shareable identity
+for cloud metadata-only requests in Local only mode.
+
 The UML class view captures conceptual relationships, not complete C# declarations. A process
 may host multiple services. An assessment may depend on several evidence records or rules;
 invalidation follows these dependencies rather than deleting unrelated knowledge.
@@ -178,6 +196,12 @@ must not be presented as measured zero. GPU collection is deferred.
 Eligible rules and cached findings resolve dimensions before external calls. Equivalent
 instances share queued work. Resource fluctuations alone do not trigger re-analysis.
 Unknown or failed unchanged cases do not create a recurring request loop.
+Successful local findings are reevaluated at their earliest rule/assessment/evidence expiry,
+even while executable metadata stays unchanged. Policy revisions advance monotonically;
+an older observation cannot restore a newer policy's withdrawn permission.
+Exact cached assessments also require their supporting local metadata to agree with current
+facts. Command-derived rules require a compatible command origin and controlled role context;
+they cannot silently classify a metadata-only observation after command collection is disabled.
 
 ```mermaid
 sequenceDiagram
@@ -213,8 +237,8 @@ sequenceDiagram
         A->>A: Recheck policy before dispatch
         A->>M: Analyze bounded request
         M-->>A: Structured proposal or typed failure
-        A->>L: Validate evidence, predicates, scope, freshness
         A->>P: Project persistable output and origins
+        A->>L: Validate evidence, predicates, scope, freshness
         alt Valid and privacy-compliant proposal
             A->>K: Save evidence, analysis, rules transactionally
             A->>L: Re-evaluate current entity
@@ -319,6 +343,18 @@ SQLite stores versioned knowledge, evidence, lineage, corrections, and invalidat
 dependencies. Separate atomic preferences store UI and operational settings without
 conflating them. Windows-protected credential storage holds provider keys and local identity
 digest keys. Usage accounting survives generated-knowledge resets.
+
+`knowledge.db` stores generated findings/corrections; `usage.db` independently accounts for
+requests; atomic `settings.json` stores operational and presentation choices under
+`%LOCALAPPDATA%\ProcSight`. Credential Manager stores API keys and the HMAC key. Schema 1
+creation is transactional; a newer schema is rejected without downgrading it. Knowledge
+maintenance pauses observation and drains queued work before explicit recovery/reset.
+
+Toolhelp and nonthrowing native process queries enumerate protected processes without using
+exception-based access probes. Resource intervals and unavailable facts remain explicit.
+Service configuration uses WMI with a ten-second cache; command lines are WMI opt-in only.
+Executable enrichment hashes/verifies at most sixteen uncached files per poll and caches by
+file stamps. Offline WinVerifyTrust does not initiate online certificate retrieval.
 
 Do not persist continuous resource history or raw snapshot DTOs. Prune unreferenced history
 older than 90 days while preserving active corrections and evidence needed by active rules.

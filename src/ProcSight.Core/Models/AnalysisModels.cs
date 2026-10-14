@@ -9,14 +9,16 @@ public sealed record Assessment(AssessmentAxis Axis, string Value, string Reason
     Confidence Confidence, List<string> EvidenceIds, DateTimeOffset ExpiresAt,
     HashSet<DataOrigin> Origins);
 public sealed record LocalAnalysis(List<Assessment> Assessments, string? Owner,
-    List<Guid> MatchingRuleIds, List<string> Issues, HashSet<AssessmentAxis> UnresolvedAxes);
+    List<Guid> MatchingRuleIds, List<string> Issues, HashSet<AssessmentAxis> UnresolvedAxes,
+    string? IdentityLabel = null,string? Role = null);
 public sealed record AnalysisUpdate(AnalysisIdentity Identity, AnalysisState State,
     LocalAnalysis Result, string? Error = null);
 public enum AnalysisDestination { LocalRules, LocalModel, CloudModel }
 public sealed record AnalysisPayload(AnalysisIdentity Identity, Dictionary<string, string> Metadata,
     List<EvidenceRecord> Evidence, string? CommandLine, long PolicyRevision,
     AnalysisDestination Destination);
-public sealed record AnalysisProposal(List<Assessment> Assessments, List<RuleDefinition> Rules);
+public sealed record AnalysisProposal(List<Assessment> Assessments, List<RuleDefinition> Rules,
+    string? IdentityLabel = null,string? Role = null);
 public sealed record ResearchRequest(Dictionary<string, string> IdentityTerms);
 public sealed record ProviderCapabilities(bool StructuredOutput, bool Research);
 public enum ProviderErrorKind { Auth, RateLimited, Transient, Unsupported, Malformed, Refused, Cancelled }

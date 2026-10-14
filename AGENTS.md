@@ -7,10 +7,12 @@ Direct user instructions take precedence over repository guidance.
 
 ## Current project state
 
-ProcSight is being implemented on Windows 11 with WinUI 3. The native shell, local collector,
-domain contracts, and initial ownership resolver exist; AI/rules and the complete UI are
-still in progress. The user approved native implementation on a feature branch in this
-checkout. Do not describe planned features as complete. Update this status as work progresses.
+ProcSight is an unreleased Windows 11/WinUI 3 development preview. Collection, ownership,
+privacy projection, persistent knowledge/rules, provider/research adapters, coordinator,
+and native investigation UI exist. Run `scripts/verify.ps1` for locked restore, Release
+build, and all four test projects. See `docs/verification.md` for actual checks and remaining
+live API/desktop validation. The user approved this feature branch and checkout; preserve
+their shared VS Code files. Do not imply release readiness from synthetic tests alone.
 
 ## Product boundaries
 

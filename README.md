@@ -1,21 +1,32 @@
 # ProcSight
 
-ProcSight is a planned native Windows 11 process explorer built with C# and WinUI 3.
-It aims to explain what processes and services belong to, why they are running, and
+ProcSight is a native Windows 11 process explorer built with C# and WinUI 3.
+It explains what processes and services belong to, why they are running, and
 what evidence supports their classifications.
 
-**Status: implementation in progress.** The native shell and read-only local process/service
-collector are runnable. AI analysis, reusable rules, and the complete investigation interface
-are still being implemented; there is no published release yet.
+**Status: development preview; no published release.** Live collection, local rules and
+knowledge, provider adapters, optional research, and the investigation interface are
+implemented. Automated checks use synthetic metadata and fake providers; live API behavior
+and the complete desktop accessibility/scaling matrix remain unverified.
 
 On Windows 11 with .NET SDK 10.0.301 and Windows App Runtime 2.2 installed:
 
 ```powershell
 ./scripts/build.ps1
 ./scripts/start.ps1
+./scripts/verify.ps1
 ```
 
-## Planned experience
+In VS Code, open this repository folder and install the recommended Microsoft C#
+extension. Select **ProcSight (Debug)** in Run and Debug, then press **F5** to build
+and debug or **Ctrl+F5** to build and run without debugging. See the
+[VS Code setup](DEVELOPERS.md#run-and-debug-in-vs-code) for tasks and troubleshooting.
+
+## Current experience
+
+![Native WinUI process table with synthetic data](docs/images/processes-dark.png)
+
+This is the actual XAML rendering, using synthetic processes and a synthetic analysis label.
 
 - A familiar Task Manager-style process table with meaningful application grouping,
   resource measurements, search, and a raw process-tree view.
@@ -27,16 +38,17 @@ On Windows 11 with .NET SDK 10.0.301 and Windows App Runtime 2.2 installed:
 - User-configured OpenAI or compatible API endpoints, optional loopback local models,
   and separately enabled online research with source links.
 
-The complete experience above is a design commitment; the current build provides local
-process/service tables, CPU/memory sampling, search, ownership candidates, and metadata details.
+The table uses compact rows, resource totals, classification filters, and optional details.
+Disk/network are explicitly unavailable; GPU collection is deferred. Process icons currently
+use a generic native symbol. Collection remains useful without an API key or network connection.
 The Windows native host
 in VidVNC informed the WinUI shell, spacing, preferences, and component boundaries.
 
 ## Privacy and command-line analysis
 
-The design provides three explicit command-line modes:
+Settings provides three explicit command-line modes:
 
-| Mode | Planned behavior |
+| Mode | Behavior |
 | --- | --- |
 | Off (default) | Do not collect command lines for analysis |
 | Local only | Analyze full command lines locally; keep them and derived knowledge out of cloud requests |
@@ -44,12 +56,24 @@ The design provides three explicit command-line modes:
 
 Other online metadata remains sanitized. Full command lines can contain credentials or
 personal paths; the online option includes a payload preview and explicit disclosure.
-Raw command lines will not be stored in the knowledge database, logs, or rule literals,
-and will never be used as online research queries. API access requires the selected
+Raw command lines are excluded from the knowledge database, logs, rule literals,
+and online research queries. API access requires the selected
 provider's credentials; a ChatGPT subscription is not assumed to include API access.
 
 AI assessments are explanations with evidence and uncertainty. They are not antivirus
 verdicts or authorization to change the computer.
+
+Automatic analysis and research start disabled. Configure a model and endpoint in Settings,
+save the API key in Windows Credential Manager, and use the synthetic connection test before
+enabling automatic analysis. Default daily limits are 20 automatic jobs and 60 billable
+calls, including retries and reserved research calls. OpenAI research requires a model that
+supports web search; compatible/local providers currently supply analysis only.
+
+Preferences and SQLite knowledge live under `%LOCALAPPDATA%\ProcSight`. Usage accounting
+uses a separate database and survives knowledge resets. Local models must use loopback
+HTTP/HTTPS endpoints, with redirects disabled. Command lines above 32,768 characters are
+omitted rather than truncated. See [verification](docs/verification.md) for checked behavior
+and remaining desktop/live-provider validation.
 
 ## Roadmap
 

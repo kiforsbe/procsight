@@ -29,4 +29,17 @@ public sealed class CollectorTests
         Assert.Contains(snapshot.Processes, p => p.Key.Pid == Environment.ProcessId);
         Assert.All(snapshot.Processes, p => Assert.Null(p.CommandLine));
     }
+    [Fact] public async Task ProtectedReadsDoNotThrowFirstChanceProcessExceptions()
+    {
+        var denied=0;
+        EventHandler<System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs> handler=(_,args)=>
+        {
+            if(args.Exception is System.ComponentModel.Win32Exception { NativeErrorCode:5 } &&
+                args.Exception.StackTrace?.Contains("System.Diagnostics.Process",StringComparison.Ordinal)==true) Interlocked.Increment(ref denied);
+        };
+        AppDomain.CurrentDomain.FirstChanceException+=handler;
+        try { await new WindowsSnapshotSource().CaptureAsync(CommandLineMode.Off,default); }
+        finally { AppDomain.CurrentDomain.FirstChanceException-=handler; }
+        Assert.Equal(0,denied);
+    }
 }

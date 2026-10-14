@@ -1,7 +1,10 @@
 # Visual Studio and local editor state
 .vs/
 .idea/
-.vscode/
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/extensions.json
 *.user
 *.suo
 *.userosscache
@@ -24,6 +27,7 @@
 *.appxupload
 
 # Tests, coverage, logs and diagnostics
+/.superpowers/
 **/TestResults/
 **/coverage/
 *.trx

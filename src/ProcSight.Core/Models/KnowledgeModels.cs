@@ -4,7 +4,8 @@ public enum CorrectionScope { Executable, ApplicationFamily, InvocationContext }
 public sealed record UserCorrection(Guid Id, CorrectionScope Scope, string ScopeValue, Assessment Assessment);
 public sealed record KnowledgeEntry(AnalysisIdentity Identity, DateTimeOffset UpdatedAt,
     List<Assessment> Assessments, List<EvidenceRecord> Evidence, List<RuleDefinition> Rules,
-    List<UserCorrection> Corrections)
+    List<UserCorrection> Corrections, List<Guid>? RuleDependencies = null,
+    string? IdentityLabel = null,string? Role = null)
 {
     public static KnowledgeEntry Empty(AnalysisIdentity id) => new(id, DateTimeOffset.MinValue, [], [], [], []);
 }

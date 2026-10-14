@@ -23,9 +23,10 @@ a real private contact route here. Do not invent an email address or promise a r
 A private report should include the affected revision/version, Windows version, expected
 and observed behavior, impact, and minimal reproduction steps with synthetic data.
 
-## Intended security boundaries
+## Implemented security boundaries and validation limits
 
-The following are design requirements, not implemented guarantees:
+The following boundaries exist in code and have focused automated checks. They do not
+constitute an independent security audit or verified behavior of a remote/local provider:
 
 - Read-only observation with ordinary user privilege in the first release.
 - Sanitized metadata for online analysis, with explicit opt-in for a verbatim full
@@ -37,6 +38,19 @@ The following are design requirements, not implemented guarantees:
 - Evidence and scope validation before generated rules become active; external/model
   text cannot execute commands or grant local capabilities.
 - Known limitations, missing data, stale findings, and conflicting evidence remain visible.
+
+Automatic AI and research are disabled by default. Requests are bounded and daily limits
+persist separately from generated knowledge. Cloud metadata-only requests in Local only
+mode use a separate shareable identity. A policy revision change cancels pending work and
+is checked again before analysis dispatch. Already transmitted requests cannot be recalled.
+Command-bearing model explanations are replaced with safe summaries before persistence;
+rules cannot retain arbitrary echoed arguments. Full lines exceeding 32,768 characters
+are omitted, never silently truncated. Configured local endpoints must use loopback;
+ProcSight cannot guarantee the behavior of a separately operated server.
+
+See [verification](docs/verification.md) for evidence and outstanding checks. Disk/network
+and GPU measurements are unavailable/deferred. Protected-process access denial is normal
+partial collection; launching with administrator privilege is not required.
 
 AI classifications are not antivirus verdicts. A legitimate signer or cached explanation
 does not alone establish that a running process is safe.

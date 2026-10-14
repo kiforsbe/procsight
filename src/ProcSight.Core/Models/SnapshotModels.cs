@@ -11,7 +11,7 @@ public enum SignatureStatus { Unavailable, Unsigned, Invalid, Verified }
 public sealed record ExecutableMetadata(string Name, string? FullPath = null,
     string? ContentHash = null, string? Version = null, string? Product = null,
     string? Company = null, SignatureStatus Signature = SignatureStatus.Unavailable,
-    string? VerifiedSigner = null, string? FileIdentity = null, string? PackageIdentity = null);
+    string? VerifiedSigner = null, string? FileIdentity = null, string? PackageIdentity = null,string? Description=null);
 public sealed record ResourceSample(Observation<double> CpuPercent,
     Observation<long> WorkingSetBytes, Observation<double> DiskBytesPerSecond,
     Observation<double> NetworkBytesPerSecond, DateTimeOffset SampledAt, TimeSpan? Interval);
@@ -25,4 +25,9 @@ public sealed record ProcessSnapshot(ProcessKey Key, int? ParentPid, ExecutableM
 public sealed record ServiceSnapshot(string Name, string DisplayName, string State,
     string StartMode, int? HostPid, string? BinaryPath, ObservationState AccessState);
 public sealed record MachineSnapshot(Guid Id, DateTimeOffset CapturedAt,
-    IReadOnlyList<ProcessSnapshot> Processes, IReadOnlyList<ServiceSnapshot> Services);
+    IReadOnlyList<ProcessSnapshot> Processes, IReadOnlyList<ServiceSnapshot> Services,SystemResourceSample? SystemResources=null);
+public sealed record SystemResourceSample(double? CpuPercent,long? TotalPhysicalBytes,long? AvailablePhysicalBytes)
+{
+    public double? MemoryPercent=>TotalPhysicalBytes is >0&&AvailablePhysicalBytes is { } available?
+        (1-available/(double)TotalPhysicalBytes.Value)*100:null;
+}

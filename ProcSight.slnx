@@ -9,6 +9,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/ProcSight.Application.Tests/ProcSight.Application.Tests.csproj" />
     <Project Path="tests/ProcSight.Core.Tests/ProcSight.Core.Tests.csproj" />
+    <Project Path="tests/ProcSight.Infrastructure.Tests/ProcSight.Infrastructure.Tests.csproj" />
     <Project Path="tests/ProcSight.Windows.Tests/ProcSight.Windows.Tests.csproj" />
   </Folder>
 </Solution>

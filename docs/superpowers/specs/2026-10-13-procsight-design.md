@@ -292,7 +292,7 @@ when analysis is paused. Cancellation and process exit do not crash collection.
 
 ## Lessons grounded in VidVNC
 
-Reference repository: `C:/Users/kim_f/source/repos/vidvnc`.
+Reference repository: `../vidvnc`.
 
 - `apps/windows-host/VidVnc.Host.csproj`: native C#/WinUI 3 shell, explicit runtime
   prerequisites, resource-index publication, and selective dependencies. Reuse build

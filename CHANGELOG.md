@@ -7,6 +7,29 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Persistent local knowledge and validated declarative rules for purpose, security, and
+  optionality; scoped user corrections, rule inspection/disable/delete, and retention.
+- OpenAI Responses and compatible/local analysis adapters, separately enabled web research,
+  payload preview, protected API credentials, and persistent request limits.
+- Command-line modes Off, Local only, and Include in online analysis, with origin filtering,
+  bounded full-line payloads, and safe command-derived persistence.
+- Local Release verification script and synthetic WinUI rendering fixtures.
+
+### Changed
+
+- Task Manager-style native table with compact single-line rows, title-bar search, resource
+  totals, classification filters, and an optional adaptive details pane.
+- Protected-process reads use nonthrowing native queries; unavailable metadata remains
+  visible without repeated managed Access Denied probes.
+- Ownership identities distinguish equal product names at different executable paths;
+  generic Windows product metadata uses file descriptions when available.
+- Older observations cannot restore superseded analysis permissions; expired local findings
+  trigger reevaluation even while a process remains unchanged.
+
+### Repository foundation
+
+- Shared VS Code build/run tasks and a C# launch configuration for F5 debugging and
+  Ctrl+F5 running, with extension recommendations and setup instructions.
 - Native WinUI 3 shell, live read-only process/service collection, CPU and memory sampling,
   search, metadata details, initial ownership resolution, and local build/launch scripts.
 - Initial tests for identity contracts, navigation, sampling, ownership, and Windows collection.
@@ -21,7 +44,8 @@ in this repository; planned product features are documented in the design and ro
 
 ### Known limitations
 
-- The application is under implementation and unreleased. AI/rules and the complete
-  investigation UI are not finished; disk/network/GPU measurements are not collected.
+- The application is an unreleased development preview. Live provider integration and the
+  full desktop accessibility/scaling matrix remain unverified. Disk/network/GPU measurements
+  are not collected; native process icons currently use a generic symbol.
 - No GitHub remote or private vulnerability-reporting channel is configured in this
   checkout. CI/CD workflows are intentionally excluded.

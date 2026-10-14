@@ -2,15 +2,18 @@
 
 ## Current state
 
-ProcSight implementation is underway. The native shell, local process/service collector,
-initial identity resolver, solution, build/launch scripts, and initial tests exist.
-Rules, provider analysis, and the complete UI are still in progress. No CI/CD workflows exist.
+ProcSight is an unreleased development preview. The native collector/UI, identity resolution,
+privacy projection, rules, SQLite knowledge, provider/research adapters, and coordinator exist.
+No CI/CD workflows exist. [Verification](docs/verification.md) separates automated coverage
+from remaining live-provider and desktop checks.
 
 ```powershell
 ./scripts/build.ps1
 ./scripts/start.ps1
+./scripts/verify.ps1
 dotnet test tests/ProcSight.Core.Tests
 dotnet test tests/ProcSight.Application.Tests
+dotnet test tests/ProcSight.Infrastructure.Tests
 dotnet test tests/ProcSight.Windows.Tests
 ```
 
@@ -29,6 +32,38 @@ Implementation must confirm the actual Visual Studio/MSBuild and runtime prerequ
 pin dependencies and SDK configuration, and document a working unpackaged build/launch
 path. The current build uses dotnet/MSBuild and the unpackaged Windows App Runtime bootstrapper.
 Keep the build/launch commands above verified as the project evolves.
+
+## Run and debug in VS Code
+
+Open the repository root folder in VS Code on Windows 11 x64, with the toolchain
+above installed. Install the recommended **C#** extension (`ms-dotnettools.csharp`)
+from Microsoft; accept workspace trust for this checkout to enable tasks and debugging.
+
+- Select **ProcSight (Debug)** in Run and Debug (`Ctrl+Shift+D`). **F5** builds the
+  solution in Debug configuration, then launches the native app with the managed C#
+  debugger. Set breakpoints in C# source before launching; **Shift+F5** stops debugging.
+- **Ctrl+F5** uses the same configuration to build and run without the debugger.
+- **Ctrl+Shift+B** runs the default **ProcSight: build** task.
+- **Terminal > Run Task > ProcSight: run** builds and launches through the existing
+  scripts without requiring a debug session.
+
+[launch.json](.vscode/launch.json) launches the unpackaged `.exe` directly so the
+Windows App Runtime bootstrapper runs. [tasks.json](.vscode/tasks.json) reuses
+[build.ps1](scripts/build.ps1) and [start.ps1](scripts/start.ps1). Tasks use Windows
+PowerShell with a process-scoped execution-policy override; no machine policy is changed.
+See the [official C# debugger settings](https://code.visualstudio.com/docs/csharp/debugger-settings)
+for launch configuration options.
+
+If a build fails, inspect the task output and fix the reported errors before launching.
+Close any running ProcSight instance before rebuilding if its executable is locked.
+If VS Code reports that `coreclr` is unsupported, install or enable Microsoft's C#
+extension and reload the window. A missing Windows App Runtime must be installed
+before the unpackaged app can start. This configuration provides managed C# debugging;
+native/XAML tooling still requires the appropriate Visual Studio tools.
+
+The shared launch, task, and extension recommendation files are tracked; personal
+VS Code settings and other editor state remain ignored. Update the launch executable
+path if the app's target framework or runtime identifier changes.
 
 ## Intended boundaries
 
@@ -55,10 +90,22 @@ Keep changes focused and describe their purpose, validation, and limitations. Us
 process/service fixtures with no personal paths, credentials, or real command-line dumps.
 Real API keys and machine metadata must remain outside the repository.
 
-For now, verify documentation links, factual status, and whitespace with `git diff --check`.
-After implementation begins, run checks appropriate to each change, record exact commands
+Run `scripts/verify.ps1 -Configuration Release` for locked restore, native build, all four
+test projects (including Windows integration), and `git diff --check`. Record exact commands
 and results, and maintain documented local build/test scripts. Automated checks use fake
 providers; real provider tests are explicit opt-in actions with synthetic data.
+
+The Debug executable accepts `--visual-fixture <absolute-png-path> [Dark|Light] [width] [details]`.
+It renders the actual XAML tree using synthetic data, without collection, preferences,
+credential access, or provider calls, then exits. This mode is absent from Release builds.
+It captures content; native caption buttons and Mica composition are outside that bitmap.
+Use an ignored scratch path for temporary captures and deliberately review images before
+tracking them. See [Microsoft's rendering API](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.media.imaging.rendertargetbitmap.renderasync)
+for capture limitations.
+
+The UI follows Task Manager's compact table and navigation patterns. Details adapt to the
+window width. Keep slow collection, hashing, database work, and HTTP off the dispatcher;
+presentation projections are portable and tested without WinUI initialization.
 
 CI/CD workflows are intentionally excluded from this repository setup. Do not add GitHub
 Actions, deployment pipelines, or automatic publication without a subsequent user request.
