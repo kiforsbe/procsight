@@ -41,6 +41,7 @@ public sealed partial class MainWindow
         root.RowDefinitions.Add(new(){Height=new GridLength(1,GridUnitType.Star)});
         root.RowDefinitions.Add(new(){Height=new GridLength(28)});
         var commands=new CommandBar { DefaultLabelPosition=CommandBarDefaultLabelPosition.Right,
+            VerticalContentAlignment=VerticalAlignment.Center,
             Background=new SolidColorBrush(Microsoft.UI.Colors.Transparent),IsDynamicOverflowEnabled=true,
             Content=new TextBlock { Text=page,FontSize=16,FontWeight=Microsoft.UI.Text.FontWeights.SemiBold,
                 Margin=new Thickness(16,0,24,0),VerticalAlignment=VerticalAlignment.Center } };
@@ -73,7 +74,7 @@ public sealed partial class MainWindow
         processBody.ColumnDefinitions.Add(new(){Width=GridLength.Auto}); Grid.SetRow(processBody,1); root.Children.Add(processBody);
         var surface=new Grid();
         surface.RowDefinitions.Add(new(){Height=new GridLength(52)}); surface.RowDefinitions.Add(new(){Height=new GridLength(1,GridUnitType.Star)});
-        var header=new Grid { BorderThickness=new Thickness(0,1,0,1),
+        var header=new Grid { HorizontalAlignment=HorizontalAlignment.Left,BorderThickness=new Thickness(0,1,0,1),
             BorderBrush=(Brush)Microsoft.UI.Xaml.Application.Current.Resources["DividerStrokeColorDefaultBrush"] };
         var widths=page=="Services"?new[]{280,140,56,108,108}:new[]{280,140,56,80,96,96,100};
         for(var i=0;i<widths.Length;i++) header.ColumnDefinitions.Add(new(){Width=i==0?new GridLength(1,GridUnitType.Star):new GridLength(widths[i]),MinWidth=i==0?280:0});
@@ -141,8 +142,10 @@ public sealed partial class MainWindow
         table.Loaded+=(_,_)=> {
             if(FindTableScrollViewer(table) is not { } scrolling) return;
             void SynchronizeHeader() {
-                header.Width=Math.Max(minimum,scrolling.ExtentWidth);
-                headerScroll.ChangeView(scrolling.HorizontalOffset,null,null,true);
+                var width=Math.Max(minimum,Math.Max(scrolling.ExtentWidth,scrolling.ViewportWidth));
+                if(double.IsNaN(header.Width)||Math.Abs(header.Width-width)>.5) header.Width=width;
+                if(Math.Abs(headerScroll.HorizontalOffset-scrolling.HorizontalOffset)>.5)
+                    headerScroll.ChangeView(scrolling.HorizontalOffset,null,null,true);
             }
             scrolling.ViewChanged+=(_,_)=>SynchronizeHeader();
             headerScroll.ViewChanged+=(_,_)=> {
@@ -150,6 +153,7 @@ public sealed partial class MainWindow
                     scrolling.ChangeView(headerScroll.HorizontalOffset,null,null,true);
             };
             scrolling.SizeChanged+=(_,_)=>SynchronizeHeader(); SynchronizeHeader();
+            scrolling.LayoutUpdated+=(_,_)=>SynchronizeHeader();
         };
         Grid.SetRow(table,1); surface.Children.Add(table);
         // The ListView owns both axes; its vertical bar stays inside the visible viewport.

@@ -230,3 +230,8 @@ Debug fixtures `details`, `details-command`, and `details-stability` capture the
 `details-evidence` additionally checks nested evidence expansion/scroll and reopening. Presentation
 state follows ProcessKey or service name; analysis identity changes invalidate evidence scope while
 retaining the lifetime's presentation state. Scroll restoration is bounded by available content.
+
+The Debug `layout` fixture starts with an empty table, then populates a long synthetic list and
+checks every header boundary/width against realized row cells. It also checks title/action vertical
+centers, narrow resize, horizontal scrolling and wide restore. Use it with light and dark themes;
+`scroll` separately verifies vertical scrollbar position, header hit height and sort direction.

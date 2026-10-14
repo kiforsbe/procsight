@@ -35,7 +35,7 @@ public sealed partial class MainWindow
             new(Observation<double>.Available(i==0?3.2:0),Observation<long>.Available((12+i*5)*1048576L),
                 Observation<double>.Missing("Not collected"),Observation<double>.Missing("Not collected"),now,TimeSpan.FromSeconds(1)),[],
                 name=="node.exe"?new CommandLineValue(i==2?"node.exe --type=extensionHost":i==3?"node.exe --type=renderer":"node.exe --type=gpu-process",now):null)).ToList();
-        if(args.Length>5&&args[5]=="scroll") {
+        if(args.Length>5&&args[5] is "scroll" or "layout") {
             processes.AddRange(Enumerable.Range(0,60).Select(i=>processes[0] with { Key=new(2000+i,now,null),
                 Executable=new("python.exe",Product:"Python"),CommandLine=new($"python.exe script_{i:00}.py --token PRIVATE",now) }));
         }
@@ -231,6 +231,38 @@ public sealed partial class MainWindow
                     entities=new IdentityResolver().Resolve(lastSnapshot,[]); RefreshRows(); await Task.Delay(450);
                     if(!evidencePanel.Children.OfType<Microsoft.UI.Xaml.Controls.Expander>().Single(e=>e.Tag as string==recordKey).IsExpanded||Math.Abs(detailScroll.VerticalOffset-before)>1)
                         throw new InvalidOperationException("Evidence refresh lost nested expansion or scroll.");
+                }
+                if(args.Length>5&&args[5]=="layout") {
+                    RefreshRows(); await Task.Delay(150);
+                    T? FindLayoutControl<T>(DependencyObject parent,Func<T,bool> predicate) where T:DependencyObject {
+                        if(parent is T match&&predicate(match)) return match;
+                        for(var i=0;i<VisualTreeHelper.GetChildrenCount(parent);i++) if(FindLayoutControl(VisualTreeHelper.GetChild(parent,i),predicate) is { } nested) return nested;
+                        return null;
+                    }
+                    void CheckAlignment() {
+                        var container=(Microsoft.UI.Xaml.Controls.ListViewItem)table!.ContainerFromIndex(0);
+                        var rowGrid=FindLayoutControl<Microsoft.UI.Xaml.Controls.Grid>(container,g=>g.MinWidth==848&&g.Height==28)??throw new InvalidOperationException("Missing realized process row.");
+                        var start=rowGrid.TransformToVisual(WindowRoot).TransformPoint(new(0,0));
+                        var headerStart=sortHeaders[ProcSight.Application.Presentation.ProcessSort.Name].Button.TransformToVisual(WindowRoot).TransformPoint(new(0,0));
+                        if(Math.Abs(start.X-headerStart.X)>1) throw new InvalidOperationException("Name header offset from rows: "+(headerStart.X-start.X));
+                        foreach(var cell in rowGrid.Children.OfType<Microsoft.UI.Xaml.Controls.Border>()) {
+                            var col=Microsoft.UI.Xaml.Controls.Grid.GetColumn(cell);
+                            var sortColumn=col switch {1=>ProcSight.Application.Presentation.ProcessSort.Assessment,2=>ProcSight.Application.Presentation.ProcessSort.Pid,3=>ProcSight.Application.Presentation.ProcessSort.Cpu,4=>ProcSight.Application.Presentation.ProcessSort.Memory,5=>ProcSight.Application.Presentation.ProcessSort.Disk,_=>ProcSight.Application.Presentation.ProcessSort.Network};
+                            var cellStart=cell.TransformToVisual(WindowRoot).TransformPoint(new(0,0));
+                            var button=sortHeaders[sortColumn].Button; var buttonStart=button.TransformToVisual(WindowRoot).TransformPoint(new(0,0));
+                            if(Math.Abs(cellStart.X-buttonStart.X)>1||Math.Abs(cell.ActualWidth-button.ActualWidth)>1) throw new InvalidOperationException("Header width/alignment differs for "+sortColumn);
+                        }
+                        var bar=FindLayoutControl<Microsoft.UI.Xaml.Controls.CommandBar>(PageContent,b=>b.Content is Microsoft.UI.Xaml.Controls.TextBlock)!;
+                        var heading=(Microsoft.UI.Xaml.Controls.TextBlock)bar.Content;
+                        var titleY=heading.TransformToVisual(WindowRoot).TransformPoint(new(0,0)).Y+heading.ActualHeight/2;
+                        var actionY=analyzeButton!.TransformToVisual(WindowRoot).TransformPoint(new(0,0)).Y+analyzeButton.ActualHeight/2;
+                        if(Math.Abs(titleY-actionY)>2) throw new InvalidOperationException("Page title and toolbar differ vertically: "+(titleY-actionY));
+                    }
+                    CheckAlignment();
+                    var layoutScale=GetDpiForWindow(WinRT.Interop.WindowNative.GetWindowHandle(this))/96.0;
+                    AppWindow.Resize(new((int)(700*layoutScale),(int)(780*layoutScale))); await Task.Delay(200);
+                    var layoutScroll=FindTableScrollViewer(table!)!; layoutScroll.ChangeView(layoutScroll.ScrollableWidth/2,null,null,true); await Task.Delay(150); CheckAlignment();
+                    AppWindow.Resize(new((int)(1100*layoutScale),(int)(780*layoutScale))); await Task.Delay(200); CheckAlignment();
                 }
                 var bitmap=new RenderTargetBitmap(); await bitmap.RenderAsync(WindowRoot);
                 var pixels=await bitmap.GetPixelsAsync();

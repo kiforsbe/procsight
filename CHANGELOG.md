@@ -7,6 +7,9 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Fixed process/service toolbar title alignment and table headers that could be narrower than
+  their rows. Header alignment now follows viewport/extent changes and horizontal scrolling.
+
 - Native structured process/service details with assessment, executable, signature, command-line,
   window and evidence sections; compact commands and stable expansion/scroll across live updates.
 

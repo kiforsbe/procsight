@@ -93,3 +93,7 @@ bar as rules inspection. Keep summary identity/PID visible, group assessments se
 metadata, and retain local command/window context under labeled sections. Resource ticks must not
 rebuild the pane; preserve expansion and scroll state through real metadata changes for the same
 selection. Service host signatures remain separate from implementation signatures and module proof.
+
+Process/service table headings share the row grid's actual width and horizontal offset, including
+when the initial collection is empty. Align CommandBar content vertically with its native actions;
+verify geometry through resizing rather than checking only a static screenshot.

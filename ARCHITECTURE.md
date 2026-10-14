@@ -854,3 +854,9 @@ sequenceDiagram
     end
     Note over Pane,Model: Local commands and captions never become provider payloads through presentation
 ```
+
+The native table header is left-anchored and sized to the greater of minimum column width,
+ScrollViewer content extent and viewport width. Synchronization covers layout/extent changes
+as well as resizing and scrolling, with guarded assignments to avoid unnecessary layout work.
+CommandBar content aligns vertically with its actions. Keep the header and row column geometry
+identical when collection starts empty, the window resizes, or horizontal scrolling is active.

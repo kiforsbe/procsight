@@ -141,3 +141,7 @@ compact toolbar with correction/payload preview in overflow. Preserve expansion 
 for the same process lifetime; resource-only ticks must not rebuild details. Transient field values
 and UI comparison strings can contain local private data: never persist, log or send them online.
 Async evidence reads must still match the active selection and pane generation before publishing.
+
+Table headers must align with the realized row grid across empty collection, population, resizing
+and horizontal scrolling. Use viewport plus extent when sizing headers; guard layout synchronization
+against redundant property writes. Page title and CommandBar actions share a vertical center.

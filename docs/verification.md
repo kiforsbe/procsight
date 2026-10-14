@@ -245,3 +245,16 @@ Full Narrator, high-contrast, keyboard-only and text/DPI scaling acceptance rema
 Final locked Release verification passed all 274 tests (62 Core, 84 Application, 102 Infrastructure,
 26 Windows), with zero failures/skips and zero build warnings/errors. Normal Debug, native fixtures,
 all 16 architecture diagrams, documentation links and diff whitespace checks passed.
+
+## Process-page alignment regression
+
+A native geometry fixture reproduced the toolbar title sitting 13.359 effective pixels above the
+action center before the fix. Explicit CommandBar content centering corrected it. Table headers
+now use max(minimum, content extent, viewport), left alignment and guarded layout synchronization.
+The synthetic fixture starts with an empty collection, populates 83 rows, checks matching header/
+row cell positions and widths, resizes narrow, scrolls horizontally and restores wide. Light and
+dark runs passed; the existing scrollbar/full-height-header/sort fixture passed too.
+[Current native process page](images/process-page-aligned.png) uses synthetic data.
+Final Debug/locked Release builds passed with zero warnings/errors and all 274 tests passed.
+Native layout assertions, changed-document links and diff whitespace checks passed. Live DPI,
+Narrator and high-contrast acceptance remain outstanding.
