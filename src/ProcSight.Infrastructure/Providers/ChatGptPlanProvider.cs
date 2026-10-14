@@ -62,8 +62,9 @@ public sealed class ChatGptPlanProvider : IAnalysisProvider
         catch(IOException) { return Failure(ProviderErrorKind.Transient,"ChatGPT plan stream interrupted.",calls); }
         catch(ChatGptAuthenticationException error)
         { return Failure(error.Kind,"ChatGPT account credential renewal failed; error content withheld.",calls); }
-        catch(Exception e) when(e is JsonException or InvalidDataException or InvalidOperationException or ArgumentException or DecoderFallbackException)
-        { return Failure(ProviderErrorKind.Malformed,"Invalid ChatGPT plan result; no rules activated.",calls); }
+        catch(InvalidDataException e) { return new(null,ProviderResponseValidator.Failure(e),calls); }
+        catch(Exception e) when(e is JsonException or InvalidOperationException or ArgumentException or DecoderFallbackException)
+        { return Failure(ProviderErrorKind.Malformed,"Invalid ChatGPT plan result; no rules activated.",calls,ProviderFailureReason.InvalidStructure); }
         catch(Exception) when(calls==0)
         { return Failure(ProviderErrorKind.Auth,"ChatGPT account credentials unavailable; sign in again.",0); }
     }
@@ -78,7 +79,7 @@ public sealed class ChatGptPlanProvider : IAnalysisProvider
         while((read=await stream.ReadAsync(chunk,ct))>0)
         {
             total+=read;
-            if(total>StreamLimit) return Failure(ProviderErrorKind.Malformed,"ChatGPT plan stream exceeds 1 MiB.");
+            if(total>StreamLimit) return Failure(ProviderErrorKind.Malformed,"ChatGPT plan stream exceeds 1 MiB.",reason:ProviderFailureReason.OutputTooLarge);
             for(var i=0;i<read;i++)
             {
                 if(chunk[i]!=(byte)'\n') { line.WriteByte(chunk[i]); continue; }
@@ -96,12 +97,12 @@ public sealed class ChatGptPlanProvider : IAnalysisProvider
                 }
             }
         }
-        return Failure(ProviderErrorKind.Malformed,"ChatGPT plan stream ended before completed inference.");
+        return Failure(ProviderErrorKind.Malformed,"ChatGPT plan stream ended before completed inference.",reason:ProviderFailureReason.StreamEnded);
     }
 
     private static ProviderResult? ReadEvent(string data,StringBuilder text,ref int textBytes,AnalysisPayload payload)
     {
-        if(data=="[DONE]") return Failure(ProviderErrorKind.Malformed,"ChatGPT plan stream lacks completed inference.");
+        if(data=="[DONE]") return Failure(ProviderErrorKind.Malformed,"ChatGPT plan stream lacks completed inference.",reason:ProviderFailureReason.StreamEnded);
         var item=JsonNode.Parse(data) ?? throw new InvalidDataException();
         var type=item["type"]?.GetValue<string>() ?? throw new InvalidDataException();
         if(type is "response.refusal.delta" or "response.refusal.done" || ContainsRefusal(item))
@@ -115,26 +116,28 @@ public sealed class ChatGptPlanProvider : IAnalysisProvider
                 ProviderErrorKind.Transient;
             return Failure(kind,"ChatGPT plan inference failed; error content withheld.");
         }
-        if(type=="response.incomplete") return Failure(ProviderErrorKind.Malformed,"ChatGPT plan inference was incomplete.");
+        if(type=="response.incomplete") return Failure(ProviderErrorKind.Malformed,"ChatGPT plan inference was incomplete.",reason:ProviderFailureReason.OutputIncomplete);
         if(type=="response.output_text.delta")
         {
             var delta=item["delta"]?.GetValue<string>() ?? throw new InvalidDataException();
             textBytes+=Encoding.UTF8.GetByteCount(delta);
-            if(textBytes>TextLimit) return Failure(ProviderErrorKind.Malformed,"ChatGPT plan output exceeds 256 KiB.");
+            if(textBytes>TextLimit) return Failure(ProviderErrorKind.Malformed,"ChatGPT plan output exceeds 256 KiB.",reason:ProviderFailureReason.OutputTooLarge);
             text.Append(delta);
         }
         if(type!="response.completed") return null;
         var response=item["response"] ?? throw new InvalidDataException();
         if(response["status"]?.GetValue<string>()!="completed" || response["error"] is not null || response["incomplete_details"] is not null)
-            return Failure(ProviderErrorKind.Malformed,"ChatGPT plan inference was not completed.");
+            return Failure(ProviderErrorKind.Malformed,"ChatGPT plan inference was not completed.",reason:ProviderFailureReason.OutputIncomplete);
         var final=text.ToString();
         if(response["output"] is not null)
         {
             var output=ProviderHttp.ResponsesText(response);
             if(output.Refused) return Failure(ProviderErrorKind.Refused,"ChatGPT plan refused analysis.");
-            final=output.Text ?? throw new InvalidDataException();
+            if(output.Text is null) return Failure(ProviderErrorKind.Malformed,"No explanation returned.",reason:ProviderFailureReason.NoOutput);
+            final=output.Text;
         }
-        if(string.IsNullOrWhiteSpace(final) || Encoding.UTF8.GetByteCount(final)>TextLimit) throw new InvalidDataException();
+        if(string.IsNullOrWhiteSpace(final)) return Failure(ProviderErrorKind.Malformed,"No explanation returned.",reason:ProviderFailureReason.NoOutput);
+        if(Encoding.UTF8.GetByteCount(final)>TextLimit) return Failure(ProviderErrorKind.Malformed,"Explanation exceeded the output limit.",reason:ProviderFailureReason.OutputTooLarge);
         return new(ProviderResponseValidator.Parse(final,payload,DateTimeOffset.UtcNow));
     }
     private static bool ContainsRefusal(JsonNode? node) => node switch
@@ -143,5 +146,5 @@ public sealed class ChatGptPlanProvider : IAnalysisProvider
         JsonArray array => array.Any(ContainsRefusal),
         _ => false
     };
-    private static ProviderResult Failure(ProviderErrorKind kind,string message,int calls=1)=>new(null,new(kind,message),calls);
+    private static ProviderResult Failure(ProviderErrorKind kind,string message,int calls=1,ProviderFailureReason? reason=null)=>new(null,new(kind,message,FailureReason:reason),calls);
 }

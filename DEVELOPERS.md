@@ -14,6 +14,8 @@ in-memory credentials, without real account reads or network traffic.
 Use `activity` or `activity-details` as the fixture's final argument to render the AI activity page
 with synthetic requests/results and an optional selected result. The coordinator's optional
 `AnalysisActivityLog` records actual research/provider attempts; keep it isolated from analysis failures.
+Provider failures carry typed rejection reasons into app-owned cause/recovery text. Never display or
+retain arbitrary exception messages, rejected output, or evidence ID values to explain a failure.
 
 ProcSight is an unreleased development preview. The native collector/UI, identity resolution,
 privacy projection, rules, SQLite knowledge, provider/research adapters, and coordinator exist.

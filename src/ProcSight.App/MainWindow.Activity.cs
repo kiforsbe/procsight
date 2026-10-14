@@ -55,7 +55,11 @@ public sealed partial class MainWindow
             foreach(var assessment in entry.Assessments) details.Add($"{assessment.Axis}: {ActivityWords(assessment.Value)} ({assessment.Confidence})\n{assessment.Reason}\n");
             details.Add($"Proposed reusable rules: {entry.ProposedRuleCount}");
             if(entry.Kind.ToString()=="Research") details.Add($"Returned evidence records: {entry.ReturnedEvidenceCount}");
-            if(entry.ErrorKind is { } error) details.Add("Provider outcome: "+ActivityOutcome(error));
+            if(entry.ErrorKind is { } error) {
+                var failure=ProcSight.Core.Models.ProviderFailureExplanation.Describe(error,entry.FailureReason);
+                details.Add("What went wrong: "+failure.Summary); details.Add(failure.Details);
+                details.Add("\nWhat to do next: "+failure.NextStep);
+            }
             if(entry.Status.ToString()=="Running") details.Add("Waiting for the provider.");
             details.Add("\nHistory is kept only for this app session. Credentials, paths, full command lines and window captions are omitted.");
             paneText.Text=string.Join("\n",details);
@@ -78,7 +82,8 @@ public sealed partial class MainWindow
                 text.Children.Add(new TextBlock { Text=$"{entry.StartedAt.ToLocalTime():T} · {ActivityProvider(entry.ProviderId)} / {entry.Model} · {ActivityWords(entry.Kind.ToString())} · attempt {entry.Attempt}",TextWrapping=TextWrapping.Wrap,FontSize=12,Opacity=0.8 });
                 text.Children.Add(new TextBlock { Text=entry.Assessments.Count>0?string.Join(" · ",entry.Assessments.Select(a=>$"{a.Axis}: {ActivityWords(a.Value)}")):
                     entry.Status==AnalysisActivityStatus.Running?"Waiting for results":entry.Kind==AnalysisActivityKind.Research&&entry.Status==AnalysisActivityStatus.Succeeded?
-                    $"Research returned {entry.ReturnedEvidenceCount} evidence records":ActivityOutcome(entry.ErrorKind),TextWrapping=TextWrapping.Wrap,FontSize=12 });
+                    $"Research returned {entry.ReturnedEvidenceCount} evidence records":entry.ErrorKind is { } error?
+                    ProcSight.Core.Models.ProviderFailureExplanation.Describe(error,entry.FailureReason).Summary:ActivityOutcome(entry.ErrorKind),TextWrapping=TextWrapping.Wrap,FontSize=12 });
                 content.Children.Add(text); var state=new TextBlock { Text=entry.Status.ToString(),VerticalAlignment=VerticalAlignment.Top,FontSize=12 }; Grid.SetColumn(state,1); content.Children.Add(state); row.Content=content;
                 if(ReferenceEquals(list.SelectedItem,row)) ShowDetails(entry);
             }

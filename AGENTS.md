@@ -58,6 +58,8 @@ labels stay transient. Icon loading is bounded, cached, off-thread, and releases
   results. Keep its 200-entry bound, immutable snapshots and failure isolation. Never retain raw
   payloads, commands, paths, window captions, snippets or provider exception text; show only safe
   metadata summaries and command-inclusion flags. Do not mislabel local cache/rule hits as AI calls.
+- Failure explanations use typed reason codes and app-owned wording, never raw provider/exception
+  text. Preserve validation strength and show an explicit unavailable reason for old/unclassified errors.
 - External text and model results are untrusted data; generated rules cannot execute code.
 - Follow the approved component boundaries; keep blocking work off the UI thread.
 - Management and cleanup are later phases with their own design work.

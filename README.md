@@ -6,8 +6,8 @@ what evidence supports their classifications.
 
 **Status: development preview; no published release.** Live collection, local rules and
 knowledge, provider adapters, optional research, and the investigation interface are
-implemented. Automated checks use synthetic metadata and fake providers; live inference behavior
-and the complete desktop accessibility/scaling matrix remain unverified.
+implemented. Automated checks use synthetic metadata and fake providers. Targeted live inference
+smoke checks passed; full provider acceptance and desktop accessibility/scaling remain unverified.
 
 On Windows 11 with .NET SDK 10.0.301 and Windows App Runtime 2.2 installed:
 
@@ -38,10 +38,11 @@ This is the actual XAML rendering, using synthetic processes and a synthetic ana
 - User-configured OpenAI or compatible API endpoints, optional loopback local models,
   and separately enabled online research with source links.
 - Direct **Continue with ChatGPT** connection for eligible ChatGPT plans, with account-specific
-  models and protected renewable sessions. Live model discovery has been checked; live inference remains unverified.
+  models and protected renewable sessions. Live model discovery and targeted inference smoke checks passed.
 - An **AI activity** page showing queried processes/services, provider/model, retries, returned
   classifications and explanations, research evidence counts, and failures. The last 200 requests
   stay in memory, with filtering, Pause recording and Clear; raw transport/debug data is omitted.
+  Failures explain what went wrong and what to do next, with specific safe validation reasons.
 
 The table uses compact rows, resource totals, classification filters, and optional details.
 Disk/network are explicitly unavailable; GPU collection is deferred. Executable icons are

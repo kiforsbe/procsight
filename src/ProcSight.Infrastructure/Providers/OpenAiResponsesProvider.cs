@@ -17,13 +17,14 @@ public sealed class OpenAiResponsesProvider(ProviderSettings settings,Func<strin
         if(response.Error is not null) return new(null,response.Error);
         try
         {
-            if(response.Body?["status"]?.GetValue<string>()=="incomplete") return new(null,new(ProviderErrorKind.Malformed,"Provider response was truncated."));
+            if(response.Body?["status"]?.GetValue<string>()=="incomplete") return new(null,new(ProviderErrorKind.Malformed,"Provider response was truncated.",FailureReason:ProviderFailureReason.OutputIncomplete));
             var (text,refused)=ProviderHttp.ResponsesText(response.Body!);
             if(refused) return new(null,new(ProviderErrorKind.Refused,"Provider refused analysis."));
-            if(text is null) return new(null,new(ProviderErrorKind.Malformed,"No structured explanation returned."));
+            if(text is null) return new(null,new(ProviderErrorKind.Malformed,"No structured explanation returned.",FailureReason:ProviderFailureReason.NoOutput));
             return new(ProviderResponseValidator.Parse(text,payload,DateTimeOffset.UtcNow));
         }
-        catch(Exception e) when(e is InvalidDataException or InvalidOperationException or System.Text.Json.JsonException)
-        { return new(null,new(ProviderErrorKind.Malformed,"Invalid analysis result; no rules activated.")); }
+        catch(InvalidDataException e) { return new(null,ProviderResponseValidator.Failure(e)); }
+        catch(Exception e) when(e is InvalidOperationException or System.Text.Json.JsonException)
+        { return new(null,new(ProviderErrorKind.Malformed,"Invalid analysis result; no rules activated.",FailureReason:ProviderFailureReason.InvalidStructure)); }
     }
 }

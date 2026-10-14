@@ -15,6 +15,8 @@ public static class ProviderResponseValidator
     {
         try
         {
+            try { using var document=JsonDocument.Parse(json); }
+            catch(JsonException) { throw new InvalidDataException("Response is not JSON"); }
             var wire=JsonSerializer.Deserialize<WireDocument>(json,Json) ?? throw new InvalidDataException("Empty response");
             if(wire.Assessments is null || wire.Rules is null || wire.Assessments.Count>3 || wire.Rules.Count>32)
                 throw new InvalidDataException("Response exceeds allowed structure");
@@ -22,9 +24,10 @@ public static class ProviderResponseValidator
             var evidence=payload.Evidence.ToDictionary(e=>e.Id);
             var assessments=wire.Assessments.Select(a=>
             {
-                if(!RuleValidator.Values.TryGetValue(a.Axis,out var values)||!values.Contains(a.Value)||a.Reason is null ||
-                    a.EvidenceIds is null || a.EvidenceIds.Any(id=>!evidence.ContainsKey(id)) || (a.Value!="Unknown"&&a.EvidenceIds.Count==0))
-                    throw new InvalidDataException("Assessment has invalid evidence or value");
+                if(!RuleValidator.Values.TryGetValue(a.Axis,out var values)||!values.Contains(a.Value)||a.Reason is null || a.EvidenceIds is null)
+                    throw new InvalidDataException("Assessment value invalid");
+                if(a.EvidenceIds.Any(id=>!evidence.ContainsKey(id))) throw new InvalidDataException("Assessment evidence unknown");
+                if(a.Value!="Unknown"&&a.EvidenceIds.Count==0) throw new InvalidDataException("Assessment evidence missing");
                 if(a.Value=="KnownThreat" && !a.EvidenceIds.Any(id=>evidence[id].Kind=="ThreatIntelligence" &&
                     evidence[id].SourceUrl is not null && evidence[id].Facts.GetValueOrDefault("threatHash")==payload.Metadata.GetValueOrDefault("hash")))
                     throw new InvalidDataException("Known threat lacks exact attributable evidence");
@@ -49,4 +52,16 @@ public static class ProviderResponseValidator
         catch(Exception e) when(e is JsonException or ArgumentException or NullReferenceException)
         { throw new InvalidDataException("Provider returned malformed structured data.",e); }
     }
+    public static ProviderError Failure(InvalidDataException error)=>new(ProviderErrorKind.Malformed,
+        "Provider explanation failed validation; no rejected findings applied.",FailureReason:error.Message switch {
+            "Response is not JSON"=>ProviderFailureReason.InvalidJson,
+            "Assessment value invalid"=>ProviderFailureReason.InvalidAssessment,
+            "Assessment evidence unknown"=>ProviderFailureReason.UnknownEvidence,
+            "Assessment evidence missing"=>ProviderFailureReason.MissingEvidence,
+            "Known threat lacks exact attributable evidence"=>ProviderFailureReason.ThreatEvidenceMissing,
+            "Identity label too long"=>ProviderFailureReason.IdentityLabelTooLong,
+            "Duplicate axes"=>ProviderFailureReason.DuplicateAxes,
+            "Invalid rule indexes"=>ProviderFailureReason.InvalidRuleIndexes,
+            _=>ProviderFailureReason.InvalidStructure
+        });
 }

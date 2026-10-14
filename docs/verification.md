@@ -18,9 +18,9 @@ Locked restore and native Release build passed with zero warnings/errors. Test r
 | --- | ---: | --- |
 | Core | 52 | Identity/privacy/rules and persisted opaque ChatGPT profile binding |
 | Application | 66 | Ordering/Details/captions and bounded privacy-safe activity history |
-| Infrastructure | 89 | Storage, OAuth/rotation/models/SSE and actual activity/retry/cancellation instrumentation |
+| Infrastructure | 96 | Storage, OAuth/SSE/activity and safe validation-reason propagation to user guidance |
 | Windows | 20 | Native reads/icons/signatures and caption ownership/lifetime/timeout checks |
-| Total | 227 | No failed or skipped tests |
+| Total | 234 | No failed or skipped tests |
 
 Key behaviors covered include same-name owners at different paths, PID reuse, all three
 classification axes, rejected name-only rules, expired referenced evidence, changed-owner
@@ -172,3 +172,17 @@ provider/research attempts/retries/cancellation. Local cache hits do not produce
 ![Native Settings cards](images/settings-dark.png)
 
 ![Native AI activity with selected results](images/ai-activity.png)
+
+## Failure diagnosis revision
+
+The user's earlier generic malformed-output entry did not preserve its validation reason, so its
+specific rejection cannot be reconstructed. Two direct in-memory Responses smoke requests—one
+synthetic and one using targeted Task Manager file metadata—returned HTTP 200/completed output and
+passed the existing evidence/rule validator. Commands, paths and ownership were withheld online;
+only status/event counts, sizes and validation outcomes were printed. No raw responses were saved.
+This proves those requests, not that the earlier intermittent failure's cause has been identified.
+
+Failures now carry fixed typed reasons for missing/unknown evidence, invalid values/duplicate axes,
+JSON/structure problems, rule indexes/label limits, incomplete streams and output limits. The activity
+details shows cause and recovery guidance without storing raw exception/provider text. Tests check
+reason classification, adapter-to-activity propagation and private-text exclusion. Validation was not relaxed.

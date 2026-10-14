@@ -21,12 +21,13 @@ public sealed class CompatibleChatProvider(ProviderSettings settings,Func<string
         try
         {
             var choice=response.Body?["choices"]?[0];
-            if(choice?["finish_reason"]?.GetValue<string>()=="length") return new(null,new(ProviderErrorKind.Malformed,"Provider response truncated."));
+            if(choice?["finish_reason"]?.GetValue<string>()=="length") return new(null,new(ProviderErrorKind.Malformed,"Provider response truncated.",FailureReason:ProviderFailureReason.OutputIncomplete));
             var text=choice?["message"]?["content"]?.GetValue<string>();
-            return text is null ? new(null,new(ProviderErrorKind.Malformed,"No JSON explanation returned.")) :
+            return text is null ? new(null,new(ProviderErrorKind.Malformed,"No JSON explanation returned.",FailureReason:ProviderFailureReason.NoOutput)) :
                 new(ProviderResponseValidator.Parse(text,payload,DateTimeOffset.UtcNow));
         }
-        catch(Exception e) when(e is InvalidDataException or InvalidOperationException or System.Text.Json.JsonException)
-        { return new(null,new(ProviderErrorKind.Malformed,"Invalid analysis result; no rules activated.")); }
+        catch(InvalidDataException e) { return new(null,ProviderResponseValidator.Failure(e)); }
+        catch(Exception e) when(e is InvalidOperationException or System.Text.Json.JsonException)
+        { return new(null,new(ProviderErrorKind.Malformed,"Invalid analysis result; no rules activated.",FailureReason:ProviderFailureReason.InvalidStructure)); }
     }
 }

@@ -7,6 +7,10 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- AI activity failures now explain the specific safe rejection reason and what to do next, including
+  missing/unknown evidence, invalid classifications, incomplete streams and output limits.
+  Rejected model text and exception messages remain excluded from activity history.
+
 - Direct open-source ChatGPT plan sign-in, protected account/session storage, model discovery,
   renewal/revocation, and bounded streamed analysis without API-key billing fallback.
 - Native Windows 11 Settings cards and expanders, responsive controls, and explicit account/model

@@ -12,7 +12,7 @@ public sealed record AnalysisActivityEntry(Guid Id,AnalysisActivityKind Kind,Ana
     AnalysisDestination Destination,string SourceName,int? ProcessId,string? ServiceIdentity,int Attempt,
     IReadOnlyDictionary<string,string> Metadata,IReadOnlyList<string> MetadataFields,int EvidenceCount,
     bool CommandIncluded,IReadOnlyList<ActivityAssessment> Assessments,int ProposedRuleCount=0,
-    int ReturnedEvidenceCount=0,ProviderErrorKind? ErrorKind=null);
+    int ReturnedEvidenceCount=0,ProviderErrorKind? ErrorKind=null,ProviderFailureReason? FailureReason=null);
 
 /// <summary>Bounded transient product activity; never retains transport payloads or exception text.</summary>
 public sealed class AnalysisActivityLog(TimeProvider? clock=null)
@@ -58,7 +58,7 @@ public sealed class AnalysisActivityLog(TimeProvider? clock=null)
         {
             var projected=result.Proposal is null?null:OutputPrivacyFilter.Project(result.Proposal,payload);
             Finish(id,row=>row with {
-                Status=Status(result.Error),ErrorKind=result.Error?.Kind,
+                Status=Status(result.Error),ErrorKind=result.Error?.Kind,FailureReason=result.Error?.FailureReason,
                 Assessments=Array.AsReadOnly((projected?.Assessments ?? []).Take(3)
                     .Select(a=>new ActivityAssessment(a.Axis,AssessmentValue(a),Safe(a.Reason,1024),a.Confidence)).ToArray()),
                 ProposedRuleCount=result.Proposal?.Rules.Count ?? 0 });

@@ -22,7 +22,9 @@ public sealed record AnalysisProposal(List<Assessment> Assessments, List<RuleDef
 public sealed record ResearchRequest(Dictionary<string, string> IdentityTerms);
 public sealed record ProviderCapabilities(bool StructuredOutput, bool Research);
 public enum ProviderErrorKind { Auth, RateLimited, Transient, Unsupported, Malformed, Refused, Cancelled }
-public sealed record ProviderError(ProviderErrorKind Kind, string Message, TimeSpan? RetryAfter = null);
+public enum ProviderFailureReason { InvalidJson, InvalidStructure, UnknownEvidence, MissingEvidence, InvalidAssessment,
+    DuplicateAxes, InvalidRuleIndexes, IdentityLabelTooLong, ThreatEvidenceMissing, StreamEnded, OutputIncomplete, OutputTooLarge, NoOutput }
+public sealed record ProviderError(ProviderErrorKind Kind, string Message, TimeSpan? RetryAfter = null,ProviderFailureReason? FailureReason=null);
 public sealed record ProviderResult(AnalysisProposal? Proposal, ProviderError? Error = null,
     int BillableCalls = 1, int ToolUses = 0);
 public sealed record ResearchResult(List<EvidenceRecord> Evidence, ProviderError? Error = null,

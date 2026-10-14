@@ -51,7 +51,7 @@ public sealed partial class MainWindow
                 var payload=new AnalysisPayload(new("fixture-activity-"+i),new(){["name"]=i%2==0?"node.exe":"example-service.exe",["product"]="Example editor"},[],null,0,AnalysisDestination.CloudModel);
                 var request=aiActivity.Begin(payload,new("chatgpt",new("https://api.openai.com/v1"),"example-model"),i%2==0?"Example editor — Renderer":"Example service",i%2==0?1000+i:null);
                 if(i==7) continue;
-                aiActivity.Complete(request,i==6?new(null,new(ProviderErrorKind.RateLimited,"Synthetic limit")):new(new([
+                aiActivity.Complete(request,i==6?new(null,new(ProviderErrorKind.Malformed,"Synthetic validation failure",FailureReason:ProviderFailureReason.UnknownEvidence)):new(new([
                     new(AssessmentAxis.Purpose,"DeveloperTool","Synthetic fixture: this worker renders the application's interface.",Confidence.Medium,[],now.AddDays(1),[DataOrigin.ShareableMetadata]),
                     new(AssessmentAxis.Security,"Unknown","No threat evidence was submitted.",Confidence.Low,[],now.AddDays(1),[DataOrigin.ShareableMetadata])],[])),payload);
             }

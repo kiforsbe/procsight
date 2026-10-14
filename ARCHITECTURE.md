@@ -68,8 +68,8 @@ changing provider configuration. Sign-out cancels/drains current work and disabl
 for its profile before revoking/clearing credentials. Sign-in alone never enables automatic analysis.
 Account and model discovery transmit no process metadata; inference uses the existing cloud projection.
 These are implemented protocol boundaries. The user completed browser sign-in and the live catalog
-was checked through the saved session; live inference and full account-switch/revocation acceptance
-remain unverified. Model catalogs have a separate 2 MiB cap because their metadata can exceed 256 KiB;
+was checked through the saved session. Two targeted inference smoke requests completed and validated;
+full account-switch/revocation and provider acceptance remain unverified. Model catalogs have a separate 2 MiB cap because their metadata can exceed 256 KiB;
 token and identity/JWKS responses retain the smaller bound. Catalog instruction fields are ignored.
 
 ```mermaid
@@ -493,6 +493,11 @@ Summaries retain local process name/PID or service identity, selected provider/m
 number, safe metadata values/categories and a command-inclusion flag. They never retain the payload
 or raw command. Returned assessments pass OutputPrivacyFilter before location/secret sanitization;
 research keeps only the evidence count. Proposed rule counts are not claims that rules were activated.
+ProviderError carries an optional typed ProviderFailureReason through the adapters and activity entry.
+[ProviderFailureExplanation](src/ProcSight.Core/Models/ProviderFailureExplanation.cs) maps it to
+app-owned cause/recovery wording; validator messages and rejected provider text are never retained.
+Malformed JSON, evidence errors, invalid values/duplicate categories and stream/size failures remain
+distinct. Old/unclassified failures explicitly state that the specific reason is unavailable.
 No file/export/database storage exists for activity. [Native AI activity](src/ProcSight.App/MainWindow.Activity.cs)
 offers status filtering, pause/clear and selected result details, updates rows without replacing the
 whole list, and stops its UI refresh timer on unload.
@@ -514,6 +519,7 @@ classDiagram
         Provider and model
         Safe request summary
         Projected results and status
+        Typed rejection reason
     }
     class OutputPrivacyFilter {
         Project()

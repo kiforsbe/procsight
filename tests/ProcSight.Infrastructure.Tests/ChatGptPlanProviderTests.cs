@@ -57,6 +57,13 @@ public sealed class ChatGptPlanProviderTests
     {
         var result=await Provider(new(Delta("{}")+Completed())).AnalyzeAsync(Payload(),default);
         Assert.Null(result.Proposal); Assert.Equal(ProviderErrorKind.Malformed,result.Error?.Kind);
+        Assert.Equal(ProviderFailureReason.InvalidStructure,result.Error?.FailureReason);
+    }
+    [Fact] public async Task EndedStreamExplainsWhyNoResultWasAccepted()
+    {
+        var result=await Provider(new(Delta(Valid))).AnalyzeAsync(Payload(),default);
+        Assert.Equal(ProviderFailureReason.StreamEnded,result.Error?.FailureReason);
+        Assert.NotEmpty(ProviderFailureExplanation.Describe(result.Error!.Kind,result.Error.FailureReason).NextStep);
     }
     [Theory]
     [InlineData("response.refusal.delta")]
