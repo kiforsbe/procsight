@@ -59,15 +59,12 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
         new IdentityResolver().Resolve(snapshot,[]).Select(e=>WithCommandContext(e,config)).ToList();
     private ResolvedEntity WithCommandContext(ResolvedEntity entity,AnalysisPolicy config)
     {
-        if(config.CommandLineMode==CommandLineMode.Off) return entity.Process is { } process?
-            entity with { Process=process with { CommandLine=null } }:entity.Service is { } service?
-            entity with { Service=service with { BinaryPath=null } }:entity;
         var command=entity.Process?.CommandLine?.Raw ?? entity.Service?.BinaryPath;
         if(command is null) return entity;
         var digest=Convert.ToHexString(HMACSHA256.HashData(key,Encoding.UTF8.GetBytes(command)));
-        var origin=config.CommandLineMode==CommandLineMode.LocalOnly?DataOrigin.LocalCommandLine:DataOrigin.OnlineCommandLine;
+        var origin=config.CommandLineMode!=CommandLineMode.OnlineFull?DataOrigin.LocalCommandLine:DataOrigin.OnlineCommandLine;
         var role=LocalCommandRules.Match(entity.Process?.Executable.Name ?? entity.Service?.HostExecutable?.Name ?? "",command)?.Category ?? "CLI";
-        var facts=new Dictionary<string,string>(entity.Facts){["commandRole"]=role};
+        var facts=new Dictionary<string,string>(entity.Facts){["commandRole"]=role,["commandContext"]=digest};
         return entity with { ShareableIdentity=entity.Identity,Identity=IdentityResolver.MakeIdentity(entity.Identity.Value+digest),Facts=facts,
             Evidence=[..entity.Evidence,new("command:"+digest,origin,time.GetUtcNow(),null,"CommandRole",new(){["commandRole"]=role})],
             Origins=[..entity.Origins,origin] };
@@ -130,7 +127,7 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
             // Reserve the HTTP request and maximum one billable web-tool call before dispatch.
             if(!await ledger.TryReserveAsync(UsageKind.BillableCall,date,limits,ct) || !await ledger.TryReserveAsync(UsageKind.BillableCall,date,limits,ct))
             { Publish(entity,AnalysisState.BudgetPaused,local,"Research call budget reached."); return; }
-            var researched=await researchProvider.ResearchAsync(projection.BuildResearchRequest(entity),ct);
+            var researched=await researchProvider.ResearchAsync(projection.BuildResearchRequest(entity,config),ct);
             if(researched.Error is null) entity=entity with { Evidence=[..entity.Evidence,..researched.Evidence] };
         }
         var payload=projection.Build(entity,config,useLocal?AnalysisDestination.LocalModel:AnalysisDestination.CloudModel);
@@ -150,9 +147,25 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
             if(result.Proposal is not { } proposal) { Publish(entity,AnalysisState.Unknown,local); return; }
             ct.ThrowIfCancellationRequested(); if(work.Policy!=policy) return;
             var projected=OutputPrivacyFilter.Project(proposal,payload);
-            var rules=projected.Rules.Select(r=>r with { State=r.State==RuleState.Rejected ||
-                !new RuleValidator().Validate(r,payload.Evidence,time.GetUtcNow()).Accepted?RuleState.Rejected:RuleState.Active }).ToList();
-            var entry=new KnowledgeEntry(entity.Identity,time.GetUtcNow(),projected.Assessments,payload.Evidence,rules,knowledge.Corrections,
+            // Keep local ownership boundaries even when the provider never receives these fields.
+            var scopeFacts=entity.Facts.Where(f=>f.Key is "path" or "ownerIdentity" or "service")
+                .Where(f=>f.Value.Length is >0 and <=512).ToDictionary(f=>f.Key,f=>f.Value);
+            var scopeEvidence=new EvidenceRecord("local-scope:"+(entity.ShareableIdentity ?? entity.Identity).Value,
+                DataOrigin.ShareableMetadata,time.GetUtcNow(),null,"LocalRuleScope",scopeFacts);
+            var storedEvidence=payload.Evidence.Concat(new[]{scopeEvidence}).ToList();
+            var invocationEvidence=payload.CommandLine is not null && entity.Facts.TryGetValue("commandContext",out var context)?
+                new EvidenceRecord("invocation-scope:"+context,payload.Destination==AnalysisDestination.LocalModel?DataOrigin.LocalCommandLine:DataOrigin.OnlineCommandLine,
+                    time.GetUtcNow(),null,"InvocationScope",new(){["commandContext"]=context}):null;
+            if(invocationEvidence is not null) storedEvidence.Add(invocationEvidence);
+            var rules=projected.Rules.Select(rule=> {
+                var scoped=rule with { Predicates=[..rule.Predicates,..scopeFacts.Where(f=>!rule.Predicates.Any(p=>p.Field==f.Key))
+                    .Select(f=>new Predicate(PredicateKind.Exact,f.Key,f.Value,[scopeEvidence.Id]))] };
+                if(invocationEvidence is not null) scoped=scoped with { Predicates=[..scoped.Predicates,
+                    new(PredicateKind.Exact,"commandContext",invocationEvidence.Facts["commandContext"],[invocationEvidence.Id])] };
+                return scoped with { State=scoped.State==RuleState.Rejected ||
+                    !new RuleValidator().Validate(scoped,storedEvidence,time.GetUtcNow()).Accepted?RuleState.Rejected:RuleState.Active };
+            }).ToList();
+            var entry=new KnowledgeEntry(entity.Identity,time.GetUtcNow(),projected.Assessments,storedEvidence,rules,knowledge.Corrections,
                 rules.Where(r=>r.State==RuleState.Active).Select(r=>r.Id).ToList(),projected.IdentityLabel,projected.Role);
             await store.SaveAsync(entry,ct);
             local=EvaluateLocal(entity,await store.ReadCandidatesAsync(entity,ct));
@@ -191,9 +204,6 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
             if(policyEstablished && config==policy) return Task.CompletedTask;
             policyCancellation.Cancel(); policyCancellation.Dispose(); policyCancellation=new();
             policy=config; policyEstablished=true; authPaused=false; fingerprints.Clear(); reviewTimes.Clear();
-            if(config.CommandLineMode==CommandLineMode.Off)
-                foreach(var pair in current) if(pair.Value.Process is { } process)
-                    current[pair.Key]=pair.Value with { Process=process with { CommandLine=null } };
         }
         return Task.CompletedTask;
     }

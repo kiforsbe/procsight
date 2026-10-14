@@ -111,16 +111,18 @@ public sealed class CoordinatorTests : IDisposable
         var shareable=Assert.Single(coordinator.ResolveEntities(snapshot,new()));
         var privateEntity=Assert.Single(coordinator.ResolveEntities(snapshot,new(CommandLineMode:CommandLineMode.LocalOnly)));
         var payload=new ProcSight.Core.Privacy.AnalysisProjection().Build(privateEntity,new(CommandLineMode:CommandLineMode.LocalOnly),AnalysisDestination.CloudModel);
-        Assert.Equal(shareable.Identity,payload.Identity);
+        Assert.Equal(shareable.ShareableIdentity,payload.Identity);
         Assert.DoesNotContain(payload.Evidence,e=>e.Origin==DataOrigin.LocalCommandLine);
         Assert.DoesNotContain("SYNTHETIC_SECRET",System.Text.Json.JsonSerializer.Serialize(payload));
     }
-    [Fact] public async Task OffDiscardsPreviouslyCollectedCommandLine()
+    [Fact] public async Task OnlineExclusionPreservesLocalCommandLineAndRole()
     {
         var coordinator=Coordinator();
         var process=Samples.Process() with { CommandLine=new("node.exe --private-argument",Samples.Now) };
         var entity=Assert.Single(coordinator.ResolveEntities(Samples.Snapshot(process),new()));
-        Assert.Null(entity.Process!.CommandLine);
+        Assert.Equal(process.CommandLine.Raw,entity.Process!.CommandLine!.Raw);
+        Assert.Contains(entity.Evidence,e=>e.Origin==DataOrigin.LocalCommandLine);
+        Assert.Null(new ProcSight.Core.Privacy.AnalysisProjection().Build(entity,new(),AnalysisDestination.CloudModel).CommandLine);
         await coordinator.WaitForIdleAsync(default);
     }
     public void Dispose()

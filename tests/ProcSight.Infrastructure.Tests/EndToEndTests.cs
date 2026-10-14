@@ -17,7 +17,8 @@ public sealed class ExplainingProvider : IAnalysisProvider
             new(AssessmentAxis.Security,"NoConcernObserved","Synthetic fixture",Confidence.Low,[id],now.AddDays(7),[DataOrigin.ShareableMetadata]),
             new(AssessmentAxis.Optionality,"Optional","Synthetic fixture",Confidence.Medium,[id],now.AddDays(7),[DataOrigin.ShareableMetadata]) };
         var rule=new RuleDefinition(Guid.NewGuid(),1,RuleState.Active,DataOrigin.ShareableMetadata,now,now.AddDays(7),now.AddDays(7),
-            [new(PredicateKind.Exact,"hash",payload.Metadata["hash"],[id]),new(PredicateKind.Exact,"path",payload.Metadata["path"],[id])],
+            [new(PredicateKind.Exact,"hash",payload.Metadata["hash"],[id]),..
+                (payload.Metadata.TryGetValue("path",out var path)?new[]{new ProcSight.Core.Models.Predicate(PredicateKind.Exact,"path",path,[id])}:Array.Empty<ProcSight.Core.Models.Predicate>())],
             outputs,[id],100,IdentityLabel:"Example developer tool",Role:"Worker");
         return Task.FromResult(new ProviderResult(new(outputs,[rule],"Example developer tool","Worker")));
     }
@@ -52,6 +53,18 @@ public sealed class EndToEndTests : IDisposable
         var changed=Samples.Process() with { Executable=Samples.Process().Executable with { FullPath=@"C:\Different\node.exe" } };
         await coordinator.ObserveAsync(Samples.Snapshot(changed),Policy(),default);
         await coordinator.WaitForIdleAsync(default); Assert.Equal(2,provider.Calls);
+    }
+    [Fact] public async Task CommandDerivedRulesCannotTransferBetweenDifferentScripts()
+    {
+        var store=Store(); await using var coordinator=new AnalysisCoordinator(store,store,(_,_)=>provider);
+        var policy=new AnalysisPolicy(true,LocalModel:new("local",new("http://127.0.0.1:1234/v1"),"fixture"));
+        var first=Samples.Process(name:"python.exe",product:"Python") with { CommandLine=new("python.exe first.py --token PRIVATE",Samples.Now) };
+        await coordinator.ObserveAsync(Samples.Snapshot(first),policy,default); await coordinator.WaitForIdleAsync(default);
+        Assert.Single(await store.GetRulesAsync(default));
+        var second=first with { CommandLine=new("python.exe second.py --token PRIVATE",Samples.Now) };
+        await coordinator.ObserveAsync(Samples.Snapshot(second),policy,default); await coordinator.WaitForIdleAsync(default);
+        Assert.Equal(2,provider.Calls);
+        Assert.DoesNotContain("PRIVATE",System.Text.Json.JsonSerializer.Serialize(await store.GetRulesAsync(default)));
     }
     [Fact] public async Task DisabledRuleStopsCachedClassification()
     {

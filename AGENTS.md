@@ -29,13 +29,18 @@ labels stay transient. Icon loading is bounded, cached, off-thread, and releases
 - Service implementation and host proofs are separate. Configuration enrichment does not
   establish loaded-module state. Publisher-only references must preserve unknown purpose.
 - Local command rules describe invocation only. Keep interpreter payloads opaque and retain
-  only allowlisted command categories in knowledge; arbitrary script labels remain transient.
+  only allowlisted command categories and 64-hex HMAC invocation scopes in knowledge; arbitrary
+  script labels remain transient. Command-derived learned rules require invocation scope, not
+  just a generic CLI/Worker category; old unscoped rules must fail validation.
 - First release: understand and investigate processes/services, without modifying them.
 - Local evidence and reusable rules precede automatic provider analysis.
 - Keep purpose, security, and optionality separate; unknown and unavailable are valid.
 - Verify rule evidence and scope. Names and metadata company strings do not prove identity
   or trust; preserve PID/start-time and ownership context boundaries.
-- Maintain Off, Local only, and Include in online analysis command-line modes. Local-only
+- Always collect available command lines for local display and rules. Off and Local only now
+  exclude online sharing; Local only additionally prefers a configured local model. OnlineFull
+  explicitly permits transmission. Default online projection also excludes paths and ownership,
+  package, and service identifiers unless separately enabled. Local-only
   data and derived knowledge must not enter online payloads. Raw command lines must not
   enter persistence, logs, rule literals, or research queries.
 - API keys belong in Windows-protected credential storage, not tracked files or diagnostics.

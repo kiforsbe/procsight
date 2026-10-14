@@ -16,8 +16,9 @@ public sealed partial class MainWindow
         panel.Children.Add(new TextBlock { Text=runtimeWarning ?? "Analysis is local first. Enable automatic AI analysis only after configuring a provider. API access is separate from a ChatGPT subscription.",TextWrapping=TextWrapping.Wrap });
         var automatic=new CheckBox { Content="Enable automatic AI analysis of sanitized process metadata",IsChecked=policy.AutomaticEnabled };
         var researchOption=new CheckBox { Content="Enable online research (OpenAI profile only; separate identity-only requests)",IsChecked=policy.ResearchEnabled };
-        var mode=new ComboBox { Header="Full command-line analysis",ItemsSource=new[]{"Off","Local only","Include in online analysis"},SelectedIndex=(int)policy.CommandLineMode };
-        var disclosure=new TextBlock { Text="Online full mode sends the verbatim command line to the selected analysis provider. Arguments may contain credentials and personal paths. Local-only lines and derived findings stay out of cloud requests. Neither mode sends full lines as research queries.",TextWrapping=TextWrapping.Wrap };
+        var mode=new ComboBox { Header="Command-line sharing",ItemsSource=new[]{"Exclude from online analysis","Prefer local model; exclude online","Include in online analysis"},SelectedIndex=(int)policy.CommandLineMode };
+        var identifying=new CheckBox { Content="Include file paths and ownership, package, and service identifiers online",IsChecked=policy.ShareIdentifyingMetadata };
+        var disclosure=new TextBlock { Text="Command lines are always available locally when Windows permits collection. Online inclusion sends the verbatim line, which can contain credentials and personal paths, regardless of the metadata checkbox. Excluded lines and their derived findings stay local. Research never receives full command lines.",TextWrapping=TextWrapping.Wrap };
         var type=new ComboBox { Header="Online provider",ItemsSource=new[]{"OpenAI","Compatible API"},SelectedIndex=policy.Provider?.Id=="compatible"?1:0 };
         var endpoint=new TextBox { Header="Online API base URL",Text=policy.Provider?.Endpoint.ToString() ?? "https://api.openai.com/v1" };
         var model=new TextBox { Header="Online model",Text=policy.Provider?.Model ?? "",PlaceholderText="Enter a model available to your API account" };
@@ -29,7 +30,7 @@ public sealed partial class MainWindow
         var jobs=new NumberBox { Header="Automatic jobs per day",Value=policy.Limits?.AutomaticJobs ?? 20,Minimum=0,Maximum=10000,SpinButtonPlacementMode=NumberBoxSpinButtonPlacementMode.Compact };
         var calls=new NumberBox { Header="Billable calls per day (includes retries and reserved research calls)",Value=policy.Limits?.BillableCalls ?? 60,Minimum=0,Maximum=10000,SpinButtonPlacementMode=NumberBoxSpinButtonPlacementMode.Compact };
         var feedback=new TextBlock { TextWrapping=TextWrapping.Wrap };
-        foreach(var control in new UIElement[]{automatic,researchOption,mode,disclosure,type,endpoint,model,apiKey,strict,localEndpoint,localModel,localStrict,jobs,calls}) panel.Children.Add(control);
+        foreach(var control in new UIElement[]{automatic,researchOption,mode,identifying,disclosure,type,endpoint,model,apiKey,strict,localEndpoint,localModel,localStrict,jobs,calls}) panel.Children.Add(control);
         var save=new Button { Content="Save settings" };
         save.Click+=async(_,_)=>
         {
@@ -51,15 +52,9 @@ public sealed partial class MainWindow
                 if(!double.IsFinite(jobs.Value)||!double.IsFinite(calls.Value)) throw new ArgumentException("Enter valid request limits.");
                 if(online is not null&&apiKey.Password.Length>0) credentials.Set(online.Id,apiKey.Password);
                 var next=new AnalysisPolicy(automatic.IsChecked==true,researchOption.IsChecked==true,(CommandLineMode)mode.SelectedIndex,
-                    online,local,new((int)jobs.Value,(int)calls.Value),policy.Revision+1);
+                    online,local,new((int)jobs.Value,(int)calls.Value),policy.Revision+1,identifying.IsChecked==true);
                 preferences.Save(next,presentation); policy=next;
                 await coordinator.ChangePolicyAsync(policy,lifetime.Token);
-                if(policy.CommandLineMode==CommandLineMode.Off)
-                {
-                    lastSnapshot=lastSnapshot with { Processes=lastSnapshot.Processes.Select(p=>p with { CommandLine=null }).ToList() };
-                    entities=entities.Select(e=>e.Process is null?e:e with { Process=e.Process with { CommandLine=null } }).ToList();
-                    knownRows.Clear(); rows.Clear();
-                }
                 apiKey.Password=""; runtimeWarning=null; feedback.Text="Saved. New queued requests follow this policy; requests already sent cannot be recalled.";
             }
             catch(Exception e) when(e is ArgumentException or UriFormatException) { feedback.Text=e.Message; }

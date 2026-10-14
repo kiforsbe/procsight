@@ -61,6 +61,14 @@ native handles; an icon is cosmetic and never identity or security evidence.
 AI classifications are not antivirus verdicts. A legitimate signer or cached explanation
 does not alone establish that a running process is safe.
 
+Available command lines are always collected for local display and rules, regardless of online
+sharing settings. Serialized Off/LocalOnly exclude commands online; LocalOnly also prefers a
+configured loopback model. File paths and ownership/package/service identifiers are excluded
+from online facts/evidence by default through a separate setting. Full command sharing sends
+verbatim arguments independently of that setting. Local ownership scope is attached to returned
+rules after dispatch, and command-derived rules require keyed HMAC invocation scopes; different
+scripts cannot reuse each other's invocation-specific assessments. Raw lines remain transient.
+
 Services use configuration evidence from WMI and read-only registry values. Their configured
 executable or DLL is hashed and verified separately from the host. A verified host signature
 does not authenticate a hosted DLL; actual loaded-module state is not established. Inaccessible,

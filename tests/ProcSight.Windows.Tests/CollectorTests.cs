@@ -27,8 +27,7 @@ public sealed class CollectorTests
             if (process is not null) Assert.All(group, s => Assert.Contains(s.Name, process.ServiceNames));
         }
         Assert.Contains(snapshot.Processes, p => p.Key.Pid == Environment.ProcessId);
-        Assert.All(snapshot.Processes, p => Assert.Null(p.CommandLine));
-        Assert.All(snapshot.Services, s => Assert.Null(s.BinaryPath));
+        Assert.Contains(snapshot.Processes,p=>p.Key.Pid==Environment.ProcessId&&p.CommandLine is not null);
     }
     [Fact] public async Task ProtectedReadsDoNotThrowFirstChanceProcessExceptions()
     {

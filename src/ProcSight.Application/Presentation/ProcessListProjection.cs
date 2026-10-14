@@ -1,9 +1,9 @@
 using ProcSight.Core.Models;
 using ProcSight.Core.Identity;
 namespace ProcSight.Application.Presentation;
-public enum ProcessSort { Name, Pid, Cpu, Memory }
+public enum ProcessSort { Name, Pid, Cpu, Memory, Assessment, ServiceState, Startup, Disk, Network }
 public sealed record ViewOptions(string Search="",bool Grouped=false,bool Services=false,ProcessSort Sort=ProcessSort.Name,
-    HashSet<string>? ExpandedGroups=null,string? ClassificationFilter=null,IReadOnlyList<string>? PreviousOrder=null,HashSet<string>? CollapsedTree=null);
+    HashSet<string>? ExpandedGroups=null,string? ClassificationFilter=null,IReadOnlyList<string>? PreviousOrder=null,HashSet<string>? CollapsedTree=null,bool Descending=false);
 public sealed record ProcessListRow(string Key,ResolvedEntity Entity,bool IsGroup,List<ResolvedEntity> Members,
     string? GroupName,long MemoryBytes,bool CompleteMemory,double CpuPercent,bool CompleteCpu,int Depth=0,bool HasChildren=false,bool Expanded=false);
 public sealed record ProcessListState(List<ProcessListRow> Rows);
@@ -14,7 +14,7 @@ public static class ProcessListProjection
     {
         var findings=analysis.GroupBy(a=>a.Identity).ToDictionary(g=>g.Key,g=>g.Last());
         var visible=entities.Where(e=>options.Services?e.Service is not null:e.Process is not null)
-            .Where(e=>string.IsNullOrWhiteSpace(options.Search)||string.Join(" ",e.Facts.Values.Append(e.DisplayName)
+            .Where(e=>string.IsNullOrWhiteSpace(options.Search)||string.Join(" ",e.Facts.Values.Append(e.DisplayName).Append(ProcessRoleLabels.DisplayName(e,findings.GetValueOrDefault(e.Identity)?.Result.IdentityLabel))
                 .Append(e.Process?.Executable.Company??"").Append(e.Process?.Key.Pid.ToString()??e.Service?.HostPid?.ToString()??""))
                 .Contains(options.Search,StringComparison.OrdinalIgnoreCase))
             .Where(e=>options.ClassificationFilter is null || (options.ClassificationFilter=="Unknown"?
@@ -31,11 +31,30 @@ public static class ProcessListProjection
         }
         var prior=(options.PreviousOrder ?? []).Select((key,index)=>(key,index)).ToDictionary(p=>p.key,p=>p.index);
         List<ProcessListRow> Sort(IEnumerable<ProcessListRow> rows) {
-            var sorted=options.Sort switch {
-            ProcessSort.Pid=>rows.OrderBy(r=>r.Entity.Process?.Key.Pid??r.Entity.Service?.HostPid??0).ToList(),
-            ProcessSort.Cpu=>rows.OrderByDescending(r=>r.CpuPercent).ThenBy(r=>r.Entity.DisplayName).ToList(),
-            ProcessSort.Memory=>rows.OrderByDescending(r=>r.MemoryBytes).ThenBy(r=>r.Entity.DisplayName).ToList(),
-            _=>rows.OrderBy(r=>r.GroupName??r.Entity.DisplayName,StringComparer.CurrentCultureIgnoreCase).ThenBy(r=>r.Key,StringComparer.Ordinal).ToList() };
+            string Display(ProcessListRow row)=>row.GroupName ?? ProcessRoleLabels.DisplayName(row.Entity,findings.GetValueOrDefault(row.Entity.Identity)?.Result.IdentityLabel);
+            string Assessment(ProcessListRow row) {
+                var finding=findings.GetValueOrDefault(row.Entity.Identity);
+                return finding?.Result.Assessments.FirstOrDefault(a=>a.Value is "Suspicious" or "KnownThreat" or "PotentiallyUnwanted" or "PossibleLeftover")?.Value ??
+                    finding?.Result.Assessments.FirstOrDefault(a=>a.Axis==AssessmentAxis.Purpose)?.Value ?? finding?.State.ToString() ?? row.Entity.Service?.State ?? "Unknown";
+            }
+            IOrderedEnumerable<ProcessListRow> Order<T>(Func<ProcessListRow,T> value,IComparer<T>? comparer=null)=>
+                options.Descending?rows.OrderByDescending(value,comparer):rows.OrderBy(value,comparer);
+            var ordered=options.Sort switch {
+                ProcessSort.Pid=>Order(r=>r.Members.Min(m=>m.Process?.Key.Pid??m.Service?.HostPid??0)),
+                ProcessSort.Cpu=>Order(r=>r.CpuPercent),ProcessSort.Memory=>Order(r=>r.MemoryBytes),
+                ProcessSort.Assessment=>Order(Assessment,StringComparer.CurrentCultureIgnoreCase),
+                ProcessSort.ServiceState=>Order(r=>r.Entity.Service?.State ?? "",StringComparer.CurrentCultureIgnoreCase),
+                ProcessSort.Startup=>Order(r=>r.Entity.Service?.StartMode ?? "",StringComparer.CurrentCultureIgnoreCase),
+                ProcessSort.Disk=>Order(r=>r.Members.Sum(m=>m.Process?.Resources.DiskBytesPerSecond.Value??0)),
+                ProcessSort.Network=>Order(r=>r.Members.Sum(m=>m.Process?.Resources.NetworkBytesPerSecond.Value??0)),
+                _=>Order(Display,StringComparer.CurrentCultureIgnoreCase)
+            };
+            bool Missing(ProcessListRow row)=>options.Sort switch {
+                ProcessSort.Cpu=>!row.CompleteCpu,ProcessSort.Memory=>!row.CompleteMemory,
+                ProcessSort.Disk=>row.Members.All(m=>m.Process?.Resources.DiskBytesPerSecond.Value is null),
+                ProcessSort.Network=>row.Members.All(m=>m.Process?.Resources.NetworkBytesPerSecond.Value is null),
+                _=>false };
+            var sorted=ordered.ThenBy(Display,StringComparer.CurrentCultureIgnoreCase).ThenBy(r=>r.Key,StringComparer.Ordinal).OrderBy(Missing).ToList();
             return prior.Count==0?sorted:sorted.OrderBy(r=>prior.GetValueOrDefault(r.Key,int.MaxValue)).ToList();
         }
         if(options.Grouped&&!options.Services)
@@ -45,7 +64,8 @@ public static class ProcessListProjection
             {
                 var members=group.ToList();
                 var representative=members.FirstOrDefault(e=>e.Process?.Executable.Product==e.Owner) ?? members[0];
-                top.Add(representative.Owner is not null?Row(representative,members,"group:"+group.Key) with { HasChildren=true,Expanded=options.ExpandedGroups?.Contains("group:"+group.Key)==true }:Row(representative));
+                top.Add(representative.Owner is not null?Row(representative,members,"group:"+group.Key) with {
+                    HasChildren=true,Expanded=options.ExpandedGroups?.Contains("group:"+group.Key)==true }:Row(representative));
             }
             var rows=new List<ProcessListRow>();
             foreach(var row in Sort(top))

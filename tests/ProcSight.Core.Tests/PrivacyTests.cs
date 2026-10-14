@@ -19,6 +19,20 @@ public sealed class PrivacyTests
     [Theory] [InlineData(CommandLineMode.Off)] [InlineData(CommandLineMode.LocalOnly)]
     public void DefaultAndLocalOnlyCloudOmitFullLine(CommandLineMode mode) => Assert.Null(
         new AnalysisProjection().Build(Entity(),new(CommandLineMode:mode),AnalysisDestination.CloudModel).CommandLine);
+    [Fact] public void OnlineExclusionStillAllowsFullLineAtLocalModel()
+    {
+        var payload=new AnalysisProjection().Build(Entity(),new(),AnalysisDestination.LocalModel);
+        Assert.Equal(Entity().Process!.CommandLine!.Raw,payload.CommandLine);
+        Assert.True(CommandLinePolicy.CanDispatch(payload,new()));
+    }
+    [Fact] public void IdentifyingMetadataToggleAppliesToCloudFactsEvidenceAndResearch()
+    {
+        var entity=Entity(); var projection=new AnalysisProjection();
+        Assert.False(projection.Build(entity,new(),AnalysisDestination.CloudModel).Metadata.ContainsKey("path"));
+        Assert.All(projection.Build(entity,new(),AnalysisDestination.CloudModel).Evidence,e=>Assert.False(e.Facts.ContainsKey("path")));
+        Assert.True(projection.Build(entity,new(ShareIdentifyingMetadata:true),AnalysisDestination.CloudModel).Metadata.ContainsKey("path"));
+        Assert.True(projection.Build(entity,new(),AnalysisDestination.LocalModel).Metadata.ContainsKey("path"));
+    }
     [Fact] public void OnlineFullPreservesQuotedCommandVerbatim() => Assert.Equal(Entity().Process!.CommandLine!.Raw,
         new AnalysisProjection().Build(Entity(),new(CommandLineMode:CommandLineMode.OnlineFull),AnalysisDestination.CloudModel).CommandLine);
     [Fact] public void LocalOnlyCloudCannotSeeDerivedText()

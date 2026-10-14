@@ -31,6 +31,10 @@ public sealed partial class MainWindow
             new(Observation<double>.Available(i==0?3.2:0),Observation<long>.Available((12+i*5)*1048576L),
                 Observation<double>.Missing("Not collected"),Observation<double>.Missing("Not collected"),now,TimeSpan.FromSeconds(1)),[],
                 name=="node.exe"?new CommandLineValue(i==2?"node.exe --type=extensionHost":i==3?"node.exe --type=renderer":"node.exe --type=gpu-process",now):null)).ToList();
+        if(args.Length>5&&args[5]=="scroll") {
+            processes.AddRange(Enumerable.Range(0,60).Select(i=>processes[0] with { Key=new(2000+i,now,null),
+                Executable=new("python.exe",Product:"Python"),CommandLine=new($"python.exe script_{i:00}.py --token PRIVATE",now) }));
+        }
         lastSnapshot=new(Guid.NewGuid(),now,processes,[],new(36,16L*1024*1024*1024,7L*1024*1024*1024));
         entities=new IdentityResolver().Resolve(lastSnapshot,[]);
         var node=entities.First(e=>e.Process?.Executable.Name=="node.exe");
@@ -45,6 +49,31 @@ public sealed partial class MainWindow
             try
             {
                 await Task.Delay(500);
+                if(args.Length>5&&args[5]=="scroll") {
+                    var scrolling=FindTableScrollViewer(table!) ?? throw new InvalidOperationException("Missing native scrolling viewport.");
+                    if(scrolling.ScrollableWidth<=0 || scrolling.ScrollableHeight<=0) throw new InvalidOperationException("Fixture must overflow both axes.");
+                    DependencyObject? FindBar(DependencyObject parent) {
+                        if(parent is Microsoft.UI.Xaml.Controls.Primitives.ScrollBar { Orientation:Microsoft.UI.Xaml.Controls.Orientation.Vertical }) return parent;
+                        for(var i=0;i<VisualTreeHelper.GetChildrenCount(parent);i++)
+                            if(FindBar(VisualTreeHelper.GetChild(parent,i)) is { } found) return found;
+                        return null;
+                    }
+                    var bar=(FrameworkElement)(FindBar(scrolling) ?? throw new InvalidOperationException("Missing vertical scrollbar."));
+                    var origin=bar.TransformToVisual(WindowRoot).TransformPoint(new(0,0));
+                    if(origin.X<0 || origin.X+bar.ActualWidth>WindowRoot.ActualWidth+1) throw new InvalidOperationException("Vertical bar is outside window.");
+                    scrolling.ChangeView(scrolling.ScrollableWidth/2,100,null,true); await Task.Delay(250);
+                    var moved=bar.TransformToVisual(WindowRoot).TransformPoint(new(0,0));
+                    if(Math.Abs(moved.X-origin.X)>1) throw new InvalidOperationException("Horizontal scroll moved vertical bar.");
+                    foreach(var header in sortHeaders.Values)
+                        if(header.Button.ActualHeight<49) throw new InvalidOperationException("Header button does not fill the header height.");
+                    SelectSort(ProcSight.Application.Presentation.ProcessSort.Pid);
+                    if(sortDescending) throw new InvalidOperationException("PID sort must initially ascend.");
+                    SelectSort(ProcSight.Application.Presentation.ProcessSort.Pid);
+                    if(!sortDescending) throw new InvalidOperationException("Repeated click must descend.");
+                    SelectSort(ProcSight.Application.Presentation.ProcessSort.Name);
+                    scrolling.ChangeView(0,0,null,true); await Task.Delay(150);
+                    File.WriteAllText(output+".checks","Both axes overflow. Vertical bar stays within the window during horizontal scrolling. Full-height header hit targets and sort direction toggling pass.");
+                }
                 if(args.Length>5&&args[5]=="groups")
                 {
                     var group=rows.First(r=>r.IsGroup&&r.Projection.Members.Count>1); table!.SelectedItem=group;

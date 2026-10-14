@@ -7,7 +7,7 @@ using System.Text.Json;
 namespace ProcSight.Infrastructure.Knowledge;
 public sealed class SqliteKnowledgeStore(string path) : IKnowledgeStore,IUsageLedger
 {
-    private static readonly HashSet<string> EvidenceFields=["name","path","hash","product","version","package","signer","owner","ownerIdentity","service","commandRole","claim","threatHash"];
+    private static readonly HashSet<string> EvidenceFields=["name","path","hash","product","version","package","signer","owner","ownerIdentity","service","commandRole","commandContext","claim","threatHash"];
     private SqliteConnection Open(CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested(); Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
@@ -74,7 +74,8 @@ public sealed class SqliteKnowledgeStore(string path) : IKnowledgeStore,IUsageLe
         if (entry.Evidence.Any(e=>e.Facts.Keys.Any(k=>!EvidenceFields.Contains(k))))
             throw new InvalidDataException("Only normalized evidence fields may be stored.");
         if(entry.Evidence.Any(e=>e.Origin is DataOrigin.LocalCommandLine or DataOrigin.OnlineCommandLine &&
-            e.Facts.Any(f=>f.Key!="commandRole" || f.Value is not ("Renderer" or "Utility" or "Worker" or "CLI"))))
+            e.Facts.Any(f=>!(f.Key=="commandRole" && f.Value is "Renderer" or "Utility" or "Worker" or "CLI") &&
+                !(f.Key=="commandContext" && f.Value.Length==64 && f.Value.All(Uri.IsHexDigit)))))
             throw new InvalidDataException("Private command evidence must use controlled role values.");
         var safe=entry with { Evidence=entry.Evidence.Select(e=>e with { Facts=e.Facts.ToDictionary(f=>f.Key,f=>MetadataSanitizer.Normalize(f.Value)) }).ToList(), Corrections=[] };
         using var db=Open(ct); using var transaction=db.BeginTransaction();

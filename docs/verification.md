@@ -16,11 +16,11 @@ Locked restore and native Release build passed with zero warnings/errors. Test r
 
 | Project | Passed | Focus |
 | --- | ---: | --- |
-| Core | 49 | Identity/privacy/rules and common catalog gates, signer subjects, conflicts |
-| Application | 23 | Stable ordering, group churn, tree collapse, local roles/scripts, 500-process churn |
-| Infrastructure | 32 | Persistence/providers/coordinator, common-purpose evaluation offline |
+| Core | 51 | Identity/privacy/rules, local command availability and online identifying-field gates |
+| Application | 54 | Stable ordering, bidirectional sorts, grouped workload names and local Details |
+| Infrastructure | 33 | Persistence/providers/coordinator, private invocation scopes and rule reuse |
 | Windows | 18 | Native reads, real icons, signed service-host matching, preferences/credentials |
-| Total | 122 | No failed or skipped tests |
+| Total | 156 | No failed or skipped tests |
 
 Key behaviors covered include same-name owners at different paths, PID reuse, all three
 classification axes, rejected name-only rules, expired referenced evidence, changed-owner
@@ -104,3 +104,25 @@ The catalog was curated from read-only local observations into public identifier
 The real inventory remains ignored scratch data and is not distributed. Windows enrichment does
 not verify actual loaded service modules or online certificate revocation. Searchable catalog
 UI builds successfully; its physical desktop input remains part of outstanding UI validation.
+
+## Host names and native table interaction revision
+
+Available local command lines are always retained for display/rules; online sharing controls
+command transmission and identifying metadata separately. Tests cover host — hosted names for
+scripts/modules/MCP launchers/extensions, signed PowerToys components, retained owner grouping,
+verbatim local Details, opposite sort directions, and name sorting by displayed labels.
+A two-script local-model regression verifies invocation-specific learned rules cannot transfer
+between unrelated Python scripts; no raw command or argument is persisted.
+
+The actual Debug XAML fixture at 660px overflows both axes, checks that the vertical scrollbar
+stays inside the window and stationary during horizontal scrolling, checks full-height header
+button bounds, and exercises sort direction toggling. Header and body scrolling synchronize in
+both directions. These are layout/handler checks, not physical pointer delivery or full narrator
+acceptance. Normal Debug and Release builds both passed with zero warnings/errors after the
+user stopped the running Debug session that initially held build outputs open.
+
+![Narrow native host/workload table with viewport scrollbars](images/host-workloads-narrow.png)
+
+Read-only live investigation retrieved 392 available command lines from 547 observed processes.
+Only executable/pattern counts and option names were displayed; raw lines and private argument
+values were held in memory and were not written to the repository or diagnostics.

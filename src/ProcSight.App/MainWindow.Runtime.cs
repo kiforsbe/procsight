@@ -33,6 +33,7 @@ public sealed partial class MainWindow
         catch { runtimeWarning="Settings could not be loaded. Online analysis is disabled until you save valid settings."; policy=new(); }
         knowledge=new(Path.Combine(dataFolder,"knowledge.db"));
         if(Enum.TryParse<ProcessSort>(presentation.Sort,out var savedSort)) sort=savedSort;
+        sortDescending=presentation.SortDescending;
         usage=new(Path.Combine(dataFolder,"usage.db"));
         byte[] key;
         try

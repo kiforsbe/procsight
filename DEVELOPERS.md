@@ -107,6 +107,13 @@ providers; real provider tests are explicit opt-in actions with synthetic data.
 The Debug executable accepts `--visual-fixture <absolute-png-path> [Dark|Light] [width] [details|groups]`.
 It renders the actual XAML tree using synthetic data, without collection, preferences,
 credential access, or provider calls, then exits. It may read a standard Windows icon asset.
+
+The additional `scroll` fixture mode creates enough synthetic workloads to overflow both axes.
+At a 660px width it checks vertical scrollbar bounds/stationary position, header button height,
+and ascending/descending selection. For example, pass `Dark 660 scroll` after the output path.
+Local Details/workload labels always use available command lines; policy controls transmission.
+The serialized Off/LocalOnly modes exclude online commands, and ShareIdentifyingMetadata separately
+controls path/package/ownership/service fields. Maintain local rule scope when withholding fields.
 The `groups` fixture selects a group and exercises expansion/collapse/re-expansion without
 reselection, writing an ignored `.checks` companion. This mode is absent from Release builds.
 It captures content; native caption buttons and Mica composition are outside that bitmap.

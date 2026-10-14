@@ -14,6 +14,7 @@ public sealed partial class MainWindow
     private UIElement? tableHost;
     private AppBarButton? analyzeButton,detailsButton;
     private bool detailsOpen;
+    private readonly Dictionary<ProcessSort,(TextBlock Text,string Label,Button Button)> sortHeaders=[];
     [DllImport("user32.dll")] private static extern uint GetDpiForWindow(IntPtr window);
     private void ConfigureChrome()
     {
@@ -70,12 +71,13 @@ public sealed partial class MainWindow
 
         processBody=new Grid(); processBody.ColumnDefinitions.Add(new(){Width=new GridLength(1,GridUnitType.Star)});
         processBody.ColumnDefinitions.Add(new(){Width=GridLength.Auto}); Grid.SetRow(processBody,1); root.Children.Add(processBody);
-        var surface=new Grid { MinWidth=page=="Services"?710:848 };
+        var surface=new Grid();
         surface.RowDefinitions.Add(new(){Height=new GridLength(52)}); surface.RowDefinitions.Add(new(){Height=new GridLength(1,GridUnitType.Star)});
         var header=new Grid { BorderThickness=new Thickness(0,1,0,1),
             BorderBrush=(Brush)Microsoft.UI.Xaml.Application.Current.Resources["DividerStrokeColorDefaultBrush"] };
         var widths=page=="Services"?new[]{280,140,56,108,108}:new[]{280,140,56,80,96,96,100};
         for(var i=0;i<widths.Length;i++) header.ColumnDefinitions.Add(new(){Width=i==0?new GridLength(1,GridUnitType.Star):new GridLength(widths[i]),MinWidth=i==0?280:0});
+        sortHeaders.Clear();
         for(var i=0;i<widths.Length;i++)
         {
             var column=i;
@@ -85,16 +87,25 @@ public sealed partial class MainWindow
             if(page=="Processes"&&i==3) { cpuSummary=total; stack.Children.Add(total); }
             if(page=="Processes"&&i==4) { memorySummary=total; stack.Children.Add(total); }
             if(page=="Processes"&&i>=5) stack.Children.Add(new TextBlock { Text="—",FontSize=16,TextAlignment=TextAlignment.Right });
-            stack.Children.Add(new TextBlock { Text=label,FontSize=12 });
+            var labelText=new TextBlock { Text=label,FontSize=12 }; stack.Children.Add(labelText);
             var button=new Button { Content=stack,Background=new SolidColorBrush(Microsoft.UI.Colors.Transparent),
-                BorderThickness=new Thickness(0),CornerRadius=new CornerRadius(0),HorizontalAlignment=HorizontalAlignment.Stretch,
+                BorderThickness=new Thickness(0),CornerRadius=new CornerRadius(0),HorizontalAlignment=HorizontalAlignment.Stretch,VerticalAlignment=VerticalAlignment.Stretch,
                 HorizontalContentAlignment=i>=3?HorizontalAlignment.Right:HorizontalAlignment.Left,VerticalContentAlignment=VerticalAlignment.Bottom,
                 Padding=new Thickness(i==0?16:8,0,8,8) };
-            button.Click+=(_,_)=> { if(column is 0 or 2 or 3 or 4) { sort=column switch {2=>ProcessSort.Pid,3=>ProcessSort.Cpu,4=>ProcessSort.Memory,_=>ProcessSort.Name}; RefreshRows(reorder:true); } };
+            var sorting=column switch { 1=>ProcessSort.Assessment,2=>ProcessSort.Pid,3=>page=="Services"?ProcessSort.ServiceState:ProcessSort.Cpu,
+                4=>page=="Services"?ProcessSort.Startup:ProcessSort.Memory,5=>ProcessSort.Disk,6=>ProcessSort.Network,_=>ProcessSort.Name };
+            sortHeaders[sorting]=(labelText,label,button);
+            button.Click+=(_,_)=>SelectSort(sorting);
             var border=new Border { Child=button,BorderThickness=new Thickness(i==0?0:1,0,0,0),BorderBrush=header.BorderBrush };
             Grid.SetColumn(border,i); header.Children.Add(border);
         }
-        surface.Children.Add(header);
+        UpdateSortHeaders();
+        var minimum=page=="Services"?710:848;
+        header.MinWidth=minimum;
+        var headerScroll=new ScrollViewer { Content=header,HorizontalScrollMode=ScrollMode.Enabled,
+            HorizontalScrollBarVisibility=ScrollBarVisibility.Hidden,VerticalScrollMode=ScrollMode.Disabled,
+            VerticalScrollBarVisibility=ScrollBarVisibility.Disabled,IsTabStop=false };
+        surface.Children.Add(headerScroll);
         table=new ListView { ItemsSource=rows,SelectionMode=ListViewSelectionMode.Single,
             ItemContainerTransitions=new Microsoft.UI.Xaml.Media.Animation.TransitionCollection(),
             ItemsPanel=(ItemsPanelTemplate)XamlReader.Load("""
@@ -124,9 +135,25 @@ public sealed partial class MainWindow
                 if(parent is not null) { table.SelectedItem=parent; table.ScrollIntoView(parent); args.Handled=true; }
             }
         };
+        ScrollViewer.SetHorizontalScrollBarVisibility(table,ScrollBarVisibility.Auto);
+        ScrollViewer.SetHorizontalScrollMode(table,ScrollMode.Enabled);
+        ScrollViewer.SetVerticalScrollBarVisibility(table,ScrollBarVisibility.Auto);
+        table.Loaded+=(_,_)=> {
+            if(FindTableScrollViewer(table) is not { } scrolling) return;
+            void SynchronizeHeader() {
+                header.Width=Math.Max(minimum,scrolling.ExtentWidth);
+                headerScroll.ChangeView(scrolling.HorizontalOffset,null,null,true);
+            }
+            scrolling.ViewChanged+=(_,_)=>SynchronizeHeader();
+            headerScroll.ViewChanged+=(_,_)=> {
+                if(Math.Abs(headerScroll.HorizontalOffset-scrolling.HorizontalOffset)>.5)
+                    scrolling.ChangeView(headerScroll.HorizontalOffset,null,null,true);
+            };
+            scrolling.SizeChanged+=(_,_)=>SynchronizeHeader(); SynchronizeHeader();
+        };
         Grid.SetRow(table,1); surface.Children.Add(table);
-        tableHost=new ScrollViewer { Content=surface,HorizontalScrollBarVisibility=ScrollBarVisibility.Auto,
-            HorizontalScrollMode=ScrollMode.Auto,VerticalScrollMode=ScrollMode.Disabled,VerticalScrollBarVisibility=ScrollBarVisibility.Disabled };
+        // The ListView owns both axes; its vertical bar stays inside the visible viewport.
+        tableHost=surface;
         processBody.Children.Add(tableHost);
         var detailPanel=new StackPanel { Spacing=12,Padding=new Thickness(20) };
         var close=new Button { Content="Back to list",HorizontalAlignment=HorizontalAlignment.Left };
@@ -146,6 +173,27 @@ public sealed partial class MainWindow
         processBody.SizeChanged+=(_,_)=>UpdateDetailsLayout();
         status=new TextBlock { Text="Collecting local metadata…",FontSize=11,Opacity=.65,Margin=new Thickness(16,0,8,0),VerticalAlignment=VerticalAlignment.Center,TextTrimming=TextTrimming.CharacterEllipsis };
         Grid.SetRow(status,2); root.Children.Add(status); PageContent.Children.Add(root); UpdateDetailsLayout(); RefreshRows();
+    }
+    private void SelectSort(ProcessSort column)
+    {
+        sortDescending=sort==column?!sortDescending:column is ProcessSort.Cpu or ProcessSort.Memory or ProcessSort.Disk or ProcessSort.Network;
+        sort=column; presentation=presentation with { Sort=sort.ToString(),SortDescending=sortDescending };
+        UpdateSortHeaders(); SavePresentation(); RefreshRows(reorder:true);
+    }
+    private void UpdateSortHeaders()
+    {
+        foreach(var (column,header) in sortHeaders) {
+            header.Text.Text=header.Label+(column==sort?(sortDescending?" ↓":" ↑"):"");
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(header.Button,
+                header.Label+(column==sort?(sortDescending?", descending":", ascending"):", sort"));
+        }
+    }
+    private static ScrollViewer? FindTableScrollViewer(DependencyObject element)
+    {
+        if(element is ScrollViewer scrolling) return scrolling;
+        for(var i=0;i<VisualTreeHelper.GetChildrenCount(element);i++)
+            if(FindTableScrollViewer(VisualTreeHelper.GetChild(element,i)) is { } child) return child;
+        return null;
     }
     private void UpdateSelectionActions()
     {

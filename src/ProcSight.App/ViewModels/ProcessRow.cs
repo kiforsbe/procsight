@@ -30,7 +30,8 @@ public sealed class ProcessRow : INotifyPropertyChanged
     private RoleLabel LocalRole=>ProcessRoleLabels.Describe(Entity);
     public string Name => IsGroup?$"{Projection.GroupName} ({Projection.Members.Count})":
         ProcessRoleLabels.DisplayName(Entity,analysis?.Result.IdentityLabel);
-    public string Owner => IsGroup?"Owner candidate · use the chevron to expand or collapse":LocalRole.UsesCommandContext?LocalRole.Explanation:analysis?.Result.Role is { } analyzedRole?
+    public string Owner => IsGroup?"Owner candidate · use the chevron to expand or collapse":LocalRole.UsesCommandContext?
+        LocalRole.Label+"\nOwner candidate: "+(Entity.Owner ?? "Unknown")+"\n"+LocalRole.Explanation:analysis?.Result.Role is { } analyzedRole?
         $"{Entity.Owner ?? Entity.Process?.Executable.Name ?? "Unknown owner"} · {analyzedRole}":Entity.Facts.TryGetValue("commandRole",out var role)?
         $"{Entity.Owner ?? "Unknown owner"} · {role}":Entity.Owner ?? "Unknown ownership";
     public string Pid => IsGroup?"—":Entity.Process?.Key.Pid.ToString() ?? Entity.Service?.HostPid?.ToString() ?? "—";

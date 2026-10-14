@@ -149,7 +149,7 @@ path; equal product names at different paths stay distinct. Automatic learned ru
 that ownership predicate when available. Native file descriptions provide readable labels
 for generic Windows product metadata; model labels can further explain individual roles.
 Command context uses a Windows-protected HMAC key and retains a separate shareable identity
-for cloud metadata-only requests in Local only mode.
+for cloud requests whenever online command sharing is excluded.
 
 The UML class view captures conceptual relationships, not complete C# declarations. A process
 may host multiple services. An assessment may depend on several evidence records or rules;
@@ -227,7 +227,7 @@ Name-only protected observations remain unknown and do not consume automatic job
 as snapshot-scoped identities change. Manual investigation is still available within limits.
 Exact cached assessments also require their supporting local metadata to agree with current
 facts. Command-derived rules require a compatible command origin and controlled role context;
-they cannot silently classify a metadata-only observation after command collection is disabled.
+they cannot silently classify a metadata-only observation after online command sharing is excluded.
 
 ```mermaid
 sequenceDiagram
@@ -328,11 +328,12 @@ user corrections take precedence without hiding independent conflicting security
 
 ## Command-line policy and external boundaries
 
-Off is the default. Local only enables full-command-line analysis in local rules and an
-explicitly configured loopback model; its raw and derived data cannot reach online analysis.
-Include in online analysis additionally permits the verbatim line at the chosen analysis
-provider. Other online metadata remains sanitized. Research queries never contain full lines.
-
+Command lines are always collected for local display and rules when Windows permits access.
+Off is the serialized default for online command exclusion; LocalOnly additionally prefers an
+explicitly configured loopback model. OnlineFull permits verbatim transmission. A separate
+ShareIdentifyingMetadata setting (default false) controls path/package/owner/service facts in
+online metadata, evidence, and research. Raw command sharing independently includes identifiers
+inside that line. Local-only findings and invocation HMAC digests cannot enter cloud requests.
 ```mermaid
 sequenceDiagram
     participant C as Collector
@@ -341,33 +342,24 @@ sequenceDiagram
     participant O as Online analysis provider
     participant R as Online research provider
     participant K as Knowledge persistence
-    alt Off
-        P->>C: Collect metadata without command lines
-        C-->>P: Metadata only
-    else Local only
-        P->>C: Collect available full line in memory
-        C-->>P: Metadata and full line
-        P->>L: Full line and locally scoped facts
-        L-->>P: Findings tagged with local command origin
-        Note over P,O: Online requests exclude raw line and derived local knowledge
+    C-->>P: Available metadata and full line in memory
+    P->>L: Local invocation hints and optional loopback analysis
+    L-->>P: Findings tagged with local origins
+    alt Online command sharing excluded
+        P->>O: Filtered metadata and separate shareable identity
     else Include in online analysis
-        P->>C: Collect available full line in memory
-        C-->>P: Metadata and full line
-        P->>O: Sanitized metadata plus authorized verbatim line
-        O-->>P: Findings tagged with online command origin
+        P->>O: Filtered metadata plus verbatim command line
     end
-    opt Research separately enabled
-        P->>R: Sanitized independent identity terms only
-        R-->>P: Attributable source evidence
-    end
-    P->>K: Normalized private-safe findings and origin dependencies
-    Note over P,K: Never persist raw lines, secret arguments, or unsafe echoed output
+    O-->>P: Untrusted proposed findings and rules
+    P->>R: Minimal permitted identity query without full line
+    P->>P: Attach withheld local ownership scope
+    P->>P: Scope command-derived rules to invocation HMAC
+    P->>K: Validated rules and safe evidence without raw lines
 ```
 
 Origin restrictions survive storage and restart. A local-only finding is not retroactively
 shareable after changing modes; build a newly authorized online projection instead. Before
-dispatch, recheck the policy revision. A mode change cancels/rebuilds queued payloads; Off
-also releases raw collected strings. Already sent requests cannot be recalled.
+dispatch, recheck the policy revision. A sharing change cancels/rebuilds queued payloads; local strings remain available. Already sent requests cannot be recalled.
 
 Loopback model requests cannot follow remote redirects or fall back remotely. ProcSight
 controls its own routing but cannot guarantee a separately operated local server's behavior.
@@ -389,7 +381,7 @@ maintenance pauses observation and drains queued work before explicit recovery/r
 
 Toolhelp and nonthrowing native process queries enumerate protected processes without using
 exception-based access probes. Resource intervals and unavailable facts remain explicit.
-Service configuration uses WMI with a ten-second cache; command lines are WMI opt-in only.
+Service configuration uses WMI with a ten-second cache; available command lines are always collected locally through WMI.
 Executable enrichment hashes/verifies at most sixteen uncached process files and eight service
 files per poll, rotates service work for fairness, and caches by
 file stamps. Offline WinVerifyTrust does not initiate online certificate retrieval.
@@ -405,6 +397,25 @@ External/model text cannot initiate machine actions or request arbitrary local r
 See [SECURITY.md](SECURITY.md) for reporting and intended security boundaries.
 
 ## Live table state and assets
+
+The native ListView owns horizontal and vertical scrolling, keeping its vertical scrollbar
+inside the visible viewport. A header ScrollViewer synchronizes horizontally in both directions.
+Header buttons fill each cell height and toggle direction; saved sort preferences include direction.
+Sorting compares displayed workload names or classifications, with unavailable metrics last.
+Explicit sorts affect siblings while retaining ownership/tree hierarchy and stable sampling order.
+
+[ProcessDetails](src/ProcSight.Application/Presentation/ProcessDetails.cs) formats transient local
+command lines and file/signature/lifetime metadata. [LocalCommandRules](src/ProcSight.Core/Rules/LocalCommandRules.cs)
+shares literal script/module/package parsing across hosts and provides known extension/worker hints.
+Rows follow host — hosted; groups retain application ownership. PowerToys component names use
+verified catalog/executable metadata. Raw command values never enter rule literals or persistence.
+
+When online identifiers are excluded, the coordinator appends local path/owner/service scopes
+after provider responses. Command-derived learned rules additionally require a 64-hex keyed HMAC
+commandContext predicate and controlled evidence. Distinct scripts under the same runtime cannot
+inherit one another's invocation-specific findings. Older command-derived rules without this
+scope fail validation and require re-analysis. Storage accepts only fixed categories and HMAC
+scope values in command-origin evidence, never arguments or arbitrary labels.
 
 Sampling updates cell values without sorting existing siblings. Explicit column sorting or
 Refresh establishes a new order. Group headers retain their keys with one member. A stable
@@ -482,8 +493,7 @@ classDiagram
 
 [LocalCommandRules](src/ProcSight.Core/Rules/LocalCommandRules.cs) uses bounded Windows quote
 tokenization and fixed switch/entry-point/module tables. Inline interpreter code and encoded
-payloads remain opaque; no rule can execute or fetch code. Only Renderer/Utility/Worker/CLI
-categories enter command-origin evidence, while arbitrary entry-point names remain display-only.
+payloads remain opaque; no rule can execute or fetch code. Only Renderer/Utility/Worker/CLI categories and 64-hex HMAC invocation scopes enter command-origin evidence, while arbitrary entry-point names remain display-only.
 Local-only HMAC context and derived findings retain their existing cloud exclusion.
 
 The UML sequence shows the distinction between service host and implementation verification:

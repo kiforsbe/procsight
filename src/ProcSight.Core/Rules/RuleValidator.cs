@@ -11,11 +11,14 @@ public sealed class RuleValidator
         var reasons=new List<string>(); var byId=evidence.GroupBy(e=>e.Id).ToDictionary(g=>g.Key,g=>g.Last());
         if(rule.Version<1 || rule.Predicates.Count is <1 or >64 || rule.Assessments.Count==0) reasons.Add("Invalid structure");
         var fields=rule.Predicates.Select(p=>p.Field).ToHashSet();
+        if((rule.Origin is DataOrigin.LocalCommandLine or DataOrigin.OnlineCommandLine) &&
+            !rule.Predicates.Any(p=>p.Field=="commandContext"&&p.Kind==PredicateKind.Exact&&p.Value.Length==64&&p.Value.All(Uri.IsHexDigit)))
+            reasons.Add("Command-derived rules require a private invocation context");
         if(!fields.Contains("hash") && fields.Intersect(new[]{"signer","product","path","package","owner","service"}).Count()<2)
             reasons.Add("Identity requires hash or independent identifying fields");
         foreach(var predicate in rule.Predicates)
         {
-            if(predicate.Field is not ("name" or "hash" or "signer" or "product" or "path" or "package" or "owner" or "ownerIdentity" or "service" or "commandRole") ||
+            if(predicate.Field is not ("name" or "hash" or "signer" or "product" or "path" or "package" or "owner" or "ownerIdentity" or "service" or "commandRole" or "commandContext") ||
                 predicate.Value.Length is <1 or >512 || !Enum.IsDefined(predicate.Kind)) reasons.Add("Invalid predicate");
             if(predicate.EvidenceIds.Count==0 || !predicate.EvidenceIds.Any(id=>byId.TryGetValue(id,out var e) &&
                 e.Facts.TryGetValue(predicate.Field,out var observed) && PredicateMatcher.Matches(predicate,observed)))

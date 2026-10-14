@@ -21,6 +21,7 @@ public sealed partial class MainWindow : Window
     private ListView? table;
     private MachineSnapshot lastSnapshot=new(Guid.NewGuid(),DateTimeOffset.UtcNow,[],[]);
     private ProcessSort sort=ProcessSort.Name;
+    private bool sortDescending;
     private readonly HashSet<string> expandedGroups=[];
     private readonly HashSet<string> collapsedTree=[];
     private string? classificationFilter;
@@ -71,7 +72,6 @@ public sealed partial class MainWindow : Window
             {
                 var mode=policy.CommandLineMode;
                 var snapshot = await collector.CaptureAsync(mode, lifetime.Token);
-                if(mode!=policy.CommandLineMode) snapshot=snapshot with { Processes=snapshot.Processes.Select(p=>p with { CommandLine=null }).ToList() };
                 var resolved = coordinator.ResolveEntities(snapshot,policy);
                 DispatcherQueue.TryEnqueue(() => { lastSnapshot=snapshot; entities = resolved; RefreshRows(); });
                 try { await knowledgeMaintenance.WaitAsync(lifetime.Token);
@@ -95,7 +95,7 @@ public sealed partial class MainWindow : Window
         var selected = (table?.SelectedItem as ProcessRow)?.Key;
         var projected=ProcessListProjection.Build(lastSnapshot,entities,analysis.Values.ToList(),
             new(search,presentation.Grouped,page=="Services",sort,expandedGroups,classificationFilter,
-                reorder?null:rows.Select(r=>r.Key).ToArray(),collapsedTree));
+                reorder?null:rows.Select(r=>r.Key).ToArray(),collapsedTree,sortDescending));
         var ordered = new List<ProcessRow>();
         foreach (var projectedRow in projected.Rows)
         {
@@ -143,11 +143,7 @@ public sealed partial class MainWindow : Window
         var localRole=ProcessRoleLabels.Describe(e);
         detail.Text = $"{row.Name}\n\nOwnership: {e.Owner ?? "Unknown"}\n\n" +
             (localRole.UsesCommandContext?$"Local role: {localRole.Label}\n{localRole.Explanation}\n\n":"")+
-            (e.Process is { } p ? $"PID: {p.Key.Pid}\nExecutable: {p.Executable.Name}\nPath: {p.Executable.FullPath ?? "Unavailable"}\nProduct: {p.Executable.Product ?? "Unavailable"}\nCompany metadata: {p.Executable.Company ?? "Unavailable"}\nSignature: {p.Executable.Signature}\nServices: {string.Join(", ",p.ServiceNames)}" :
-            $"Service: {e.Service!.Name}\nState: {e.Service.State}\nStart mode: {e.Service.StartMode}\nHost PID: {e.Service.HostPid}\n"+
-            $"Configured implementation: {e.Service.Implementation?.FullPath ?? "Unavailable"}\nImplementation signature: {e.Service.Implementation?.Signature.ToString() ?? "Unavailable"}\n"+
-            $"Implementation signer: {e.Service.Implementation?.VerifiedSigner ?? "Unavailable"}\nConfigured host signature: {e.Service.HostExecutable?.Signature.ToString() ?? "Unavailable"}\n"+
-            "Configuration identifies a file; loaded-module state has not been verified. Host signature does not authenticate its service DLL.") +
+            ProcessDetails.FormatIdentity(e,policy.CommandLineMode) +
             "\n\n" + FormatAnalysis(e);
         _=ShowEvidenceAsync(e);
     }

@@ -59,7 +59,7 @@ public sealed class LiveListTests
         var p=Samples.Process() with { CommandLine=new("node.exe \"C:\\Example App\\server.mjs\" --token=secret",Samples.Now) };
         var e=Assert.Single(new IdentityResolver().Resolve(Samples.Snapshot(p),[]));
         var label=ProcessRoleLabels.Describe(e);
-        Assert.Contains("runs server.mjs",label.Label); Assert.DoesNotContain("secret",label.Label);
+        Assert.Contains(" — server.mjs",label.Label); Assert.DoesNotContain("secret",label.Label);
         Assert.True(label.UsesCommandContext);
     }
 }

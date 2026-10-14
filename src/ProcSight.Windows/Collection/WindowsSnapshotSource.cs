@@ -38,7 +38,7 @@ public sealed class WindowsSnapshotSource : IWindowsSnapshotSource
                         return budget-->0?await enricher.EnrichAsync(file,ct):file;
                     }
                     serviceRows[index]=service with { Implementation=await Enrich(service.Implementation),HostExecutable=await Enrich(service.HostExecutable),
-                        BinaryPath=mode==CommandLineMode.Off?null:service.BinaryPath };
+                        BinaryPath=service.BinaryPath };
                 }
                 serviceCursor=serviceRows.Length==0?0:(serviceCursor+4)%serviceRows.Length;
                 return snapshot with { Processes=enriched,Services=serviceRows };
@@ -53,7 +53,7 @@ public sealed class WindowsSnapshotSource : IWindowsSnapshotSource
         if (Interlocked.Exchange(ref forceServiceRefresh,0)==1||now - servicesAt > TimeSpan.FromSeconds(10))
         { services = ServiceEnumerator.Read(); servicesAt = now; }
         var processTable = WindowsNativeMethods.ReadProcessTable();
-        var commands = mode == CommandLineMode.Off ? new Dictionary<int, string>() : ProcessMetadataReader.ReadCommandLines();
+        var commands = ProcessMetadataReader.ReadCommandLines();
         var rows = new List<ProcessSnapshot>();
         foreach (var process in processTable)
         {

@@ -44,10 +44,13 @@ loaded from Windows Shell and cached; inaccessible or missing assets use a fallb
 Live samples update cells while preserving sibling order and scroll position. Click a column
 or Refresh to reorder; use each row's chevron to expand/collapse independently of selection.
 Right/Left expand/collapse selected nodes; Left also returns from a child to its parent.
+Click anywhere in a column header to sort; repeat to reverse direction. Direction arrows and
+saved sort preferences reflect the current order. Names sort by their visible workload label.
+Both scrollbars stay inside the visible table viewport, with the header following horizontal scroll.
 Collection remains useful without an API key or network connection.
 
 Generic child processes receive provisional local role labels when permitted metadata or
-command context identifies a renderer, GPU worker, extension host, language server, or service
+command context identifies a script, MCP launcher, renderer, GPU worker, extension host, language server, or service
 host. Specific roles remain visible after a generic executable assessment arrives. Derived
 command labels are display-only and never enter provider payloads or persistence.
 
@@ -60,18 +63,22 @@ references leave purpose unknown. Service rules verify the configured executable
 the host's signature cannot authenticate its DLL. Loaded-module state is not verified.
 Local command rules also recognize Python modules, .NET operations, PowerShell invocation modes,
 and language-server entry points. They never execute scripts or decode encoded payloads.
-Command collection still follows the chosen privacy mode.
+Command lines remain available locally regardless of the online sharing mode.
 The Windows native host
 in VidVNC informed the WinUI shell, spacing, preferences, and component boundaries.
 
 ## Privacy and command-line analysis
 
-Settings provides three explicit command-line modes:
+Command lines are always collected locally when Windows permits it. Details shows the full
+command line and the path, original filename, version/product, verified signer, hash, parent PID,
+and creation time used for identification. Child-row names use host — hosted for scripts, packages, and worker roles; Python/VS Code and other application ownership groups remain intact.
+
+Settings controls online sharing with three explicit modes:
 
 | Mode | Behavior |
 | --- | --- |
-| Off (default) | Do not collect command lines for analysis |
-| Local only | Analyze full command lines locally; keep them and derived knowledge out of cloud requests |
+| Exclude from online analysis (default; stored as Off) | Full command lines remain available locally; exclude them and derived knowledge online |
+| Prefer local model; exclude online (stored as LocalOnly) | Also prefer a configured loopback model for full local analysis |
 | Include in online analysis | Permit the full, verbatim command line at the selected online analysis provider |
 
 Other online metadata remains sanitized. Full command lines can contain credentials or
@@ -79,6 +86,12 @@ personal paths; the online option includes a payload preview and explicit disclo
 Raw command lines are excluded from the knowledge database, logs, rule literals,
 and online research queries. API access requires the selected
 provider's credentials; a ChatGPT subscription is not assumed to include API access.
+
+A separate checkbox controls online file paths and ownership, package, and service identifiers.
+These fields are excluded by default from both provider metadata and evidence. Enabling full
+command sharing sends the verbatim line, including any identifying data within it, independently
+of that metadata checkbox. Research still never receives command lines. Local rule scope is
+attached after provider responses, preserving application boundaries without transmitting it.
 
 AI assessments are explanations with evidence and uncertainty. They are not antivirus
 verdicts or authorization to change the computer.

@@ -7,6 +7,13 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Host — hosted child names for Python/PowerShell/Plex/Windows scripts, Python modules, Command Prompt
+  batch/npx launchers, and VS Code extension workers, while retaining application grouping.
+- Local Details includes the full available command line and identifying file/lifetime metadata.
+- Local command collection is always enabled; separate online controls govern command sharing
+  and identifying metadata. Learned rules retain local ownership scopes withheld from providers.
+- Command-derived learned rules require keyed invocation scopes, preventing reuse across
+  unrelated scripts sharing the same runtime and generic role. Legacy unscoped rules re-analyze.
 - Expanded bundled knowledge to 373 portable process/service definitions with scoped IDs,
   searchable inspection, and publisher-only references that preserve unknown purpose.
 - Signature/hash enrichment of configured service executables and DLLs, separate from host
@@ -19,6 +26,10 @@ in this repository; planned product features are documented in the design and ro
 
 ### Fixed
 
+- Native table scrollbars remain within the narrow-window viewport; horizontal scrolling
+  keeps headers and rows aligned in both directions.
+- Full-height column headers toggle ascending/descending sorting, display direction arrows,
+  and persist preferences. Name sorting follows visible workload labels.
 - Inline interpreter code is opaque to role matching; quoted command text is no longer
   mistaken for browser worker switches. .NET certificate/product metadata is recognized.
 - Service arguments are excluded from serialized snapshots and shareable service identities.
