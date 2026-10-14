@@ -49,6 +49,10 @@ saved sort preferences reflect the current order. Names sort by their visible wo
 Both scrollbars stay inside the visible table viewport, with the header following horizontal scroll.
 Collection remains useful without an API key or network connection.
 
+Only multiple related processes get an application group header. A single process appears
+directly with its name, PID, and resources. Membership changes preserve the top-level slot;
+selection follows a remaining child when its group becomes a single process.
+
 Generic child processes receive provisional local role labels when permitted metadata or
 command context identifies a script, MCP launcher, renderer, GPU worker, extension host, language server, or service
 host. Specific roles remain visible after a generic executable assessment arrives. Derived

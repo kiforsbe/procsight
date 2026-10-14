@@ -418,7 +418,11 @@ scope fail validation and require re-analysis. Storage accepts only fixed catego
 scope values in command-origin evidence, never arguments or arbitrary labels.
 
 Sampling updates cell values without sorting existing siblings. Explicit column sorting or
-Refresh establishes a new order. Group headers retain their keys with one member. A stable
+Refresh establishes a new order. Groups require multiple visible members; a sole member is
+a normal process row with PID/resources and no expander or count. The top-level owner slot
+retains its key across single/group transitions, preserving native viewport anchoring. Selection
+maps a former child to its remaining process row by lifetime key when its visual key changes.
+Blank Windows descriptions fall back to executable names. A stable
 visual slot for a creation-time-unavailable PID does not relax snapshot-scoped domain identity;
 row analysis is replaced when its entity identity changes. Reconciliation retains row objects,
 notifies changed properties only, and preserves the viewport through native ItemsStackPanel
@@ -432,16 +436,26 @@ state view describes one visible expandable node, not persisted knowledge state:
 stateDiagram-v2
     state Initial <<choice>>
     [*] --> Initial
-    Initial --> Collapsed: Application group
+    Initial --> Single: One application process
+    Initial --> Collapsed: Multiple application processes
     Initial --> Expanded: Raw process parent
     Collapsed --> Expanded: Chevron action
     Expanded --> Collapsed: Chevron action without reselection
+    Single --> Collapsed: Additional related process appears
+    Single --> Expanded: Additional process and remembered expansion
+    Collapsed --> Single: One process remains
+    Expanded --> Single: One process remains and child selection follows
+    Single --> Removed: Sole process exits
     Collapsed --> Collapsed: Sample updates cells and count
     Expanded --> Expanded: Sample updates cells and count
     Collapsed --> Removed: Last process exits
     Expanded --> Removed: Last process exits
     Removed --> [*]
 ```
+
+An application's remembered expansion choice is retained during its single-process state;
+when it regains multiple members it may return directly to Expanded. Raw process-parent
+expansion is independent of application group membership.
 
 `ProcessRoleLabels` uses local metadata, host service associations, and permitted command
 tokens to explain generic children provisionally. A generic catalog/model executable label

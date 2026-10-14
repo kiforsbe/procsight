@@ -9,6 +9,15 @@ public sealed record ProcessListRow(string Key,ResolvedEntity Entity,bool IsGrou
 public sealed record ProcessListState(List<ProcessListRow> Rows);
 public static class ProcessListProjection
 {
+    public static string? SelectionKey(ProcessListState state,ProcessListRow? selected)
+    {
+        if(selected is null) return null;
+        var exact=state.Rows.FirstOrDefault(row=>row.Key==selected.Key);
+        if(exact is not null) return exact.Key;
+        if(selected.Entity.Process is not { } process) return null;
+        return state.Rows.FirstOrDefault(row=>!row.IsGroup&&row.Entity.Process?.Key==process.Key)?.Key ??
+            state.Rows.FirstOrDefault(row=>row.IsGroup&&row.Members.Any(m=>m.Process?.Key==process.Key))?.Key;
+    }
     public static ProcessListState Build(MachineSnapshot snapshot,IReadOnlyList<ResolvedEntity> entities,
         IReadOnlyList<AnalysisUpdate> analysis,ViewOptions options)
     {
@@ -64,8 +73,10 @@ public static class ProcessListProjection
             {
                 var members=group.ToList();
                 var representative=members.FirstOrDefault(e=>e.Process?.Executable.Product==e.Owner) ?? members[0];
-                top.Add(representative.Owner is not null?Row(representative,members,"group:"+group.Key) with {
-                    HasChildren=true,Expanded=options.ExpandedGroups?.Contains("group:"+group.Key)==true }:Row(representative));
+                var slot="group:"+group.Key;
+                top.Add(representative.Owner is not null && members.Count>1?Row(representative,members,slot) with {
+                    HasChildren=true,Expanded=options.ExpandedGroups?.Contains(slot)==true }:
+                    Row(representative) with { Key=representative.Owner is not null?slot:RowKey(representative) });
             }
             var rows=new List<ProcessListRow>();
             foreach(var row in Sort(top))

@@ -17,12 +17,13 @@ public sealed class LiveListTests
         var next=Project(Samples.Snapshot(a,b),new(Sort:ProcessSort.Memory,PreviousOrder:first.Rows.Select(r=>r.Key).ToArray()));
         Assert.Equal(first.Rows.Select(r=>r.Key),next.Rows.Select(r=>r.Key));
     }
-    [Fact] public void GroupDoesNotTurnIntoDifferentRowWhenOneMemberExits()
+    [Fact] public void GroupBecomesOrdinaryProcessWithoutMovingItsSlotWhenOneMemberExits()
     {
         var a=Samples.Process(1,product:"App"); var b=Samples.Process(2,product:"App");
         var first=Assert.Single(Project(Samples.Snapshot(a,b),new(Grouped:true)).Rows);
         var next=Assert.Single(Project(Samples.Snapshot(a),new(Grouped:true)).Rows);
-        Assert.Equal(first.Key,next.Key); Assert.True(next.IsGroup);
+        Assert.Equal(first.Key,next.Key); Assert.False(next.IsGroup); Assert.False(next.HasChildren);
+        Assert.Null(next.GroupName); Assert.Single(next.Members); Assert.Equal(1,next.Entity.Process!.Key.Pid);
     }
     [Fact] public void UnknownCreationTimeHasStableVisualSlotButSeparateAnalysisIdentity()
     {

@@ -83,7 +83,19 @@ public sealed partial class MainWindow
                     ToggleExpansion(button,new RoutedEventArgs());
                     if(rows.Count!=before) throw new InvalidOperationException("Selected group did not collapse.");
                     ToggleExpansion(button,new RoutedEventArgs());
-                    File.WriteAllText(output+".checks","Selected group expands, collapses and re-expands without reselection.");
+                    var child=rows.First(r=>!r.IsGroup&&r.Projection.Depth>0); table.SelectedItem=child;
+                    var originalSnapshot=lastSnapshot; var originalEntities=entities;
+                    var originalAnalysis=analysis.ToDictionary(p=>p.Key,p=>p.Value);
+                    var siblings=group.Projection.Members.Select(m=>m.Process!.Key.Pid).ToHashSet();
+                    lastSnapshot=lastSnapshot with { Processes=lastSnapshot.Processes.Where(p=>!siblings.Contains(p.Key.Pid)||p.Key==child.Entity.Process!.Key).ToList() };
+                    entities=new IdentityResolver().Resolve(lastSnapshot,[]); RefreshRows();
+                    if(table.SelectedItem is not ViewModels.ProcessRow { IsGroup:false } single ||
+                        single.Pid!=child.Entity.Process!.Key.Pid.ToString() || single.Projection.HasChildren || single.Name.EndsWith("(1)"))
+                        throw new InvalidOperationException("Singleton must be a selected process with PID and no group header.");
+                    lastSnapshot=originalSnapshot; entities=originalEntities;
+                    foreach(var pair in originalAnalysis) analysis[pair.Key]=pair.Value;
+                    RefreshRows();
+                    File.WriteAllText(output+".checks","Group expands/collapses without reselection; selected child survives as a standalone process with PID and no group header when siblings exit.");
                     await Task.Delay(250); WindowRoot.UpdateLayout();
                 }
                 if(args.Length>5&&args[5]=="details")

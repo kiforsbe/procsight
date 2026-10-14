@@ -26,6 +26,9 @@ in this repository; planned product features are documented in the design and ro
 
 ### Fixed
 
+- Single-process applications render directly, without redundant headers or `(1)` counts.
+  Group transitions preserve row order and selection. Blank Windows descriptions fall back
+  to executable names instead of creating unnamed groups.
 - Native table scrollbars remain within the narrow-window viewport; horizontal scrolling
   keeps headers and rows aligned in both directions.
 - Full-height column headers toggle ascending/descending sorting, display direction arrows,
@@ -34,8 +37,8 @@ in this repository; planned product features are documented in the design and ro
   mistaken for browser worker switches. .NET certificate/product metadata is recognized.
 - Service arguments are excluded from serialized snapshots and shareable service identities.
 - Live metric samples no longer continuously reorder rows or notify every cell. Sibling
-  order and viewport anchors persist until explicit sorting/refresh; single-member groups
-  retain their group identity as processes enter and exit.
+  order and viewport anchors persist until explicit sorting/refresh; owner slots retain
+  their keys as rows switch between individual processes and multi-process groups.
 - Native chevron buttons expand/collapse selected application groups repeatedly, independently
   of selection changes. Raw parent/child trees can also be collapsed.
 - Generic catalog identities preserve service-specific and invocation-specific names.

@@ -12,7 +12,7 @@ public sealed class IdentityResolver
         {
             var owner = string.IsNullOrWhiteSpace(process.Executable.Product)?null:process.Executable.Product;
             if(owner?.Contains("Windows",StringComparison.OrdinalIgnoreCase)==true)
-                owner=process.Executable.Description ?? process.Executable.Name;
+                owner=string.IsNullOrWhiteSpace(process.Executable.Description)?process.Executable.Name:process.Executable.Description;
             var ownerPath=process.Executable.FullPath;
             var cursor = process; var visited = new HashSet<int>();
             for (var depth = 0; depth < 8 && visited.Add(cursor.Key.Pid); depth++)

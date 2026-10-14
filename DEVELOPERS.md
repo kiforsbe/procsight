@@ -109,6 +109,8 @@ It renders the actual XAML tree using synthetic data, without collection, prefer
 credential access, or provider calls, then exits. It may read a standard Windows icon asset.
 
 The additional `scroll` fixture mode creates enough synthetic workloads to overflow both axes.
+The `groups` fixture also removes siblings and verifies that the selected child becomes a
+standalone process row with its PID, no group header, and no expander before restoring the group.
 At a 660px width it checks vertical scrollbar bounds/stationary position, header button height,
 and ascending/descending selection. For example, pass `Dark 660 scroll` after the output path.
 Local Details/workload labels always use available command lines; policy controls transmission.

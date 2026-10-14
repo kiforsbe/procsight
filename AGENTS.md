@@ -15,6 +15,9 @@ live API/desktop validation. The user approved this feature branch and checkout;
 their shared VS Code files. Do not imply release readiness from synthetic tests alone.
 
 Live-list updates preserve sibling order and keys; explicit sort/refresh may reorder.
+Application groups require multiple visible processes; one member renders as a normal row.
+Preserve owner-slot keys and lifetime-aware selection across single/group transitions. Empty
+metadata descriptions must use a nonblank executable fallback.
 Expand/collapse belongs to a native chevron action, never SelectionChanged. Keep generic
 executable identity separate from per-invocation/service roles. Bundled common rules require
 verified signer plus product/original-name gates and supply purpose only; they must not

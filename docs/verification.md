@@ -17,10 +17,10 @@ Locked restore and native Release build passed with zero warnings/errors. Test r
 | Project | Passed | Focus |
 | --- | ---: | --- |
 | Core | 51 | Identity/privacy/rules, local command availability and online identifying-field gates |
-| Application | 54 | Stable ordering, bidirectional sorts, grouped workload names and local Details |
+| Application | 57 | Stable ordering, singleton/group transitions, selection, sorts and local Details |
 | Infrastructure | 33 | Persistence/providers/coordinator, private invocation scopes and rule reuse |
 | Windows | 18 | Native reads, real icons, signed service-host matching, preferences/credentials |
-| Total | 156 | No failed or skipped tests |
+| Total | 159 | No failed or skipped tests |
 
 Key behaviors covered include same-name owners at different paths, PID reuse, all three
 classification axes, rejected name-only rules, expired referenced evidence, changed-owner
@@ -113,6 +113,11 @@ scripts/modules/MCP launchers/extensions, signed PowerToys components, retained 
 verbatim local Details, opposite sort directions, and name sorting by displayed labels.
 A two-script local-model regression verifies invocation-specific learned rules cannot transfer
 between unrelated Python scripts; no raw command or argument is persisted.
+
+Single-member applications now render directly. Three additional portable regressions cover
+blank Windows descriptions, stable single/group ordering, and selected-child survival. The native
+groups fixture also removes siblings and verifies that the selected remaining row exposes its
+PID with no group header or expander, then restores the original group.
 
 The actual Debug XAML fixture at 660px overflows both axes, checks that the vertical scrollbar
 stays inside the window and stationary during horizontal scrolling, checks full-height header

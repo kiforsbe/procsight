@@ -92,10 +92,11 @@ public sealed partial class MainWindow : Window
     private void RefreshRows(bool reorder=false)
     {
         if (page is not ("Processes" or "Services")) return;
-        var selected = (table?.SelectedItem as ProcessRow)?.Key;
+        var selected = (table?.SelectedItem as ProcessRow)?.Projection;
         var projected=ProcessListProjection.Build(lastSnapshot,entities,analysis.Values.ToList(),
             new(search,presentation.Grouped,page=="Services",sort,expandedGroups,classificationFilter,
                 reorder?null:rows.Select(r=>r.Key).ToArray(),collapsedTree,sortDescending));
+        var selectedKey=ProcessListProjection.SelectionKey(projected,selected);
         var ordered = new List<ProcessRow>();
         foreach (var projectedRow in projected.Rows)
         {
@@ -118,7 +119,7 @@ public sealed partial class MainWindow : Window
         }
         var live = entities.Select(ProcessListProjection.RowKey).Concat(projected.Rows.Select(r=>r.Key)).ToHashSet();
         foreach (var key in knownRows.Keys.Where(k => !live.Contains(k)).ToArray()) knownRows.Remove(key);
-        if (selected is not null && table is not null) table.SelectedItem = rows.FirstOrDefault(r => r.Key == selected);
+        if (selected is not null && table is not null) table.SelectedItem = rows.FirstOrDefault(r => r.Key == selectedKey);
         } finally { refreshingRows=false; }
         var active=entities.Select(e=>e.Identity).ToHashSet();
         foreach(var id in analysis.Keys.Where(id=>!active.Contains(id)).ToArray()) analysis.Remove(id);
