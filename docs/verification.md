@@ -18,9 +18,9 @@ Locked restore and native Release build passed with zero warnings/errors. Test r
 | --- | ---: | --- |
 | Core | 52 | Identity/privacy/rules and persisted opaque ChatGPT profile binding |
 | Application | 66 | Ordering/Details/captions and bounded privacy-safe activity history |
-| Infrastructure | 96 | Storage, OAuth/SSE/activity and safe validation-reason propagation to user guidance |
+| Infrastructure | 99 | Storage, OAuth/SSE/activity, safe failure reasons and empty-completion text preservation |
 | Windows | 20 | Native reads/icons/signatures and caption ownership/lifetime/timeout checks |
-| Total | 234 | No failed or skipped tests |
+| Total | 237 | No failed or skipped tests |
 
 Key behaviors covered include same-name owners at different paths, PID reuse, all three
 classification axes, rejected name-only rules, expired referenced evidence, changed-owner
@@ -186,3 +186,17 @@ Failures now carry fixed typed reasons for missing/unknown evidence, invalid val
 JSON/structure problems, rule indexes/label limits, incomplete streams and output limits. The activity
 details shows cause and recovery guidance without storing raw exception/provider text. Tests check
 reason classification, adapter-to-activity propagation and private-text exclusion. Validation was not relaxed.
+
+## Empty ChatGPT completion output regression
+
+A synthetic Node.js request was traced through the actual ChatGptPlanProvider, with the HTTP
+handler returning the received SSE bytes unchanged to the production parser. Before the fix,
+HTTP 200 streamed 1,192 text characters but response.completed contained an empty output array.
+The provider discarded the valid deltas and returned NoOutput. The earlier standalone probe had
+preserved deltas, explaining why that probe passed while the application failed.
+
+After the fix, the same production-path synthetic request again completed with an empty output
+array and returned three validated assessments. Tracing printed only status, event counts,
+byte/character counts and validation outcomes; tokens and response text were not written or logged.
+Regression tests first reproduced failure, then verified streamed-text preservation, genuinely empty
+output rejection, and nonempty invalid final output overriding valid deltas and remaining rejected.

@@ -54,6 +54,8 @@ labels stay transient. Icon loading is bounded, cached, off-thread, and releases
   account ID, protect tokens and account catalog, and validate state/PKCE/nonce/JWKS and granted scopes.
   Serialize rotating refreshes across app instances. Never use ChatGPT private backend endpoints,
   log authorization URLs/tokens, or silently fall back to API-key charges. Sign-in does not enable analysis.
+- ChatGPT plan completion events may have empty output arrays. Preserve streamed text in that case;
+  never accept it without successful completion and validation, and honor nonempty final output/refusals.
 - AI activity is a product-level, memory-only history of actual provider attempts and projected
   results. Keep its 200-entry bound, immutable snapshots and failure isolation. Never retain raw
   payloads, commands, paths, window captions, snippets or provider exception text; show only safe

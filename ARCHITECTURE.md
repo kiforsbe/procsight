@@ -56,6 +56,9 @@ the lock. Browser sign-in is bounded to three minutes and callbacks to 16 KiB/10
 [ChatGptPlanProvider](src/ProcSight.Infrastructure/Providers/ChatGptPlanProvider.cs) implements
 IAnalysisProvider with fixed public HTTPS endpoints, fresh OAuth access tokens and a bounded
 Responses SSE stream. A completed, non-refused, validated result is required before rule acceptance.
+Successful completion can contain an empty output array even after text deltas were delivered.
+In that case, retain the streamed text. Nonempty final text replaces it and still undergoes validation;
+refusals/incomplete completion cannot activate a partial result.
 Its transport accepts at most 1 MiB of events and 256 KiB of output over 60 seconds; it never
 substitutes an API key. Existing coordinator budgets/retries still apply to transient failures.
 Authentication failures pause analysis, while temporary refresh/body errors preserve transient

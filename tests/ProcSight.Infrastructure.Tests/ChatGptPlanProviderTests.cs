@@ -43,6 +43,24 @@ public sealed class ChatGptPlanProviderTests
         var stream=Event(new { type="response.completed",response=new { status="completed",output=new[]{new { content=new[]{new { type="output_text",text=Valid }} }} } });
         Assert.NotNull((await Provider(new(stream)).AnalyzeAsync(Payload(),default)).Proposal);
     }
+    [Fact] public async Task EmptyCompletionOutputPreservesValidatedStreamedText()
+    {
+        var completion=Event(new { type="response.completed",response=new { status="completed",output=Array.Empty<object>() } });
+        var result=await Provider(new(Delta(Valid)+completion)).AnalyzeAsync(Payload(),default);
+        Assert.Null(result.Error); Assert.NotNull(result.Proposal);
+    }
+    [Fact] public async Task EmptyCompletionWithoutStreamedTextStillFails()
+    {
+        var completion=Event(new { type="response.completed",response=new { status="completed",output=Array.Empty<object>() } });
+        var result=await Provider(new(completion)).AnalyzeAsync(Payload(),default);
+        Assert.Equal(ProviderFailureReason.NoOutput,result.Error?.FailureReason); Assert.Null(result.Proposal);
+    }
+    [Fact] public async Task NonemptyInvalidFinalOutputDoesNotFallBackToValidDeltas()
+    {
+        var completion=Event(new { type="response.completed",response=new { status="completed",output=new[]{new { content=new[]{new { type="output_text",text="{}" }} }} } });
+        var result=await Provider(new(Delta(Valid)+completion)).AnalyzeAsync(Payload(),default);
+        Assert.Equal(ProviderFailureReason.InvalidStructure,result.Error?.FailureReason); Assert.Null(result.Proposal);
+    }
     [Theory]
     [InlineData("data: invalid\n\n")]
     [InlineData("data: {\"type\":\"response.completed\",\"response\":{\"status\":\"incomplete\"}}\n\n")]

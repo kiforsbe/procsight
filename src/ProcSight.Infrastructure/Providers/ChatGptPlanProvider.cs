@@ -133,8 +133,9 @@ public sealed class ChatGptPlanProvider : IAnalysisProvider
         {
             var output=ProviderHttp.ResponsesText(response);
             if(output.Refused) return Failure(ProviderErrorKind.Refused,"ChatGPT plan refused analysis.");
-            if(output.Text is null) return Failure(ProviderErrorKind.Malformed,"No explanation returned.",reason:ProviderFailureReason.NoOutput);
-            final=output.Text;
+            // Plan streams can confirm completion with an empty output array after sending all deltas.
+            // A nonempty final explanation replaces deltas; absent final text must not erase them.
+            if(!string.IsNullOrWhiteSpace(output.Text)) final=output.Text;
         }
         if(string.IsNullOrWhiteSpace(final)) return Failure(ProviderErrorKind.Malformed,"No explanation returned.",reason:ProviderFailureReason.NoOutput);
         if(Encoding.UTF8.GetByteCount(final)>TextLimit) return Failure(ProviderErrorKind.Malformed,"Explanation exceeded the output limit.",reason:ProviderFailureReason.OutputTooLarge);

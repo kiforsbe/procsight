@@ -7,6 +7,9 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Fixed ChatGPT plan inference discarding valid streamed explanations when the successful completion
+  event contains an empty output array. Streamed output still requires completion and full validation.
+
 - AI activity failures now explain the specific safe rejection reason and what to do next, including
   missing/unknown evidence, invalid classifications, incomplete streams and output limits.
   Rejected model text and exception messages remain excluded from activity history.
