@@ -79,11 +79,11 @@ public static class KnownTaskCatalog
     {
         var definition=Match(entity); if(definition is null) return null;
         if(definition.PublisherOnly) return new([],entity.Owner,[definition.Id],[],Enum.GetValues<AssessmentAxis>().ToHashSet(),
-            definition.Label,"Authenticated publisher; exact purpose unknown");
+            definition.Label,"Authenticated publisher; exact purpose unknown",[]);
         var output=new Assessment(AssessmentAxis.Purpose,definition.Purpose,
             "Bundled common-task reference matched verified signer and executable metadata. Invocation role and safety remain separate.",
             Confidence.Medium,entity.Evidence.Where(e=>e.Origin==DataOrigin.ShareableMetadata).Select(e=>e.Id).ToList(),now.AddDays(30),[DataOrigin.ShareableMetadata]);
-        return new([output],entity.Owner,[definition.Id],[],new(){AssessmentAxis.Security,AssessmentAxis.Optionality},definition.Label,"Known executable purpose");
+        return new([output],entity.Owner,[definition.Id],[],new(){AssessmentAxis.Security,AssessmentAxis.Optionality},definition.Label,"Known executable purpose",[definition.Id]);
     }
     public static LocalAnalysis Supplement(ResolvedEntity entity,LocalAnalysis local,KnowledgeEntry knowledge,DateTimeOffset now)
     {
@@ -94,6 +94,7 @@ public static class KnownTaskCatalog
         var axes=local.UnresolvedAxes.ToHashSet(); if(purposeAllowed && common.Assessments.Count>0) axes.Remove(AssessmentAxis.Purpose);
         return local with { Assessments=purposeAllowed?[..local.Assessments,..common.Assessments]:local.Assessments,
             MatchingRuleIds=purposeAllowed?[..local.MatchingRuleIds,..common.MatchingRuleIds]:local.MatchingRuleIds,UnresolvedAxes=axes,
+            AppliedRuleIds=purposeAllowed?[..local.AppliedRuleIds ?? [],..common.AppliedRuleIds ?? []]:local.AppliedRuleIds ?? [],
             IdentityLabel=local.IdentityLabel ?? common.IdentityLabel,Role=local.Role ?? common.Role };
     }
 }

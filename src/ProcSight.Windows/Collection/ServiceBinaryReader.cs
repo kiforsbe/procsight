@@ -28,7 +28,10 @@ public static class ServiceBinaryReader
             !path.Contains('"') && !path.Contains('\0')?path:null;
     }
     public static ExecutableMetadata? Implementation(string name,string? configuration,ProcessMetadataReader reader)
+        => Implementation(name,configuration,reader,out _);
+    public static ExecutableMetadata? Implementation(string name,string? configuration,ProcessMetadataReader reader,out MetadataUnavailableReason? reason)
     {
+        reason=null;
         var host=ExecutablePath(configuration); if(host is null) return null;
         if(!Path.GetFileName(host).Equals("svchost.exe",StringComparison.OrdinalIgnoreCase))
             return reader.Read(Path.GetFileName(host),host);
@@ -40,8 +43,9 @@ public static class ServiceBinaryReader
                 using var template=Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\"+name[..separator]);
                 if(template?.GetValue("Type") is int type && (type&0x40)!=0) module=ModulePath(template);
             }
-            return module is null?null:reader.Read(Path.GetFileName(module),module);
-        } catch(Exception e) when(e is UnauthorizedAccessException or System.Security.SecurityException or IOException or ArgumentException) { return null; }
+            if(module is null) { reason=MetadataUnavailableReason.NotProvided; return null; }
+            return reader.Read(Path.GetFileName(module),module);
+        } catch(Exception e) when(MetadataAccess.IsUnavailable(e)) { reason=MetadataAccess.Reason(e); return null; }
     }
     private static string? ModulePath(RegistryKey? service)
     {

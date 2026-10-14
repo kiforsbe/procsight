@@ -119,3 +119,10 @@ creating a remote repository, pushing, or selecting an unknown security-reportin
 
 Use the repository's standard [AGPL v3.0 license](LICENSE); preserve third-party notices.
 Do not change the license or add a contributor agreement without a user request.
+
+Rule inspection distinguishes eligible matches from contributing assessments. Maintain
+`AppliedRuleIds` when evaluation changes; legacy absence must not be represented as known
+contribution. AI rule provenance comes from trusted coordinator settings, not model proposals,
+and must contain no account identifiers or credentials. Collection `MetadataIssue` fields remain
+local and JSON-ignored; preserve partial records and safe reason codes without exception text
+or invented explanations about ownership.

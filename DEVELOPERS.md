@@ -191,3 +191,16 @@ This preparation does not create a GitHub repository, configure a remote, or pub
 Project contributions are made under the [GNU AGPL v3.0](LICENSE) used by this repository.
 Preserve applicable copyright and license notices. Review compatibility and distribution
 notice requirements before adding third-party code or dependencies.
+
+## Rule and restricted-metadata inspection
+
+`RuleInspection` owns readable rule/evidence presentation; `MainWindow.Rules.cs` owns the native
+library and process dialogs. `LocalAnalysis.AppliedRuleIds` records contributing assessments,
+while `MatchingRuleIds` also includes eligible matches that did not contribute. Legacy applied
+IDs and provider provenance can be absent. New provenance comes from coordinator settings,
+never provider-supplied identity. SQLite's existing JSON payload stores the optional fields.
+
+Debug visual fixtures accept `rules` and `rules-process` for synthetic library and process views.
+`RuleContributionTests`, `RuleInspectionTests`, and `RuleProvenanceTests` cover attribution and
+legacy persistence. `MetadataAccessTests` and `MetadataAvailabilityTests` cover restricted reads,
+partial records, safe reasons, and local-only collection diagnostics. Do not use machine dumps.

@@ -53,7 +53,8 @@ public sealed class WindowsSnapshotSource : IWindowsSnapshotSource
         if (Interlocked.Exchange(ref forceServiceRefresh,0)==1||now - servicesAt > TimeSpan.FromSeconds(10))
         { services = ServiceEnumerator.Read(); servicesAt = now; }
         var processTable = WindowsNativeMethods.ReadProcessTable();
-        var commands = ProcessMetadataReader.ReadCommandLines();
+        var commandMetadata = ProcessMetadataReader.ReadCommandLineMetadata();
+        var commands = commandMetadata.Commands;
         var rows = new List<ProcessSnapshot>();
         foreach (var process in processTable)
         {
@@ -62,13 +63,16 @@ public sealed class WindowsSnapshotSource : IWindowsSnapshotSource
                 var counters=WindowsNativeMethods.ReadCounters(pid);
                 var started = counters.Started;
                 var key = new ProcessKey(pid, started, started is null ? id : null);
-                var path = WindowsNativeMethods.ReadImagePath(pid);
+                var pathRead = WindowsNativeMethods.ReadImagePathWithReason(pid);
+                var path = pathRead.Path;
                 var name=path is not null?Path.GetFileName(path):process.Value.Name;
                 var executable = metadata.Read(name, path) with { PackageIdentity=counters.Package };
                 var sample = sampler.Sample(key,counters.Cpu,counters.Memory,now,Environment.ProcessorCount);
                 rows.Add(new(key,process.Value.Parent, executable, sample,
                     services.Where(s => s.HostPid == pid && (started is null || started<=servicesAt)).Select(s => s.Name).ToArray(),
-                    commands.TryGetValue(pid, out var command) ? new(command, now) : null));
+                    commands.TryGetValue(pid, out var command) ? new(command, now) : null,
+                    MetadataIssues: (pathRead.Reason is { } pathReason ? new[] { new MetadataIssue("ExecutablePath",pathReason) } : [])
+                        .Concat(command is null ? new[] { new MetadataIssue("CommandLine",commandMetadata.Issues.GetValueOrDefault(pid,commandMetadata.MissingReason)) } : []).ToArray()));
         }
         sampler.Prune(rows.Select(r => r.Key).ToHashSet());
         var windows=WindowMetadataReader.Read(rows.Select(r=>r.Key).ToArray());

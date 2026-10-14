@@ -169,6 +169,10 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
             if(result.Proposal is not { } proposal) { Publish(entity,AnalysisState.Unknown,local); return; }
             ct.ThrowIfCancellationRequested(); if(work.Policy!=policy) return;
             var projected=OutputPrivacyFilter.Project(proposal,payload);
+            var providerId=MetadataSanitizer.Normalize(selected.Id);
+            var model=MetadataSanitizer.Normalize(selected.Model);
+            var provenance=new RuleProvenance(providerId[..Math.Min(providerId.Length,128)],model[..Math.Min(model.Length,256)],
+                payload.Destination,time.GetUtcNow());
             // Keep local ownership boundaries even when the provider never receives these fields.
             var scopeFacts=entity.Facts.Where(f=>f.Key is "path" or "ownerIdentity" or "service")
                 .Where(f=>f.Value.Length is >0 and <=512).ToDictionary(f=>f.Key,f=>f.Value);
@@ -180,7 +184,8 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
                     time.GetUtcNow(),null,"InvocationScope",new(){["commandContext"]=context}):null;
             if(invocationEvidence is not null) storedEvidence.Add(invocationEvidence);
             var rules=projected.Rules.Select(rule=> {
-                var scoped=rule with { Predicates=[..rule.Predicates,..scopeFacts.Where(f=>!rule.Predicates.Any(p=>p.Field==f.Key))
+                // Provider responses cannot choose their attribution or retain account identifiers.
+                var scoped=rule with { Provenance=provenance,Predicates=[..rule.Predicates,..scopeFacts.Where(f=>!rule.Predicates.Any(p=>p.Field==f.Key))
                     .Select(f=>new Predicate(PredicateKind.Exact,f.Key,f.Value,[scopeEvidence.Id]))] };
                 if(invocationEvidence is not null) scoped=scoped with { Predicates=[..scoped.Predicates,
                     new(PredicateKind.Exact,"commandContext",invocationEvidence.Facts["commandContext"],[invocationEvidence.Id])] };

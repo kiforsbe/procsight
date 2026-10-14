@@ -23,26 +23,36 @@ public sealed class LocalAnalysisEngine
         if(knowledge.Identity==entity.Identity && dependencies.All(id=>matches.Any(r=>r.Id==id)))
             outputs.AddRange(knowledge.Assessments.Where(a=>a.ExpiresAt>now && a.EvidenceIds.All(id=>
                 SupportsCache(id))));
-        var issues=new List<string>(); var assessments=new List<Assessment>();
+        var issues=new List<string>(); var assessments=new List<Assessment>(); var ruleSelections=new List<Assessment>();
         foreach(var axis in Enum.GetValues<AssessmentAxis>())
         {
             var eligible=outputs.Where(a=>a.Axis==axis).ToList();
+            var correctionSelected=false;
             var corrections=knowledge.Corrections.Where(c=>c.Assessment.Axis==axis && c.Assessment.ExpiresAt>now).ToList();
             if(corrections.Count>0)
             {
                 var correction=corrections.OrderByDescending(c=>c.Scope==CorrectionScope.InvocationContext?3:c.Scope==CorrectionScope.Executable?2:1).First().Assessment;
                 if(axis==AssessmentAxis.Security && eligible.Any(a=>a.Value is "Suspicious" or "KnownThreat" && a.Value!=correction.Value))
                     issues.Add("User correction conflicts with independent security evidence");
-                else eligible=[correction];
+                else { eligible=[correction]; correctionSelected=true; }
             }
             if(eligible.Select(a=>a.Value).Distinct().Count()>1) { issues.Add($"Conflicting {axis} assessments"); continue; }
-            if(eligible.Count>0) assessments.Add(eligible.OrderByDescending(a=>a.Confidence).First());
+            if(eligible.Count>0)
+            {
+                var selected=eligible.OrderByDescending(a=>a.Confidence).First();
+                assessments.Add(selected);
+                if(!correctionSelected) ruleSelections.Add(selected);
+            }
         }
         var labelRule=matches.OrderByDescending(r=>r.Specificity).FirstOrDefault(r=>r.IdentityLabel is not null);
         var cachedLabel=knowledge.Identity==entity.Identity && knowledge.Assessments.Any(assessments.Contains) &&
             dependencies.All(id=>matches.Any(r=>r.Id==id))?knowledge.IdentityLabel:null;
+        // Structural equality can also match a correction or cached copy. Only the selected
+        // assessment instance owned by a rule establishes that rule's contribution.
+        var applied=matches.Where(r=>r.Assessments.Any(a=>ruleSelections.Any(selected=>ReferenceEquals(a,selected))))
+            .Select(r=>r.Id).Distinct().ToList();
         return new(assessments,entity.Owner,matches.Select(r=>r.Id).ToList(),issues,
             Enum.GetValues<AssessmentAxis>().Where(axis=>!assessments.Any(a=>a.Axis==axis && a.Value!="Unknown")).ToHashSet(),
-            labelRule?.IdentityLabel ?? cachedLabel,labelRule?.Role ?? (cachedLabel is not null?knowledge.Role:null));
+            labelRule?.IdentityLabel ?? cachedLabel,labelRule?.Role ?? (cachedLabel is not null?knowledge.Role:null),applied);
     }
 }

@@ -7,6 +7,11 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Searchable Rules & knowledge library, per-process/service rule inspection, contributing versus
+  matching rule status, supporting evidence and recorded AI provider/model provenance.
+- Restricted metadata reads preserve partial processes/services and display safe unavailability
+  reasons, including access denied, without exposing exception text or requiring elevation.
+
 - Process names preserve established application identities and specific local host/invocation roles.
   Explanatory AI identity prose no longer replaces table labels, including previously saved assessments.
 

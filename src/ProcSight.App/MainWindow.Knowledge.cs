@@ -1,86 +1,68 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using ProcSight.Core.Models;
+using ProcSight.Core.Rules;
+using ProcSight.Application.Presentation;
 namespace ProcSight.App;
 public sealed partial class MainWindow
 {
+    private sealed record RuleLibraryItem(string Title,string Source,string State,RuleDefinition? Learned=null,KnownTaskDefinition? Bundled=null);
     private void RenderKnowledge()
     {
         if(knowledge is null) return;
-        var panel=new StackPanel { Spacing=12,Margin=new Thickness(24) };
-        panel.Children.Add(new TextBlock { Text="Knowledge",FontSize=24 });
-        panel.Children.Add(new TextBlock { Text=$"{ProcSight.Core.Rules.KnownTaskCatalog.Definitions.Count} bundled common-task rules · purpose only · require verified identity metadata",TextWrapping=TextWrapping.Wrap });
-        var common=new Button { Content="Inspect bundled common-task rules…" };
-        common.Click+=async(_,_)=>await InspectCommonTasksAsync();
-        panel.Children.Add(common);
-        var count=new TextBlock { Text="Loading reusable rules…",TextWrapping=TextWrapping.Wrap }; panel.Children.Add(count);
+        var root=new Grid { Margin=new Thickness(20) };
+        root.RowDefinitions.Add(new() { Height=GridLength.Auto }); root.RowDefinitions.Add(new() { Height=GridLength.Auto });
+        root.RowDefinitions.Add(new() { Height=GridLength.Auto }); root.RowDefinitions.Add(new() { Height=new GridLength(1,GridUnitType.Star) });
+        root.RowDefinitions.Add(new() { Height=GridLength.Auto });
+        root.Children.Add(new TextBlock { Text="Rules & knowledge",FontSize=24,Margin=new Thickness(0,0,0,16) });
+        var search=new TextBox { PlaceholderText="Search executable, product, condition, provider or model",HorizontalAlignment=HorizontalAlignment.Stretch };
+        var source=new ComboBox { ItemsSource=new[]{"All sources","AI-generated","Bundled","Learned (legacy)","User correction"},SelectedIndex=0 };
+        var state=new ComboBox { ItemsSource=new[]{"All states","Active","Disabled","Rejected","Expired","Review overdue","Available"},SelectedIndex=0 };
+        var refresh=new Button { Content="Refresh rules" };
+        var controls=new StackPanel { Spacing=8 }; controls.Children.Add(search);
+        var filters=new Grid { ColumnSpacing=8 }; filters.ColumnDefinitions.Add(new() { Width=new GridLength(1,GridUnitType.Star) }); filters.ColumnDefinitions.Add(new() { Width=new GridLength(1,GridUnitType.Star) }); filters.ColumnDefinitions.Add(new() { Width=GridLength.Auto });
+        filters.Children.Add(source); Grid.SetColumn(state,1); filters.Children.Add(state); Grid.SetColumn(refresh,2); filters.Children.Add(refresh); controls.Children.Add(filters);
+        Grid.SetRow(controls,1); root.Children.Add(controls);
+        var count=new TextBlock { Text="Loading rules…",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,12,0,8) }; Grid.SetRow(count,2); root.Children.Add(count);
+        var list=new ListView { SelectionMode=ListViewSelectionMode.None,HorizontalContentAlignment=HorizontalAlignment.Stretch };
+        Grid.SetRow(list,3); root.Children.Add(list);
         var clear=new Button { Content="Clear generated knowledge…" }; clear.Click+=async(_,_)=>await ClearKnowledgeAsync(ClearScope.GeneratedKnowledge);
         var corrections=new Button { Content="Clear user corrections…" }; corrections.Click+=async(_,_)=>await ClearKnowledgeAsync(ClearScope.UserCorrections);
-        panel.Children.Add(clear); panel.Children.Add(corrections);
-        var list=new StackPanel { Spacing=8 }; panel.Children.Add(list);
-        PageContent.Children.Add(new ScrollViewer { Content=panel });
-        _=LoadRulesAsync();
-        async Task LoadRulesAsync()
+        var advanced=SettingsExpander("\uE713","Knowledge maintenance","Usage accounting and credentials are preserved",clear,corrections); Grid.SetRow(advanced,4); root.Children.Add(advanced);
+        PageContent.Children.Add(root); var entries=new List<RuleLibraryItem>(); var closed=false;
+        root.Unloaded+=(_,_)=>closed=true;
+        void Filter()
         {
-            try
-            {
-                var rules=await Task.Run(()=>knowledge.GetRulesAsync(lifetime.Token),lifetime.Token);
-                count.Text=$"{rules.Count} rules. Rules require matching evidence; stale and rejected proposals do not classify new processes.";
-                foreach(var rule in rules.OrderByDescending(r=>r.CreatedAt))
-                {
-                    var item=new StackPanel { Spacing=4 };
-                    var displayState=rule.ReviewAt<=DateTimeOffset.UtcNow||rule.ExpiresAt<=DateTimeOffset.UtcNow?"Stale (history)":rule.State.ToString();
-                    item.Children.Add(new TextBlock { Text=$"{displayState} · {string.Join(", ",rule.Assessments.Select(a=>a.Value))} · review {rule.ReviewAt.LocalDateTime:g}",TextWrapping=TextWrapping.Wrap });
-                    item.Children.Add(new TextBlock { Text=string.Join("\n",rule.Predicates.Select(p=>$"{p.Field} {p.Kind}: {p.Value}")),TextWrapping=TextWrapping.Wrap,FontSize=12 });
-                    var actions=new StackPanel { Orientation=Orientation.Horizontal,Spacing=8 };
-                    var inspect=new Button { Content="Inspect" }; inspect.Click+=async(_,_)=>
-                    {
-                        try
-                        {
-                            var records=await Task.Run(()=>knowledge.GetEvidenceAsync(rule.EvidenceIds.Concat(rule.Predicates.SelectMany(p=>p.EvidenceIds))
-                                .Concat(rule.Assessments.SelectMany(a=>a.EvidenceIds)),lifetime.Token),lifetime.Token);
-                            await MessageAsync("Rule evidence and provenance",System.Text.Json.JsonSerializer.Serialize(new { Rule=rule,Evidence=records },new System.Text.Json.JsonSerializerOptions { WriteIndented=true }));
-                        }
-                        catch { await MessageAsync("Rule evidence unavailable","Knowledge storage could not be read."); }
-                    };
-                    var toggle=new Button { Content=rule.State==RuleState.Active?"Disable":"Enable",IsEnabled=rule.State!=RuleState.Rejected };
-                    toggle.Click+=async(_,_)=>
-                    {
-                        try { await Task.Run(()=>knowledge.SetRuleStateAsync(rule.Id,rule.State==RuleState.Active?RuleState.Disabled:RuleState.Active,lifetime.Token),lifetime.Token); coordinator.InvalidateKnowledge(); RenderPage(); }
-                        catch { await MessageAsync("Rule cannot activate","Expired or invalid rules require fresh analysis."); }
-                    };
-                    var delete=new Button { Content="Delete" }; delete.Click+=async(_,_)=>
-                    { try { await Task.Run(()=>knowledge.DeleteRuleAsync(rule.Id,lifetime.Token),lifetime.Token); coordinator.InvalidateKnowledge(); RenderPage(); }
-                        catch { await MessageAsync("Rule could not be deleted","Knowledge storage is unavailable. Local collection continues."); } };
-                    actions.Children.Add(inspect); actions.Children.Add(toggle); actions.Children.Add(delete); item.Children.Add(actions);
-                    list.Children.Add(new Border { Padding=new Thickness(16),Child=item,BorderThickness=new Thickness(1),CornerRadius=new CornerRadius(8),BorderBrush=(Microsoft.UI.Xaml.Media.Brush)Microsoft.UI.Xaml.Application.Current.Resources["CardStrokeColorDefaultBrush"] });
-                }
+            if(closed) return;
+            list.Items.Clear();
+            var filtered=entries.Where(e=>source.SelectedIndex switch {
+                1=>e.Learned?.Provenance is not null,2=>e.Bundled is not null,
+                3=>e.Learned is { Provenance:null,Origin:not DataOrigin.UserCorrection },4=>e.Learned?.Origin==DataOrigin.UserCorrection,_=>true })
+                .Where(e=>state.SelectedIndex==0||e.State==state.SelectedItem?.ToString())
+                .Where(e=>(e.Title+" "+e.Source+" "+e.Learned?.Id+" "+string.Join(" ",e.Learned?.Predicates.Select(p=>p.Field+" "+p.Value)??[])+" "+e.Bundled?.Executable+" "+e.Bundled?.ServiceName+" "+e.Bundled?.Product+" "+string.Join(" ",e.Bundled?.Signers??[]))
+                    .Contains(search.Text,StringComparison.OrdinalIgnoreCase)).ToArray();
+            count.Text=$"{filtered.Length} shown · {entries.Count(e=>e.Learned is not null)} saved rules · {KnownTaskCatalog.Definitions.Count} bundled definitions. Select Inspect for conditions and evidence.";
+            foreach(var entry in filtered) {
+                var body=new StackPanel { Spacing=4 }; body.Children.Add(new TextBlock { Text=entry.Title,TextWrapping=TextWrapping.Wrap,FontWeight=Microsoft.UI.Text.FontWeights.SemiBold });
+                body.Children.Add(new TextBlock { Text=entry.Source+" · "+entry.State,TextWrapping=TextWrapping.Wrap,FontSize=12,Opacity=0.8 });
+                var inspect=new Button { Content="Inspect",Margin=new Thickness(0,4,0,8) }; inspect.Click+=async(_,_)=> {
+                    if(entry.Learned is { } rule) await InspectRuleAsync(rule);
+                    else if(entry.Bundled is { } definition) await InspectBundledRuleAsync(definition);
+                };
+                body.Children.Add(inspect); list.Items.Add(new ListViewItem { Content=body,HorizontalContentAlignment=HorizontalAlignment.Stretch });
             }
-            catch { count.Text="Knowledge unavailable. Local collection continues; use Settings to preserve and recover the database."; }
         }
-    }
-    private async Task InspectCommonTasksAsync()
-    {
-        var panel=new StackPanel { Spacing=8,Width=560 };
-        var search=new TextBox { PlaceholderText="Filter by process, service, product, or publisher" };
-        var list=new ListView { Height=240,SelectionMode=ListViewSelectionMode.Single };
-        var information=new TextBlock { TextWrapping=TextWrapping.Wrap,IsTextSelectionEnabled=true };
-        var link=new HyperlinkButton { Content="Open reference",Visibility=Visibility.Collapsed };
-        panel.Children.Add(search); panel.Children.Add(list);
-        panel.Children.Add(new ScrollViewer { Content=information,MaxHeight=160 }); panel.Children.Add(link);
-        void Filter() {
-            list.ItemsSource=ProcSight.Core.Rules.KnownTaskCatalog.Definitions.Where(d=>
-                (d.Label+" "+d.Executable+" "+d.ServiceName+" "+d.Product+" "+string.Join(" ",d.Signers)).Contains(search.Text,StringComparison.OrdinalIgnoreCase)).ToArray();
+        async Task Load()
+        {
+            refresh.IsEnabled=false;
+            try {
+                var rules=await Task.Run(()=>knowledge.GetRulesAsync(lifetime.Token),lifetime.Token); if(closed) return;
+                entries=rules.OrderByDescending(r=>r.CreatedAt).Select(r=>new RuleLibraryItem(RuleInspection.Title(r),RuleInspection.Source(r),RuleInspection.State(r,DateTimeOffset.UtcNow),r)).ToList();
+                entries.AddRange(KnownTaskCatalog.Definitions.OrderBy(d=>d.Label).Select(d=>new RuleLibraryItem(d.Label,"Bundled definition","Available",Bundled:d))); Filter();
+            } catch { if(!closed) count.Text="Knowledge unavailable. Use Settings to preserve and recover the database."; }
+            finally { refresh.IsEnabled=true; }
         }
-        list.DisplayMemberPath="Label";
-        list.SelectionChanged+=(_,_)=> {
-            if(list.SelectedItem is not ProcSight.Core.Rules.KnownTaskDefinition d) return;
-            information.Text=$"{d.Executable}\nService: {d.ServiceName ?? "Process rule"}\nProduct: {d.Product ?? "Unknown"}\nOriginal file: {d.OriginalName ?? d.Executable}\nVerified signer: {string.Join(", ",d.Signers)}\n"+
-                (d.PublisherOnly?"Publisher reference only; purpose remains unknown.":$"Purpose: {d.Purpose}. Security and optionality remain unresolved.");
-            link.NavigateUri=new Uri(d.SourceUrl); link.Visibility=Visibility.Visible;
-        };
-        search.TextChanged+=(_,_)=>Filter(); Filter();
-        await new ContentDialog { XamlRoot=PageContent.XamlRoot,Title="Bundled process and service rules",Content=panel,CloseButtonText="Close" }.ShowAsync();
+        search.TextChanged+=(_,_)=>Filter(); source.SelectionChanged+=(_,_)=>Filter(); state.SelectionChanged+=(_,_)=>Filter(); refresh.Click+=async(_,_)=>await Load(); _=Load();
     }
     private async Task ClearKnowledgeAsync(ClearScope scope)
     {

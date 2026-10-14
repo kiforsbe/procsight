@@ -10,7 +10,7 @@ public sealed record Assessment(AssessmentAxis Axis, string Value, string Reason
     HashSet<DataOrigin> Origins);
 public sealed record LocalAnalysis(List<Assessment> Assessments, string? Owner,
     List<Guid> MatchingRuleIds, List<string> Issues, HashSet<AssessmentAxis> UnresolvedAxes,
-    string? IdentityLabel = null,string? Role = null);
+    string? IdentityLabel = null,string? Role = null,List<Guid>? AppliedRuleIds = null);
 public sealed record AnalysisUpdate(AnalysisIdentity Identity, AnalysisState State,
     LocalAnalysis Result, string? Error = null);
 public enum AnalysisDestination { LocalRules, LocalModel, CloudModel }

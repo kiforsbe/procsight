@@ -99,3 +99,15 @@ is committed, revoke/rotate it promptly; deleting the working file does not eras
 
 Update this policy alongside changes to analysis payloads, command-line routing, credentials,
 privileges, external endpoints, supported releases, or the reporting route.
+
+## Local collection failures and rule provenance
+
+Restricted reads preserve partial process/service records. Only bounded field identifiers and
+reason enums are retained; exception text, ownership guesses, and protected paths are not used
+as error explanations. Collection issues are excluded from JSON serialization and online payloads.
+The application does not elevate to acquire missing metadata. A verified signature remains
+separate from a failed signature read; unavailable does not mean unsigned or malicious.
+
+AI rule provenance records configured provider, model, destination and generation time. It is
+an audit aid, not proof that an assessment is correct or a process is safe. Existing evidence,
+scope, privacy and lifecycle validation still apply before enabling or applying a learned rule.

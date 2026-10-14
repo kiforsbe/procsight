@@ -717,3 +717,59 @@ view for ownership/interfaces, class view for evidence dependencies, sequence vi
 flow/privacy, and state view for rule lifecycle changes. Add deployment/activity views when
 new process, privilege, or branching boundaries make them useful. Dated design records remain
 history; this document must state which parts are implemented, planned, and verified.
+
+## Rule contribution and local unavailability
+
+[Rule models](src/ProcSight.Core/Models/RuleModels.cs) store optional provider provenance stamped by
+[the coordinator](src/ProcSight.Application/Analysis/AnalysisCoordinator.cs) after privacy filtering.
+Legacy JSON remains valid without it. [Local evaluation](src/ProcSight.Core/Rules/LocalAnalysisEngine.cs)
+records all eligible matches separately from rules owning the final selected assessments; corrections,
+conflicts and cached copies cannot manufacture rule contribution. Bundled purpose contribution is
+recorded by [KnownTaskCatalog](src/ProcSight.Core/Rules/KnownTaskCatalog.cs).
+[RuleInspection](src/ProcSight.Application/Presentation/RuleInspection.cs) explains predicates,
+evidence, expiry, source and contribution; [native dialogs](src/ProcSight.App/MainWindow.Rules.cs)
+reuse it from the library and selected-process details. Private matching fingerprints remain hidden.
+
+The following UML class view shows persisted provenance and result attribution:
+
+```mermaid
+classDiagram
+    RuleDefinition "1" o-- "0..1" RuleProvenance
+    RuleDefinition "1" o-- "*" RulePredicate
+    RuleDefinition "1" o-- "*" Assessment
+    LocalAnalysisEngine ..> RuleDefinition : validates and evaluates
+    LocalAnalysisEngine ..> LocalAnalysis : selects assessments
+    LocalAnalysis : MatchingRuleIds
+    LocalAnalysis : AppliedRuleIds
+    RuleProvenance : ProviderId
+    RuleProvenance : Model
+    RuleProvenance : Destination
+    RuleProvenance : GeneratedAt
+    AnalysisCoordinator ..> RuleProvenance : stamps configured source
+    RuleInspection ..> RuleDefinition : describes conditions and evidence
+    RuleInspection ..> LocalAnalysis : explains contribution
+```
+
+[MetadataAccess](src/ProcSight.Windows/Collection/MetadataAccess.cs) classifies expected native,
+WMI, registry and file failures into bounded reasons. Readers retain partial records; each service
+property is handled independently. [snapshot models](src/ProcSight.Core/Models/SnapshotModels.cs)
+carry JSON-ignored local `MetadataIssue` lists; [ProcessDetails](src/ProcSight.Application/Presentation/ProcessDetails.cs)
+renders reasons without arbitrary exception messages or guesses about the owner. Signature access
+failure yields Unavailable, not Unsigned. Unknown or absent data does not imply access denied.
+
+This UML sequence view shows the local-only diagnostic boundary:
+
+```mermaid
+sequenceDiagram
+    participant Windows as Windows APIs / WMI / files
+    participant Reader as Metadata readers
+    participant Snapshot as Local snapshot
+    participant DetailView as Native details
+    participant Projection as Online projection
+    Windows-->>Reader: Readable fields or restricted-read error
+    Reader->>Reader: Classify safe field/reason and preserve partial data
+    Reader->>Snapshot: Metadata plus local MetadataIssue
+    Snapshot->>DetailView: Readable values and unavailable reasons
+    Snapshot->>Projection: Allowed evidence only
+    Note over Snapshot,Projection: MetadataIssue is JSON-ignored with no exception text or raw command diagnostics
+```

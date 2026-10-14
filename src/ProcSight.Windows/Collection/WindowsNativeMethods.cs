@@ -31,11 +31,14 @@ internal static class WindowsNativeMethods
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)] public string Name;
     }
     public static string? ReadImagePath(int pid)
+        => ReadImagePathWithReason(pid).Path;
+    public static (string? Path, ProcSight.Core.Models.MetadataUnavailableReason? Reason) ReadImagePathWithReason(int pid)
     {
         using var handle = OpenProcess(0x1000, false, pid);
-        if (handle.IsInvalid) return null;
+        if (handle.IsInvalid) return (null, MetadataAccess.NativeReason(Marshal.GetLastWin32Error()));
         var buffer = new StringBuilder(32768); var size = buffer.Capacity;
-        return QueryFullProcessImageName(handle, 0, buffer, ref size) ? buffer.ToString() : null;
+        return QueryFullProcessImageName(handle, 0, buffer, ref size) ? (buffer.ToString(), null)
+            : (null, MetadataAccess.NativeReason(Marshal.GetLastWin32Error()));
     }
     public static Dictionary<int, int?> ReadParents()
     {

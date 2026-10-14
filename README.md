@@ -159,3 +159,14 @@ See the developer guide for toolchain, verification, and contribution instructio
 ProcSight uses GitHub's standard **GNU Affero General Public License v3.0** template.
 See [LICENSE](LICENSE) for the complete terms. Third-party components retain their own
 licenses; their notices must accompany any distribution that includes them.
+
+## Rule inspection and collection availability
+
+**Rules & knowledge** lists bundled definitions and learned rules, with
+search and source/state filters. In process or service details, **Inspect rules…** distinguishes
+matched rules from rules whose assessments contributed to the result. Inspect a rule for its
+conditions, evidence, classifications, review dates, and recorded AI provider/model. Older learned
+rules explicitly lack provider/model history; provenance does not establish trust.
+
+Protected processes and services retain readable fields and show safe reasons for unavailable
+metadata, including access denied, missing files, or read failures. No elevation is required.

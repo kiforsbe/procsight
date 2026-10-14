@@ -25,6 +25,7 @@ public sealed partial class MainWindow
         if(args.Length>4&&int.TryParse(args[4],out var width)&&width is >=600 and <=1600)
         { var scale=GetDpiForWindow(WinRT.Interop.WindowNative.GetWindowHandle(this))/96.0; AppWindow.Resize(new((int)(width*scale),(int)(780*scale))); }
         var now=DateTimeOffset.UtcNow;
+        string? fixtureRulesDatabase=null;
         var names=new[]{"Code.exe","chrome.exe","node.exe","node.exe","node.exe","svchost.exe","svchost.exe",
             "OneDrive.exe","Plex Media Server.exe","NVDisplay.Container.exe","Notepad.exe","pwsh.exe",
             "RuntimeBroker.exe","SearchIndexer.exe","Widgets.exe","msedgewebview2.exe","msedgewebview2.exe",
@@ -44,6 +45,18 @@ public sealed partial class MainWindow
         analysis[node.Identity]=new(node.Identity,AnalysisState.Local,new([
             new(AssessmentAxis.Purpose,"DeveloperTool","Synthetic fixture: application worker",Confidence.Medium,[],now.AddDays(7),[DataOrigin.ShareableMetadata])],
             "Example editor",[],[],new HashSet<AssessmentAxis>{AssessmentAxis.Security,AssessmentAxis.Optionality},"Example editor — extension host","Worker"));
+        if(args.Length>5&&args[5].StartsWith("rules",StringComparison.Ordinal)) {
+            fixtureRulesDatabase=Path.Combine(Path.GetTempPath(),"procsight-rules-fixture-"+Guid.NewGuid()+".db");
+            knowledge=new(fixtureRulesDatabase);
+            coordinator=new(knowledge,knowledge,(_,_)=>throw new InvalidOperationException("Fixture has no provider."));
+            var purpose=analysis[node.Identity].Result.Assessments[0];
+            var learned=new RuleDefinition(Guid.NewGuid(),1,RuleState.Active,DataOrigin.ShareableMetadata,now,now.AddDays(7),now.AddDays(7),
+                [new(PredicateKind.Exact,"hash",node.Facts["hash"],[node.Evidence[0].Id])],[purpose],[node.Evidence[0].Id],100,
+                Provenance:new("chatgpt","example-model",AnalysisDestination.CloudModel,now));
+            knowledge.SaveAsync(new(node.Identity,now,[purpose],node.Evidence,[learned],[]),default).GetAwaiter().GetResult();
+            var update=analysis[node.Identity]; analysis[node.Identity]=update with { Result=update.Result with { MatchingRuleIds=[learned.Id],AppliedRuleIds=[learned.Id] } };
+            page=args[5]=="rules"?"Knowledge":"Processes";
+        }
         if(args.Length>5&&args[5].StartsWith("settings",StringComparison.Ordinal)) page="Settings";
         if(args.Length>5&&args[5].StartsWith("activity",StringComparison.Ordinal)) {
             page="AI activity";
@@ -64,6 +77,11 @@ public sealed partial class MainWindow
             try
             {
                 await Task.Delay(500);
+                if(args.Length>5&&args[5].StartsWith("rules",StringComparison.Ordinal)) {
+                    if(args[5]=="rules") { Navigation.SelectedItem=Navigation.MenuItems.OfType<Microsoft.UI.Xaml.Controls.NavigationViewItem>().First(i=>i.Tag?.ToString()=="Knowledge"); page="Knowledge"; RenderPage(); }
+                    else { page="Processes"; RenderPage(); detailsOpen=true; table!.SelectedItem=rows.First(r=>r.Entity.Identity==node.Identity); UpdateDetailsLayout(); ShowDetail(table.SelectedItem as ViewModels.ProcessRow); }
+                    await Task.Delay(350); WindowRoot.UpdateLayout();
+                }
                 if(args.Length>5&&args[5].StartsWith("settings",StringComparison.Ordinal)) {
                     Navigation.SelectedItem=Navigation.SettingsItem; page="Settings"; RenderPage();
                     if(args[5]=="settings-expanded"&&PageContent.Children.FirstOrDefault() is Microsoft.UI.Xaml.Controls.ScrollViewer { Content:Microsoft.UI.Xaml.Controls.StackPanel settingsPanel })
@@ -144,7 +162,13 @@ public sealed partial class MainWindow
                 await encoder.FlushAsync();
             }
             catch(Exception e) { File.WriteAllText(output+".error",e.GetType().Name+": "+e.Message); }
-            finally { Close(); }
+            finally {
+                Close();
+                if(fixtureRulesDatabase is { } database) {
+                    Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+                    foreach(var file in new[]{database,database+"-wal",database+"-shm"}) if(File.Exists(file)) File.Delete(file);
+                }
+            }
         };
         Activate(); return true;
     }

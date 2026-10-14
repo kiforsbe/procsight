@@ -16,11 +16,11 @@ Locked restore and native Release build passed with zero warnings/errors. Test r
 
 | Project | Passed | Focus |
 | --- | ---: | --- |
-| Core | 52 | Identity/privacy/rules and persisted opaque ChatGPT profile binding |
-| Application | 71 | Ordering/captions/activity and concise app/host naming despite old AI prose |
-| Infrastructure | 99 | Storage, OAuth/SSE/activity, safe failure reasons and empty-completion text preservation |
-| Windows | 20 | Native reads/icons/signatures and caption ownership/lifetime/timeout checks |
-| Total | 242 | No failed or skipped tests |
+| Core | 62 | Identity/privacy/rules and persisted opaque ChatGPT profile binding |
+| Application | 77 | Ordering/captions/activity and concise app/host naming despite old AI prose |
+| Infrastructure | 102 | Storage, OAuth/SSE/activity, safe failure reasons and empty-completion text preservation |
+| Windows | 26 | Native reads/icons/signatures and caption ownership/lifetime/timeout checks |
+| Total | 267 | No failed or skipped tests |
 
 Key behaviors covered include same-name owners at different paths, PID reuse, all three
 classification axes, rejected name-only rules, expired referenced evidence, changed-owner
@@ -200,3 +200,12 @@ array and returned three validated assessments. Tracing printed only status, eve
 byte/character counts and validation outcomes; tokens and response text were not written or logged.
 Regression tests first reproduced failure, then verified streamed-text preservation, genuinely empty
 output rejection, and nonempty invalid final output overriding valid deltas and remaining rejected.
+
+Rule inspection and metadata availability checks cover contribution versus matching, correction
+and conflict precedence, legacy JSON without provenance, trusted coordinator provenance, hidden
+private fingerprints, partial restricted service fields and safe unavailable reasons. Native Debug
+`rules` and `rules-process` fixtures rendered the library and top-of-details inspection entry point
+with synthetic data and no provider calls. Release and normal Debug builds passed without warnings.
+Full protected-process/other-user service acceptance remains unverified on a representative matrix.
+All 14 architecture Mermaid diagrams parsed and rendered, and changed-document relative links
+and `git diff --check` passed. These checks do not establish live protected-process coverage.

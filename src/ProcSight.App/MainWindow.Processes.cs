@@ -158,6 +158,11 @@ public sealed partial class MainWindow
         var detailPanel=new StackPanel { Spacing=12,Padding=new Thickness(20) };
         var close=new Button { Content="Back to list",HorizontalAlignment=HorizontalAlignment.Left };
         close.Click+=(_,_)=> { detailsOpen=false; UpdateDetailsLayout(); }; detailPanel.Children.Add(close);
+        var inspectRules=new Button { Content="Inspect rules…",HorizontalAlignment=HorizontalAlignment.Left };
+        inspectRules.Click+=async(_,_)=> {
+            if((table?.SelectedItem as ViewModels.ProcessRow)?.Entity is { } entity) await InspectProcessRulesAsync(entity);
+        };
+        detailPanel.Children.Add(inspectRules);
         detail=new TextBlock { Text="Select a process or service to inspect its identity and evidence.",TextWrapping=TextWrapping.Wrap,IsTextSelectionEnabled=true };
         detailPanel.Children.Add(detail); evidencePanel=new StackPanel { Spacing=4 }; detailPanel.Children.Add(evidencePanel);
         var correct=new Button { Content="Correct classification…" }; correct.Click+=async(_,_)=>await CorrectSelectedAsync();
