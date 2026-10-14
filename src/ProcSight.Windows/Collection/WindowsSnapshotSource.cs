@@ -71,6 +71,8 @@ public sealed class WindowsSnapshotSource : IWindowsSnapshotSource
                     commands.TryGetValue(pid, out var command) ? new(command, now) : null));
         }
         sampler.Prune(rows.Select(r => r.Key).ToHashSet());
+        var windows=WindowMetadataReader.Read(rows.Select(r=>r.Key).ToArray());
+        rows=rows.Select(p=>p with { Windows=windows.GetValueOrDefault(p.Key.Pid) }).ToList();
         var systemTimes=WindowsNativeMethods.SystemTimes(); double? cpuPercent=null;
         if(systemTimes is { } current&&priorSystemTimes is { } prior)
         {

@@ -17,10 +17,10 @@ Locked restore and native Release build passed with zero warnings/errors. Test r
 | Project | Passed | Focus |
 | --- | ---: | --- |
 | Core | 51 | Identity/privacy/rules, local command availability and online identifying-field gates |
-| Application | 57 | Stable ordering, singleton/group transitions, selection, sorts and local Details |
+| Application | 60 | Stable ordering, singleton/group transitions, local Details and private captions |
 | Infrastructure | 33 | Persistence/providers/coordinator, private invocation scopes and rule reuse |
-| Windows | 18 | Native reads, real icons, signed service-host matching, preferences/credentials |
-| Total | 159 | No failed or skipped tests |
+| Windows | 20 | Native reads/icons/signatures and caption ownership/lifetime/timeout checks |
+| Total | 164 | No failed or skipped tests |
 
 Key behaviors covered include same-name owners at different paths, PID reuse, all three
 classification axes, rejected name-only rules, expired referenced evidence, changed-owner
@@ -65,7 +65,7 @@ capture returned the background window, and input failed with unavailable coordi
 geometry. Therefore desktop clicks, keyboard/screen-reader behavior, and live caption/Mica
 appearance are not claimed verified by that tool.
 
-Eight Mermaid class, sequence, and state diagrams in [ARCHITECTURE.md](../ARCHITECTURE.md) were
+Nine Mermaid class, sequence, and state diagrams in [ARCHITECTURE.md](../ARCHITECTURE.md) were
 parsed and rendered locally. Local documentation targets and whitespace were checked.
 
 ## Outstanding acceptance work
@@ -131,3 +131,13 @@ user stopped the running Debug session that initially held build outputs open.
 Read-only live investigation retrieved 392 available command lines from 547 observed processes.
 Only executable/pattern counts and option names were displayed; raw lines and private argument
 values were held in memory and were not written to the repository or diagnostics.
+
+## Local window metadata
+
+Synthetic caption tests verify local names, foreground selection, complete local Details,
+stable analysis identity, and exclusion from serialized snapshots and every provider destination.
+Native tests create/destroy off-screen windows owned by the test process, verify caption/class
+collection, requested-PID filtering, changed-lifetime rejection, and bounded reads from an
+unresponsive own-window thread. Window classes/captions remain transient and local.
+Focused independent review caught the synchronous own-window caption risk; the timeout fix and
+native regression now pass. Full desktop acceptance remains separate from these API checks.

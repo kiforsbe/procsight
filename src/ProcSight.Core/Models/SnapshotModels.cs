@@ -21,7 +21,12 @@ public sealed record CommandLineValue(string Raw, DateTimeOffset CollectedAt)
 }
 public sealed record ProcessSnapshot(ProcessKey Key, int? ParentPid, ExecutableMetadata Executable,
     ResourceSample Resources, IReadOnlyList<string> ServiceNames,
-    [property: JsonIgnore] CommandLineValue? CommandLine = null);
+    [property: JsonIgnore] CommandLineValue? CommandLine = null,
+    [property: JsonIgnore] IReadOnlyList<ProcessWindow>? Windows=null);
+public sealed record ProcessWindow([property: JsonIgnore] string Title,[property: JsonIgnore] string ClassName,bool Foreground=false,bool Minimized=false)
+{
+    public override string ToString()=>"ProcessWindow [private transient caption]";
+}
 public sealed record ServiceSnapshot(string Name, string DisplayName, string State,
     string StartMode, int? HostPid, [property: JsonIgnore] string? BinaryPath, ObservationState AccessState,
     ExecutableMetadata? Implementation=null, ExecutableMetadata? HostExecutable=null)

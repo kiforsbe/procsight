@@ -7,6 +7,8 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Local visible-window captions in process names, plus window classes and foreground/minimized
+  state in Details. Caption changes do not alter identity or trigger provider re-analysis.
 - Host — hosted child names for Python/PowerShell/Plex/Windows scripts, Python modules, Command Prompt
   batch/npx launchers, and VS Code extension workers, while retaining application grouping.
 - Local Details includes the full available command line and identifying file/lifetime metadata.

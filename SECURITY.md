@@ -79,6 +79,12 @@ Local command rules never execute code, decode encoded commands, or inspect inte
 
 ## Handling sensitive data during development
 
+Visible-window captions and classes can reveal document names or browsing activity. They remain
+local transient observations and are excluded from serialization, provider/research payloads,
+rule literals, and identity. Foreground/minimized state is observational, not trust evidence.
+The collector reads top-level captions only, with bounded own-window waits, and never queries
+control contents, sends input, or automates another application.
+
 Use synthetic fixtures and redact diagnostic material before sharing. Ignore local secrets,
 databases, and dumps, and review staged changes independently of ignore rules. If a credential
 is committed, revoke/rotate it promptly; deleting the working file does not erase Git history.

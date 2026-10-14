@@ -35,6 +35,19 @@ public static class ProcessRoleLabels
         var generic=assessedLabel is null || string.Equals(assessedLabel,entity.Owner,StringComparison.OrdinalIgnoreCase) ||
             string.Equals(assessedLabel,entity.DisplayName,StringComparison.OrdinalIgnoreCase) ||
             string.Equals(assessedLabel,ProcSight.Core.Rules.KnownTaskCatalog.Match(entity)?.Label,StringComparison.OrdinalIgnoreCase);
-        return local.Specific&&generic?local.Label:assessedLabel ?? local.Label;
+        var label=local.Specific&&generic?local.Label:assessedLabel ?? local.Label;
+        var windows=entity.Process?.Windows;
+        var title=windows?.Where(w=>!string.IsNullOrWhiteSpace(w.Title)).OrderByDescending(w=>w.Foreground)
+            .ThenBy(w=>w.Minimized).ThenBy(w=>w.Title,StringComparer.Ordinal).FirstOrDefault()?.Title;
+        if(title is null) return label;
+        title=new string(title.Take(512).Select(c=>char.IsControl(c)?' ':c)
+            .Where(c=>System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c)!=System.Globalization.UnicodeCategory.Format).ToArray()).Trim();
+        var aliases=new[]{entity.Owner,entity.DisplayName,entity.Process?.Executable.Product,entity.Process?.Executable.Name.Replace(".exe","",StringComparison.OrdinalIgnoreCase),label};
+        foreach(var alias in aliases.Where(a=>!string.IsNullOrWhiteSpace(a))) {
+            if(title.Equals(alias,StringComparison.OrdinalIgnoreCase)) return label;
+            foreach(var separator in new[]{" - "," — "," – "})
+                if(title.EndsWith(separator+alias,StringComparison.OrdinalIgnoreCase)) title=title[..^(separator.Length+alias!.Length)].Trim();
+        }
+        return title.Length==0||label.EndsWith(" — "+title,StringComparison.OrdinalIgnoreCase)?label:label+" — "+title;
     }
 }

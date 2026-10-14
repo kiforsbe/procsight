@@ -398,6 +398,41 @@ See [SECURITY.md](SECURITY.md) for reporting and intended security boundaries.
 
 ## Live table state and assets
 
+### Local window observations
+
+[WindowMetadataReader](src/ProcSight.Windows/Collection/WindowMetadataReader.cs) enumerates visible
+non-tool top-level desktop windows in the background collector. It checks HWND PID before/after
+caption reads and rechecks known process creation times. Unknown lifetimes remain snapshot-only
+observations. Limits are 4096 enumerated windows, 32 captured per process, 512 caption characters,
+and 255 class characters. Same-process caption messages use a 50ms timeout; other captions use
+the system's nonblocking foreign-caption API. Captions are not control contents or identity proof.
+
+ProcessSnapshot.Windows and caption/class properties are JsonIgnore; diagnostic ToString methods
+omit captions. They never enter facts, identity, knowledge, rules, or any provider/research
+projection. DisplayName appends a useful caption while retaining host/role labels; foreground and
+non-minimized windows take priority, with lexical fallback. Details exposes all observations.
+Because window data is absent from identity/fingerprints, changing titles updates presentation
+without provider re-analysis or regrouping.
+
+The UML class view shows the local presentation boundary:
+
+```mermaid
+classDiagram
+    WindowsSnapshotSource --> WindowMetadataReader : background collection
+    WindowMetadataReader --> ProcessWindow : bounded caption observations
+    ProcessSnapshot o-- ProcessWindow : transient JsonIgnore
+    ProcessRoleLabels --> ProcessWindow : local name context
+    ProcessDetails --> ProcessWindow : local details
+    IdentityResolver --> ProcessSnapshot : ignores window observations
+    AnalysisProjection --> ProcessSnapshot : excludes windows
+    class ProcessWindow {
+        privateTransientTitle
+        privateTransientClass
+        foreground
+        minimized
+    }
+```
+
 The native ListView owns horizontal and vertical scrolling, keeping its vertical scrollbar
 inside the visible viewport. A header ScrollViewer synchronizes horizontally in both directions.
 Header buttons fill each cell height and toggle direction; saved sort preferences include direction.

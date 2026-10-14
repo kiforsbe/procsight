@@ -90,6 +90,12 @@ The embedded [common catalog](src/ProcSight.Core/Rules/common-tasks.json) contai
 process/service definitions, not a machine inventory. Extend it with public file/product/service
 identifiers and reference links; never retain machine paths, per-user instance suffixes, command
 arguments, hashes, state, or PIDs. Product variants and service scopes need distinct IDs.
+
+[WindowMetadataReader](src/ProcSight.Windows/Collection/WindowMetadataReader.cs) enumerates visible
+non-tool desktop windows off-thread, caps captions/classes and per-process counts, and checks
+known creation times before attaching observations. Tests create/destroy their own off-screen
+synthetic native window; an unresponsive own-window test verifies bounded caption reads.
+Window titles/classes must never become provider or knowledge fields.
 Missing product/original-file evidence permits only an explicit publisher reference with unknown
 purpose. Test wrong signers, unsigned files, and service host/module separation when adding gates.
 The [local command matcher](src/ProcSight.Core/Rules/LocalCommandRules.cs) uses bounded tokenization

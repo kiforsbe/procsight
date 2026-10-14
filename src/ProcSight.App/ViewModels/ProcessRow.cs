@@ -30,7 +30,9 @@ public sealed class ProcessRow : INotifyPropertyChanged
     private RoleLabel LocalRole=>ProcessRoleLabels.Describe(Entity);
     public string Name => IsGroup?$"{Projection.GroupName} ({Projection.Members.Count})":
         ProcessRoleLabels.DisplayName(Entity,analysis?.Result.IdentityLabel);
-    public string Owner => IsGroup?"Owner candidate · use the chevron to expand or collapse":LocalRole.UsesCommandContext?
+    public string Owner=>!IsGroup&&Entity.Process?.Windows is { Count:>0 }?Name+"\n"+OwnerExplanation+
+        "\nVisible-window captions are local observations, not identity proof.":OwnerExplanation;
+    private string OwnerExplanation => IsGroup?"Owner candidate · use the chevron to expand or collapse":LocalRole.UsesCommandContext?
         LocalRole.Label+"\nOwner candidate: "+(Entity.Owner ?? "Unknown")+"\n"+LocalRole.Explanation:analysis?.Result.Role is { } analyzedRole?
         $"{Entity.Owner ?? Entity.Process?.Executable.Name ?? "Unknown owner"} · {analyzedRole}":Entity.Facts.TryGetValue("commandRole",out var role)?
         $"{Entity.Owner ?? "Unknown owner"} · {role}":Entity.Owner ?? "Unknown ownership";
@@ -49,7 +51,7 @@ public sealed class ProcessRow : INotifyPropertyChanged
             return System.Text.RegularExpressions.Regex.Replace(value,"([a-z])([A-Z])","$1 $2")+(concern is null?"":$" ({concern.Confidence})");
         }
     }
-    public override string ToString() => Name;
+    public override string ToString() => "ProcessRow ["+Key+"]";
     private AnalysisUpdate? analysis;
     public string Classification => analysis is null ? "Unknown" : string.Join(" / ",analysis.Result.Assessments.Select(a=>a.Value));
     private static readonly string[] Fields=[nameof(Name),nameof(Owner),nameof(Pid),nameof(Cpu),nameof(Memory),nameof(Status),nameof(ServiceState),nameof(Startup),nameof(ExpansionGlyph),nameof(ExpansionAction),nameof(ExpanderVisibility),nameof(Indent)];

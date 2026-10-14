@@ -13,7 +13,9 @@ public static class ProcessDetails
             $"SHA-256: {exe.ContentHash ?? "Unavailable"}\nPackage: {exe.PackageIdentity ?? "Unavailable"}";
         if(entity.Process is { } process) return
             $"PID: {process.Key.Pid}\nReported parent PID: {process.ParentPid?.ToString() ?? "Unavailable"}\nStarted: {process.Key.StartedAt?.ToString("O") ?? "Unavailable"}\n"+
-            File(process.Executable)+$"\nServices: {string.Join(", ",process.ServiceNames)}\n\nCommand line:\n{Command(process.CommandLine?.Raw)}";
+            File(process.Executable)+$"\nServices: {string.Join(", ",process.ServiceNames)}\n\nCommand line:\n{Command(process.CommandLine?.Raw)}\n\nVisible windows:\n"+
+            (process.Windows is null?"Unavailable":process.Windows.Count==0?"None observed":string.Join("\n",process.Windows.Select(w=>
+                $"{(string.IsNullOrWhiteSpace(w.Title)?"(untitled or unavailable)":w.Title)} · class {w.ClassName}"+(w.Foreground?" · foreground":"")+(w.Minimized?" · minimized":""))));
         var service=entity.Service!;
         return $"Service: {service.Name}\nState: {service.State}\nStart mode: {service.StartMode}\nHost PID: {service.HostPid}\n\nConfigured implementation:\n"+
             File(service.Implementation)+$"\nConfigured host: {service.HostExecutable?.FullPath ?? "Unavailable"}\nHost signature: {service.HostExecutable?.Signature.ToString() ?? "Unavailable"}\n"+

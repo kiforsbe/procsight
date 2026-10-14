@@ -26,6 +26,9 @@ labels stay transient. Icon loading is bounded, cached, off-thread, and releases
 
 ## Product boundaries
 
+- Window captions/classes are transient local presentation data, excluded from JSON, provider
+  payloads, research, rules, and identity. Verify PID ownership and known lifetimes; cap enumeration
+  and text sizes, and use bounded waits for own-window captions. Titles never prove trust or purpose.
 - Bundled definitions live in `src/ProcSight.Core/Rules/common-tasks.json`; maintain stable
   executable/product/service scopes, public reference links, and signature/metadata gates.
   Never copy a real inventory, instance suffix, personal path, or command argument into it.
