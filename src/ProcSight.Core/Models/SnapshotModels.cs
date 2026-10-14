@@ -23,7 +23,11 @@ public sealed record ProcessSnapshot(ProcessKey Key, int? ParentPid, ExecutableM
     ResourceSample Resources, IReadOnlyList<string> ServiceNames,
     [property: JsonIgnore] CommandLineValue? CommandLine = null);
 public sealed record ServiceSnapshot(string Name, string DisplayName, string State,
-    string StartMode, int? HostPid, string? BinaryPath, ObservationState AccessState);
+    string StartMode, int? HostPid, [property: JsonIgnore] string? BinaryPath, ObservationState AccessState,
+    ExecutableMetadata? Implementation=null, ExecutableMetadata? HostExecutable=null)
+{
+    public override string ToString()=>$"ServiceSnapshot [{Name}, {AccessState}; command configuration private]";
+}
 public sealed record MachineSnapshot(Guid Id, DateTimeOffset CapturedAt,
     IReadOnlyList<ProcessSnapshot> Processes, IReadOnlyList<ServiceSnapshot> Services,SystemResourceSample? SystemResources=null);
 public sealed record SystemResourceSample(double? CpuPercent,long? TotalPhysicalBytes,long? AvailablePhysicalBytes)

@@ -7,12 +7,21 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Expanded bundled knowledge to 373 portable process/service definitions with scoped IDs,
+  searchable inspection, and publisher-only references that preserve unknown purpose.
+- Signature/hash enrichment of configured service executables and DLLs, separate from host
+  signatures; module replacement invalidates the service's knowledge identity.
+- Reusable bounded local command rules for Python, .NET, PowerShell, browser workers, and
+  language-server entry points, respecting the selected command-line privacy mode.
 - Bundled machine-independent common-task catalog with source references and verified
   metadata gates, plus provisional local renderer/worker/service role labels.
 - Windows Shell executable icons loaded asynchronously with a bounded in-memory cache.
 
 ### Fixed
 
+- Inline interpreter code is opaque to role matching; quoted command text is no longer
+  mistaken for browser worker switches. .NET certificate/product metadata is recognized.
+- Service arguments are excluded from serialized snapshots and shareable service identities.
 - Live metric samples no longer continuously reorder rows or notify every cell. Sibling
   order and viewport anchors persist until explicit sorting/refresh; single-member groups
   retain their group identity as processes enter and exit.

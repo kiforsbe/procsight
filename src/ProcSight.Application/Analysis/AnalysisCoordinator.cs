@@ -60,14 +60,13 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
     private ResolvedEntity WithCommandContext(ResolvedEntity entity,AnalysisPolicy config)
     {
         if(config.CommandLineMode==CommandLineMode.Off) return entity.Process is { } process?
-            entity with { Process=process with { CommandLine=null } }:entity;
+            entity with { Process=process with { CommandLine=null } }:entity.Service is { } service?
+            entity with { Service=service with { BinaryPath=null } }:entity;
         var command=entity.Process?.CommandLine?.Raw ?? entity.Service?.BinaryPath;
         if(command is null) return entity;
         var digest=Convert.ToHexString(HMACSHA256.HashData(key,Encoding.UTF8.GetBytes(command)));
         var origin=config.CommandLineMode==CommandLineMode.LocalOnly?DataOrigin.LocalCommandLine:DataOrigin.OnlineCommandLine;
-        var role=command.Contains("--type=renderer",StringComparison.OrdinalIgnoreCase)?"Renderer":
-            command.Contains("--type=utility",StringComparison.OrdinalIgnoreCase)?"Utility":
-            command.Contains("--worker",StringComparison.OrdinalIgnoreCase)?"Worker":"CLI";
+        var role=LocalCommandRules.Match(entity.Process?.Executable.Name ?? entity.Service?.HostExecutable?.Name ?? "",command)?.Category ?? "CLI";
         var facts=new Dictionary<string,string>(entity.Facts){["commandRole"]=role};
         return entity with { ShareableIdentity=entity.Identity,Identity=IdentityResolver.MakeIdentity(entity.Identity.Value+digest),Facts=facts,
             Evidence=[..entity.Evidence,new("command:"+digest,origin,time.GetUtcNow(),null,"CommandRole",new(){["commandRole"]=role})],

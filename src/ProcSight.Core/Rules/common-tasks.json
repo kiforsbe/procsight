@@ -1,0 +1,4850 @@
+[
+  {
+    "Executable": "AggregatorHost.exe",
+    "Label": "Microsoft (R) Aggregator Host",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "AggregatorHost.exe"
+  },
+  {
+    "Executable": "AppActions.exe",
+    "Label": "AppActions",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "AppActions.exe"
+  },
+  {
+    "Executable": "ApplicationFrameHost.exe",
+    "Label": "Application Frame Host",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "ApplicationFrameHost.exe"
+  },
+  {
+    "Executable": "AppVShNotify.exe",
+    "Label": "Microsoft Office",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Microsoft Office",
+    "WindowsComponent": false,
+    "OriginalName": "AppVShNotify.exe"
+  },
+  {
+    "Executable": "audiodg.exe",
+    "Label": "Windows Audio Device Graph Isolation ",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "audioadg.exe.mui"
+  },
+  {
+    "Executable": "ChatGPT.exe",
+    "Label": "Codex",
+    "Purpose": "Application",
+    "Signers": [
+      "OpenAI OpCo, LLC"
+    ],
+    "SourceUrl": "https://developers.openai.com/codex/windows/",
+    "Product": "Codex",
+    "WindowsComponent": false,
+    "OriginalName": "chrome.exe"
+  },
+  {
+    "Executable": "CHXSmartScreen.exe",
+    "Label": "CHXSmartScreen.exe",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "CHXSmartScreen.exe"
+  },
+  {
+    "Executable": "cmd.exe",
+    "Label": "Windows Command Processor",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "Cmd.Exe.MUI"
+  },
+  {
+    "Executable": "conhost.exe",
+    "Label": "Console Window Host",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "CONHOST.EXE.MUI"
+  },
+  {
+    "Executable": "copilotapp.exe",
+    "Label": "Copilot",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Copilot",
+    "WindowsComponent": false,
+    "OriginalName": "copilotapp.exe"
+  },
+  {
+    "Executable": "copilotapphost.exe",
+    "Label": "Copilot",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Copilot",
+    "WindowsComponent": false,
+    "OriginalName": "copilotapphost.dll"
+  },
+  {
+    "Executable": "CrossDeviceResume.exe",
+    "Label": "CrossDeviceResume — Windows component",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "CrossDeviceResume.exe"
+  },
+  {
+    "Executable": "ctfmon.exe",
+    "Label": "CTF Loader",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "CTFMON.EXE.MUI"
+  },
+  {
+    "Executable": "dasHost.exe",
+    "Label": "Device Association Framework Provider Host",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "dasHost.exe"
+  },
+  {
+    "Executable": "DataExchangeHost.exe",
+    "Label": "Data Exchange Host",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "DataExchangeHost.exe.mui"
+  },
+  {
+    "Executable": "DefenderSessionHelper.exe",
+    "Label": "Microsoft Defender Session Helper",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "DefenderSessionHelper.exe"
+  },
+  {
+    "Executable": "dllhost.exe",
+    "Label": "COM Surrogate",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "dllhost.exe"
+  },
+  {
+    "Executable": "dwm.exe",
+    "Label": "Desktop Window Manager",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "dwm.exe.mui"
+  },
+  {
+    "Executable": "explorer.exe",
+    "Label": "Windows Explorer",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "EXPLORER.EXE.MUI"
+  },
+  {
+    "Executable": "FileCoAuth.exe",
+    "Label": "Microsoft OneDrive",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Microsoft OneDrive",
+    "WindowsComponent": false,
+    "OriginalName": "FileCoAuth.exe"
+  },
+  {
+    "Executable": "fontdrvhost.exe",
+    "Label": "Usermode Font Driver Host",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "fontdrvhost.exe"
+  },
+  {
+    "Executable": "GameInputRedistService.exe",
+    "Label": "Microsoft® Windows® GameInput",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Microsoft® Windows® GameInput",
+    "WindowsComponent": false,
+    "OriginalName": "GameInputRedistService.exe"
+  },
+  {
+    "Executable": "LsaIso.exe",
+    "Label": "Credential Guard & VBS Key Isolation",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "LsaIso.exe"
+  },
+  {
+    "Executable": "Microsoft.CmdPal.Ext.PowerToys.exe",
+    "Label": "Microsoft Command Palette",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Microsoft Command Palette",
+    "WindowsComponent": false,
+    "OriginalName": "Microsoft.CmdPal.Ext.PowerToys.dll"
+  },
+  {
+    "Executable": "Microsoft.CmdPal.UI.exe",
+    "Label": "Microsoft Command Palette",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Microsoft Command Palette",
+    "WindowsComponent": false,
+    "OriginalName": "Microsoft.CmdPal.UI.dll"
+  },
+  {
+    "Executable": "Microsoft.CodeAnalysis.LanguageServer.exe",
+    "Label": "Microsoft.CodeAnalysis.LanguageServer",
+    "Purpose": "DeveloperTool",
+    "Signers": [
+      ".NET"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Microsoft.CodeAnalysis.LanguageServer",
+    "WindowsComponent": false,
+    "OriginalName": "Microsoft.CodeAnalysis.LanguageServer.dll"
+  },
+  {
+    "Executable": "Microsoft.VisualStudio.Code.Server.exe",
+    "Label": "Microsoft.VisualStudio.Code.Server",
+    "Purpose": "DeveloperTool",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Microsoft.VisualStudio.Code.Server",
+    "WindowsComponent": false,
+    "OriginalName": "Microsoft.VisualStudio.Code.Server.dll"
+  },
+  {
+    "Executable": "Microsoft.VisualStudio.Code.ServiceController.exe",
+    "Label": "Microsoft.VisualStudio.Code.ServiceController",
+    "Purpose": "DeveloperTool",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Microsoft.VisualStudio.Code.ServiceController",
+    "WindowsComponent": false,
+    "OriginalName": "Microsoft.VisualStudio.Code.ServiceController.dll"
+  },
+  {
+    "Executable": "Microsoft.VisualStudio.Code.ServiceHost.exe",
+    "Label": "Microsoft.VisualStudio.Code.ServiceHost",
+    "Purpose": "DeveloperTool",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Microsoft.VisualStudio.Code.ServiceHost",
+    "WindowsComponent": false,
+    "OriginalName": "Microsoft.VisualStudio.Code.ServiceHost.dll"
+  },
+  {
+    "Executable": "MidiSrv.exe",
+    "Label": "Windows Midi Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "midisrv.exe.mui"
+  },
+  {
+    "Executable": "MixedRealityPairingHelper.exe",
+    "Label": "Mixed Reality Link",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Mixed Reality Link",
+    "WindowsComponent": false,
+    "OriginalName": "MixedRealityPairingHelper.exe"
+  },
+  {
+    "Executable": "MrBackgroundHost.exe",
+    "Label": "Mixed Reality Link",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Mixed Reality Link",
+    "WindowsComponent": false,
+    "OriginalName": "MrBackgroundHost.exe"
+  },
+  {
+    "Executable": "msedgewebview2.exe",
+    "Label": "Microsoft Edge WebView2",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Microsoft Edge WebView2",
+    "WindowsComponent": false,
+    "OriginalName": "msedgewebview2.exe"
+  },
+  {
+    "Executable": "NgcIso.exe",
+    "Label": "Windows Hello Security Process",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "NgcIso.exe"
+  },
+  {
+    "Executable": "NVIDIA Overlay.exe",
+    "Label": "NVIDIA App",
+    "Purpose": "Application",
+    "Signers": [
+      "NVIDIA Corporation"
+    ],
+    "SourceUrl": "https://www.nvidia.com/en-us/software/nvidia-app/",
+    "Product": "NVIDIA App",
+    "WindowsComponent": false,
+    "OriginalName": "NVIDIA Overlay.exe"
+  },
+  {
+    "Executable": "OneDrive.exe",
+    "Label": "Microsoft OneDrive",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Microsoft OneDrive",
+    "WindowsComponent": false,
+    "OriginalName": "OneDrive.exe"
+  },
+  {
+    "Executable": "OneDrive.Sync.Service.exe",
+    "Label": "Microsoft OneDrive Sync Service",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Microsoft OneDrive Sync Service",
+    "WindowsComponent": false,
+    "OriginalName": "OneDrive.Sync.Service.exe"
+  },
+  {
+    "Executable": "OpenConsole.exe",
+    "Label": "Windows Terminal",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Windows Terminal",
+    "WindowsComponent": false,
+    "OriginalName": "OpenConsole.exe"
+  },
+  {
+    "Executable": "pet.exe",
+    "Label": "Python Environment Tools",
+    "Purpose": "DeveloperTool",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Python Environment Tools",
+    "WindowsComponent": false,
+    "OriginalName": "pet.exe"
+  },
+  {
+    "Executable": "Plex Media Server.exe",
+    "Label": "Plex Media Server",
+    "Purpose": "Application",
+    "Signers": [
+      "Plex, Inc."
+    ],
+    "SourceUrl": "https://support.plex.tv/",
+    "Product": "Plex Media Server",
+    "WindowsComponent": false,
+    "OriginalName": "Plex Media Server.exe"
+  },
+  {
+    "Executable": "powershell.exe",
+    "Label": "Windows PowerShell",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "PowerShell.EXE.MUI"
+  },
+  {
+    "Executable": "PowerToys.ColorPickerUI.exe",
+    "Label": "PowerToys",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "PowerToys",
+    "WindowsComponent": false,
+    "OriginalName": "PowerToys.ColorPickerUI.dll"
+  },
+  {
+    "Executable": "PowerToys.exe",
+    "Label": "PowerToys",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "PowerToys",
+    "WindowsComponent": false,
+    "OriginalName": "PowerToys.exe"
+  },
+  {
+    "Executable": "PowerToys.FancyZones.exe",
+    "Label": "PowerToys",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "PowerToys",
+    "WindowsComponent": false,
+    "OriginalName": "PowerToys.FancyZones.exe"
+  },
+  {
+    "Executable": "PowerToys.PowerDisplay.exe",
+    "Label": "PowerToys",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "PowerToys",
+    "WindowsComponent": false,
+    "OriginalName": "PowerToys.PowerDisplay.dll"
+  },
+  {
+    "Executable": "PowerToys.QuickAccess.exe",
+    "Label": "PowerToys",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "PowerToys",
+    "WindowsComponent": false,
+    "OriginalName": "PowerToys.QuickAccess.dll"
+  },
+  {
+    "Executable": "py.exe",
+    "Label": "Python",
+    "Purpose": "DeveloperTool",
+    "Signers": [
+      "Python Software Foundation"
+    ],
+    "SourceUrl": "https://docs.python.org/3/using/windows.html",
+    "Product": "Python",
+    "WindowsComponent": false,
+    "OriginalName": "py.exe"
+  },
+  {
+    "Executable": "python.exe",
+    "Label": "Python",
+    "Purpose": "DeveloperTool",
+    "Signers": [
+      "Python Software Foundation"
+    ],
+    "SourceUrl": "https://docs.python.org/3/using/windows.html",
+    "Product": "Python",
+    "WindowsComponent": false,
+    "OriginalName": "python.exe"
+  },
+  {
+    "Executable": "RuntimeBroker.exe",
+    "Label": "Runtime Broker",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "RuntimeBroker.exe"
+  },
+  {
+    "Executable": "SearchHost.exe",
+    "Label": "SearchHost — Windows component",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "SearchHost.exe"
+  },
+  {
+    "Executable": "SecurityHealthService.exe",
+    "Label": "Windows Security Health Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "SecurityHealthService.exe"
+  },
+  {
+    "Executable": "SecurityHealthSystray.exe",
+    "Label": "Windows Security notification icon",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "SecurityHealthSystray.exe"
+  },
+  {
+    "Executable": "ShellExperienceHost.exe",
+    "Label": "Windows Shell Experience Host",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "ShellExperienceHost.exe"
+  },
+  {
+    "Executable": "ShellHost.exe",
+    "Label": "ShellHost",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "ShellHost.exe"
+  },
+  {
+    "Executable": "sihost.exe",
+    "Label": "Shell Infrastructure Host",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "sihost.exe"
+  },
+  {
+    "Executable": "SnippingTool.exe",
+    "Label": "Snipping Tool",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Snipping Tool",
+    "WindowsComponent": false,
+    "OriginalName": "SnippingTool.exe"
+  },
+  {
+    "Executable": "spoolsv.exe",
+    "Label": "Spooler SubSystem App",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "spoolsv.exe.mui"
+  },
+  {
+    "Executable": "StartMenuExperienceHost.exe",
+    "Label": "Windows Start Experience Host",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "startmenuexperiencehost.exe"
+  },
+  {
+    "Executable": "SystemSettings.exe",
+    "Label": "Settings",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "SystemSettings.exe.mui"
+  },
+  {
+    "Executable": "SystemUWPLauncher.exe",
+    "Label": "SystemUWPLauncher",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "SystemUWPLauncher.exe"
+  },
+  {
+    "Executable": "taskhostw.exe",
+    "Label": "Host Process for Windows Tasks",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "taskhostw.exe.mui"
+  },
+  {
+    "Executable": "Taskmgr.exe",
+    "Label": "Task Manager",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "Taskmgr.exe.mui"
+  },
+  {
+    "Executable": "TextInputHost.exe",
+    "Label": "TextInputHost — Windows component",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "TextInputHost.exe"
+  },
+  {
+    "Executable": "TGitCache.exe",
+    "Label": "TortoiseGit",
+    "Purpose": "Application",
+    "Signers": [
+      "Open Source Developer, Sven Strickroth"
+    ],
+    "SourceUrl": "https://tortoisegit.org/docs/tortoisegit/tgit-dug-settings.html",
+    "Product": "TortoiseGit",
+    "WindowsComponent": false,
+    "OriginalName": "TGitCache.exe"
+  },
+  {
+    "Executable": "UserOOBEBroker.exe",
+    "Label": "User OOBE Broker",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "UserOOBEBroker.exe"
+  },
+  {
+    "Executable": "WidgetBoard.exe",
+    "Label": "WidgetBoard — Windows component",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "WidgetBoard.exe"
+  },
+  {
+    "Executable": "WindowsTerminal.exe",
+    "Label": "Windows Terminal",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Windows Terminal",
+    "WindowsComponent": false,
+    "OriginalName": "WindowsTerminal.exe"
+  },
+  {
+    "Executable": "WUDFHost.exe",
+    "Label": "Windows Driver Foundation - User-mode Driver Framework Host Process",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "OriginalName": "WUDFHost.exe.mui"
+  },
+  {
+    "Executable": "XboxPcApp.exe",
+    "Label": "Xbox App",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Xbox App",
+    "WindowsComponent": false,
+    "OriginalName": "XboxPcApp.exe"
+  },
+  {
+    "Executable": "XboxPcAppFT.exe",
+    "Label": "Xbox App",
+    "Purpose": "Application",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/",
+    "Product": "Xbox App",
+    "WindowsComponent": false,
+    "OriginalName": "XboxPcAppFT.exe"
+  },
+  {
+    "Executable": "adpsvc.dll",
+    "Label": "Aggregated Data Platform Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "ADPSvc",
+    "OriginalName": "ADPSvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "alg.exe",
+    "Label": "Application Layer Gateway Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "ALG",
+    "OriginalName": "ALG.exe.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "amdfendrsr.exe",
+    "Label": "AMD Crash Defender Service",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Windows Hardware Compatibility Publisher",
+      "Advanced Micro Devices"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "AMD Crash Defender Service",
+    "WindowsComponent": false,
+    "ServiceName": "AMD Crash Defender Service",
+    "OriginalName": "amdfendrsr.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "atiesrxx.exe",
+    "Label": "AMD External Events Utility",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Windows Hardware Compatibility Publisher",
+      "Advanced Micro Devices"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "AMD External Events",
+    "WindowsComponent": false,
+    "ServiceName": "AMD External Events Utility",
+    "OriginalName": "ATIESRXX.EXE",
+    "PerUserService": false
+  },
+  {
+    "Executable": "amd3dvcacheSvc.exe",
+    "Label": "AMD 3D V-Cache Performance Optimizer Service",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Windows Hardware Compatibility Publisher",
+      "Advanced Micro Devices"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "AMD 3D V-Cache Performance Optimizer Service",
+    "WindowsComponent": false,
+    "ServiceName": "amd3dvcacheSvc",
+    "OriginalName": "amd3dvcacheSvc.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "AmdAppCompatSvc.exe",
+    "Label": "AMD Application Compatibility Database Service",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Windows Hardware Compatibility Publisher",
+      "Advanced Micro Devices"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "AMD Application Compatibility Database Service",
+    "WindowsComponent": false,
+    "ServiceName": "AmdAppCompatSvc",
+    "OriginalName": "AmdAppCompatSvc.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "AmdPpkgSvc.exe",
+    "Label": "AMD Provisioning Packages Service",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Windows Hardware Compatibility Publisher",
+      "Advanced Micro Devices"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "AMD Provisioning Packages Service",
+    "WindowsComponent": false,
+    "ServiceName": "AmdPpkgSvc",
+    "OriginalName": "AmdPpkgSvc.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "appidsvc.dll",
+    "Label": "Application Identity",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "AppIDSvc",
+    "OriginalName": "appidsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "appinfo.dll",
+    "Label": "Application Information",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "Appinfo",
+    "OriginalName": "appinfo.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "AppReadiness.dll",
+    "Label": "App Readiness",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "AppReadiness",
+    "OriginalName": "AppReadiness.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "appxdeploymentserver.dll",
+    "Label": "AppX Deployment Service (AppXSVC)",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "AppXSvc",
+    "OriginalName": "AppXDeploymentServer.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "ApxSvc.dll",
+    "Label": "Windows Virtual Audio Device Proxy Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "ApxSvc",
+    "OriginalName": "ApxSvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "AudioEndpointBuilder.dll",
+    "Label": "Windows Audio Endpoint Builder",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "AudioEndpointBuilder",
+    "OriginalName": "audioepb.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "Audiosrv.dll",
+    "Label": "Windows Audio",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "Audiosrv",
+    "OriginalName": "audiosrv.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "autotimesvc.dll",
+    "Label": "Cellular Time",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "autotimesvc",
+    "OriginalName": "autotimesvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "AxInstSV.dll",
+    "Label": "ActiveX Installer (AxInstSV)",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "AxInstSV",
+    "OriginalName": "AxInstSv.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "AgentHelper.exe",
+    "Label": "Battle.net Update Helper Svc",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Blizzard Entertainment, Inc."
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Battle.net Admin Agent",
+    "WindowsComponent": false,
+    "ServiceName": "battlenet_helpersvc",
+    "OriginalName": "AgentHelper.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "bdesvc.dll",
+    "Label": "BitLocker Drive Encryption Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "BDESVC",
+    "OriginalName": "BDESVC.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "bfe.dll",
+    "Label": "Base Filtering Engine",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "BFE",
+    "OriginalName": "BFE.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "qmgr.dll",
+    "Label": "Background Intelligent Transfer Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "BITS",
+    "OriginalName": "qmgr.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "psmsrv.dll",
+    "Label": "Background Tasks Infrastructure Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "BrokerInfrastructure",
+    "OriginalName": "psmsrv.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "BTAGService.dll",
+    "Label": "Bluetooth Audio Gateway Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "BTAGService",
+    "OriginalName": "BTAGService.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "BthAvctpSvc.dll",
+    "Label": "AVCTP service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "BthAvctpSvc",
+    "OriginalName": "bthavctpsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "bthserv.dll",
+    "Label": "Bluetooth Support Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "bthserv",
+    "OriginalName": "BTHSERV.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "CapabilityAccessManager.dll",
+    "Label": "Capability Access Manager Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "camsvc",
+    "OriginalName": "CapabilityAccessManager.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "CDPSvc.dll",
+    "Label": "Connected Devices Platform Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "CDPSvc",
+    "OriginalName": "CDPSvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "certprop.dll",
+    "Label": "Certificate Propagation",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "CertPropSvc",
+    "OriginalName": "certprop.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "OfficeClickToRun.exe",
+    "Label": "Microsoft Office Click-to-Run Service",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Microsoft 365 and Office",
+    "WindowsComponent": false,
+    "ServiceName": "ClickToRunSvc",
+    "OriginalName": "OfficeClickToRun.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "ClipSVC.dll",
+    "Label": "Client Licence Service (ClipSVC)",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "ClipSVC",
+    "OriginalName": "ClipSVC.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "MigrationService.exe",
+    "Label": "CMigrationService",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Samsung Electronics Co., Ltd."
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Clonix Engine Service",
+    "WindowsComponent": false,
+    "ServiceName": "CMigrationService",
+    "OriginalName": "MigrationService.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "dllhost.exe",
+    "Label": "COM+ System Application",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "COMSysApp",
+    "OriginalName": "dllhost.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "coremessaging.dll",
+    "Label": "CoreMessaging",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "CoreMessagingRegistrar",
+    "OriginalName": "CoreMessaging.dll",
+    "PerUserService": false
+  },
+  {
+    "Executable": "cryptsvc.dll",
+    "Label": "Cryptographic Services",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "CryptSvc",
+    "OriginalName": "cryptsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "rpcss.dll",
+    "Label": "DCOM Server Process Launcher",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "DcomLaunch",
+    "OriginalName": "rpcss.dll",
+    "PerUserService": false
+  },
+  {
+    "Executable": "dcsvc.dll",
+    "Label": "Declared Configuration(DC) service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "dcsvc",
+    "OriginalName": "dvsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "defragsvc.dll",
+    "Label": "Optimise drives",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "defragsvc",
+    "OriginalName": "defragsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "das.dll",
+    "Label": "Device Association Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "DeviceAssociationService",
+    "OriginalName": "das.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "umpnpmgr.dll",
+    "Label": "Device Install Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "DeviceInstall",
+    "OriginalName": "Umpnpmgr.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "DevQueryBroker.dll",
+    "Label": "DevQuery Background Discovery Broker",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "DevQueryBroker",
+    "OriginalName": "DevQueryBroker.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "dhcpcore.dll",
+    "Label": "DHCP Client",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "Dhcp",
+    "OriginalName": "dhcpcore.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "DiagSvc.dll",
+    "Label": "Diagnostic Execution Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "diagsvc",
+    "OriginalName": "DiagSvc.dll",
+    "PerUserService": false
+  },
+  {
+    "Executable": "diagtrack.dll",
+    "Label": "Connected User Experiences and Telemetry",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "DiagTrack",
+    "OriginalName": "diagtrack.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "DispBroker.Desktop.dll",
+    "Label": "Display Policy Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "DispBrokerDesktopSvc",
+    "OriginalName": "DispBroker.Desktop.dll.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "Microsoft.Graphics.Display.DisplayEnhancementService.dll",
+    "Label": "Display Enhancement Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "DisplayEnhancementService",
+    "OriginalName": "Microsoft.Graphics.Display.DisplayEnhancementService.dll.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "Windows.Internal.Management.dll",
+    "Label": "Device Management Enrollment Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "DmEnrollmentSvc",
+    "OriginalName": "Windows.Internal.Management.dll.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "dmwappushsvc.dll",
+    "Label": "Device Management Wireless Application Protocol (WAP) Push message Routing Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "dmwappushservice",
+    "OriginalName": "dmwappushsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "dnsrslvr.dll",
+    "Label": "DNS Client",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "Dnscache",
+    "OriginalName": "dnsrslvr.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "dot3svc.dll",
+    "Label": "Wired AutoConfig",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "dot3svc",
+    "OriginalName": "dot3svc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "dps.dll",
+    "Label": "Diagnostic Policy Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "DPS",
+    "OriginalName": "dps.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "DeviceSetupManager.dll",
+    "Label": "Device Setup Manager",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "DsmSvc",
+    "OriginalName": "DeviceSetupManager.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "DsSvc.dll",
+    "Label": "Data Sharing Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "DsSvc",
+    "OriginalName": "dssvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "DtsApo4Service.exe",
+    "Label": "DtsApo4Service",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Windows Hardware Compatibility Publisher"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "DTS APO4 Service",
+    "WindowsComponent": false,
+    "ServiceName": "DtsApo4Service",
+    "OriginalName": "DtsApo4Service.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "dusmsvc.dll",
+    "Label": "Data Usage",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "DusmSvc",
+    "OriginalName": "dusmsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "eapsvc.dll",
+    "Label": "Extensible Authentication Protocol",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "EapHost",
+    "OriginalName": "eapsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "MicrosoftEdgeUpdate.exe",
+    "Label": "Microsoft Edge Update Service (edgeupdate)",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Microsoft Edge Update",
+    "WindowsComponent": false,
+    "ServiceName": "edgeupdate",
+    "OriginalName": "MicrosoftEdgeUpdate.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "MicrosoftEdgeUpdate.exe",
+    "Label": "Microsoft Edge Update Service (edgeupdatem)",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Microsoft Edge Update",
+    "WindowsComponent": false,
+    "ServiceName": "edgeupdatem",
+    "OriginalName": "MicrosoftEdgeUpdate.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "efssvc.dll",
+    "Label": "Encrypting File System (EFS)",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "EFS",
+    "OriginalName": "EFSSVC.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "embeddedmodesvc.dll",
+    "Label": "Embedded Mode",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "embeddedmode",
+    "OriginalName": "embeddedmodesvc.exe.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "EnterpriseAppMgmtSvc.dll",
+    "Label": "Enterprise App Management Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "EntAppSvc",
+    "OriginalName": "EnterpriseAppMgmtSvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "EpicGamesUpdater.exe",
+    "Label": "Epic Games Updater",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Epic Games Inc."
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Epic Games Updater",
+    "WindowsComponent": false,
+    "ServiceName": "EpicGamesUpdater",
+    "OriginalName": "EpicGamesUpdater.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "EpicOnlineServicesHost.exe",
+    "Label": "Epic Online Services",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Epic Games Inc."
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "EOS Host",
+    "WindowsComponent": false,
+    "ServiceName": "EpicOnlineServices",
+    "OriginalName": "EpicOnlineServicesHost.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "wevtsvc.dll",
+    "Label": "Windows Event Log",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "EventLog",
+    "OriginalName": "wevtsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "es.dll",
+    "Label": "COM+ Event System",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "EventSystem",
+    "OriginalName": "ES.DLL",
+    "PerUserService": false
+  },
+  {
+    "Executable": "fdPHost.dll",
+    "Label": "Function Discovery Provider Host",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "fdPHost",
+    "OriginalName": "fdPHost.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "fdrespub.dll",
+    "Label": "Function Discovery Resource Publication",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "FDResPub",
+    "OriginalName": "FDResPub.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "fhsvc.dll",
+    "Label": "File History Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "fhsvc",
+    "OriginalName": "fhsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "FileSyncHelper.exe",
+    "Label": "FileSyncHelper",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Microsoft OneDrive",
+    "WindowsComponent": false,
+    "ServiceName": "FileSyncHelper",
+    "OriginalName": "FileSyncHelper.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "FntCache.dll",
+    "Label": "Windows Font Cache Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "FontCache",
+    "OriginalName": "FontCacheService",
+    "PerUserService": false
+  },
+  {
+    "Executable": "PresentationFontCache.exe",
+    "Label": "Windows Presentation Foundation Font Cache 3.0.0.0",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Microsoft® .NET Framework",
+    "WindowsComponent": false,
+    "ServiceName": "FontCache3.0.0.0",
+    "OriginalName": "PresentationFontCache.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "FrameServer.dll",
+    "Label": "Windows Camera Frame Server",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "FrameServer",
+    "OriginalName": "FrameServer.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "FrameServerMonitor.dll",
+    "Label": "Windows Camera Frame Server Monitor",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "FrameServerMonitor",
+    "OriginalName": "FrameServerMonitor.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "GameInputRedistService.exe",
+    "Label": "GameInput Redist Service",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Microsoft® Windows® GameInput",
+    "WindowsComponent": false,
+    "ServiceName": "GameInputRedistService",
+    "OriginalName": "GameInputRedistService.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "GameInputSvc.exe",
+    "Label": "GameInput Service",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Microsoft GameInput",
+    "WindowsComponent": false,
+    "ServiceName": "GameInputSvc",
+    "OriginalName": "GameInputSvc.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "gpsvc.dll",
+    "Label": "Group Policy Client",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "gpsvc",
+    "OriginalName": "gpsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "GraphicsPerfSvc.dll",
+    "Label": "GraphicsPerfSvc",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "GraphicsPerfSvc",
+    "OriginalName": "GraphicsPerfSvc.dll",
+    "PerUserService": false
+  },
+  {
+    "Executable": "hidserv.dll",
+    "Label": "Human Interface Device Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "hidserv",
+    "OriginalName": "HIDSERV.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "hpatchmon.dll",
+    "Label": "Hotpatch Monitoring Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "hpatchmon",
+    "OriginalName": "hpatchmon.dll",
+    "PerUserService": false
+  },
+  {
+    "Executable": "hvhostsvc.dll",
+    "Label": "HV Host Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "HvHost",
+    "OriginalName": "hvhostsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "tetheringservice.dll",
+    "Label": "Windows Mobile Hotspot Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "icssvc",
+    "OriginalName": "TetheringService.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "ikeext.dll",
+    "Label": "IKE and AuthIP IPsec Keying Modules",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "IKEEXT",
+    "OriginalName": "IKEEXT.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "InstallService.dll",
+    "Label": "Microsoft Store Install Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "InstallService",
+    "OriginalName": "InstallService.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "inventorysvc.dll",
+    "Label": "Inventory and Compatibility Appraisal service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "InventorySvc",
+    "OriginalName": "InventorySvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "iphlpsvc.dll",
+    "Label": "IP Helper",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "iphlpsvc",
+    "OriginalName": "iphlpsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "IpxlatCfg.dll",
+    "Label": "IP Translation Configuration Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "IpxlatCfgSvc",
+    "OriginalName": "IPxlatCfg.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "IsoEnvBroker.dll",
+    "Label": "Isolation Environment Broker",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "IsoEnvBroker",
+    "OriginalName": "IsoEnvBroker.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "IsoSessionServer.dll",
+    "Label": "IsolationSession",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "IsolationSession",
+    "OriginalName": "IsoSessionServer.dll",
+    "PerUserService": false
+  },
+  {
+    "Executable": "keyiso.dll",
+    "Label": "CNG Key Isolation",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "KeyIso",
+    "OriginalName": "keyiso.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "msdtckrm.dll",
+    "Label": "KtmRm for Distributed Transaction Coordinator",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "KtmRm",
+    "OriginalName": "MSDTCKRM.DLL",
+    "PerUserService": false
+  },
+  {
+    "Executable": "srvsvc.dll",
+    "Label": "Server",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "LanmanServer",
+    "OriginalName": "SRVSVC.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "wkssvc.dll",
+    "Label": "Workstation",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "LanmanWorkstation",
+    "OriginalName": "WKSSVC.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "lfsvc.dll",
+    "Label": "Geolocation Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "lfsvc",
+    "OriginalName": "lfsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "LicenseManagerSvc.dll",
+    "Label": "Windows License Manager Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "LicenseManager",
+    "OriginalName": "LicenseManagerSvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "lltdsvc.dll",
+    "Label": "Link-Layer Topology Discovery Mapper",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "lltdsvc",
+    "OriginalName": "LLTDSVC.DLL",
+    "PerUserService": false
+  },
+  {
+    "Executable": "localkdcsvc.dll",
+    "Label": "Kerberos Local Key Distribution Center",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "LocalKdc",
+    "OriginalName": "localkdcsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "lsm.dll",
+    "Label": "LSM",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "LSM",
+    "OriginalName": "lsm.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "LanguageOverlayServer.dll",
+    "Label": "Language Experience Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "LxpSvc",
+    "OriginalName": "LanguageOverlayServer.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "moshost.dll",
+    "Label": "Downloaded Maps Manager",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "MapsBroker",
+    "OriginalName": "moshost.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "McmSvc.dll",
+    "Label": "Mobile Connectivity Management Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "McmSvc",
+    "OriginalName": "McmSvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "McpManagementService.dll",
+    "Label": "McpManagementService",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "McpManagementService",
+    "OriginalName": "McpManagementService.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "MpDefenderCoreService.exe",
+    "Label": "Microsoft Defender Core Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows Publisher"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "MDCoreSvc",
+    "OriginalName": "MpDefenderCoreService.exe",
+    "PerUserService": false,
+    "PathScopes": [
+      "System32",
+      "DefenderPlatform"
+    ]
+  },
+  {
+    "Executable": "elevation_service.exe",
+    "Label": "Microsoft Copilot Elevation Service (MicrosoftCopilotElevationService)",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Microsoft Edge",
+    "WindowsComponent": false,
+    "ServiceName": "MicrosoftCopilotElevationService",
+    "OriginalName": "elevation_service.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "elevation_service.exe",
+    "Label": "Microsoft Edge Elevation Service (MicrosoftEdgeElevationService)",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Microsoft Edge",
+    "WindowsComponent": false,
+    "ServiceName": "MicrosoftEdgeElevationService",
+    "OriginalName": "elevation_service.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "midisrv.exe",
+    "Label": "Windows MIDI Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "midisrv",
+    "OriginalName": "midisrv.exe.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "mpssvc.dll",
+    "Label": "Windows Defender Firewall",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "mpssvc",
+    "OriginalName": "mpssvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "msdtc.exe",
+    "Label": "Distributed Transaction Coordinator",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "MSDTC",
+    "OriginalName": "MSDTC.EXE.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "iscsiexe.dll",
+    "Label": "Microsoft iSCSI Initiator Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "MSiSCSI",
+    "OriginalName": "iscsiexe.exe.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "msiexec.exe",
+    "Label": "Windows Installer",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Windows Installer - Unicode",
+    "WindowsComponent": false,
+    "ServiceName": "msiserver",
+    "OriginalName": "msiexec.exe.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "NaturalAuth.dll",
+    "Label": "Natural Authentication",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "NaturalAuthentication",
+    "OriginalName": "NaturalAuth.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "ncasvc.dll",
+    "Label": "Network Connectivity Assistant",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "NcaSvc",
+    "OriginalName": "NcaSvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "ncbservice.dll",
+    "Label": "Network Connection Broker",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "NcbService",
+    "OriginalName": "ncbservice.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "NcdAutoSetup.dll",
+    "Label": "Network Connected Devices Auto-Setup",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "NcdAutoSetup",
+    "OriginalName": "NcdAutoSetup.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "netlogon.dll",
+    "Label": "Netlogon",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "Netlogon",
+    "OriginalName": "NetLogon.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "netman.dll",
+    "Label": "Network Connections",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "Netman",
+    "OriginalName": "netman.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "netprofmsvc.dll",
+    "Label": "Network List Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "netprofm",
+    "OriginalName": "netprofmsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "NetSetupSvc.dll",
+    "Label": "NetSetupSvc",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "NetSetupSvc",
+    "OriginalName": "NETSETUPSVC.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "SMSvcHost.exe",
+    "Label": "Net.Tcp Port Sharing Service",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Microsoft® .NET Framework",
+    "WindowsComponent": false,
+    "ServiceName": "NetTcpPortSharing",
+    "OriginalName": "SMSvcHost.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "NgcCtnrSvc.dll",
+    "Label": "Microsoft Passport Container",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "NgcCtnrSvc",
+    "OriginalName": "NgcCtnrSvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "ngcsvc.dll",
+    "Label": "Microsoft Passport",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "NgcSvc",
+    "OriginalName": "ngcsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "netprofmsvc.dll",
+    "Label": "Network Location Awareness",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "NlaSvc",
+    "OriginalName": "netprofmsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "OneDriveUpdaterService.exe",
+    "Label": "OneDrive Updater Service",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Microsoft OneDrive",
+    "WindowsComponent": false,
+    "ServiceName": "OneDrive Updater Service",
+    "OriginalName": "OneDriveUpdaterService.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "pcasvc.dll",
+    "Label": "Program Compatibility Assistant Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "PcaSvc",
+    "OriginalName": "pcasvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "PerceptionSimulationService.exe",
+    "Label": "Windows Perception Simulation Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "perceptionsimulation",
+    "OriginalName": "PerceptionSimulationService.exe.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "perfhost.exe",
+    "Label": "Performance Counter DLL Host",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "PerfHost",
+    "OriginalName": "perfhost.exe.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "PhoneService.dll",
+    "Label": "Phone Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "PhoneSvc",
+    "OriginalName": "PHONESERVICE.dll",
+    "PerUserService": false
+  },
+  {
+    "Executable": "pla.dll",
+    "Label": "Performance Logs & Alerts",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "pla",
+    "OriginalName": "PLA.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "umpnpmgr.dll",
+    "Label": "Plug and Play",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "PlugPlay",
+    "OriginalName": "Umpnpmgr.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "ipsecsvc.dll",
+    "Label": "IPsec Policy Agent",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "PolicyAgent",
+    "OriginalName": "ipsecsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "umpo.dll",
+    "Label": "Power",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "Power",
+    "OriginalName": "Umpo.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "PrintDeviceConfigurationService.dll",
+    "Label": "Print Device Configuration Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "PrintDeviceConfigurationService",
+    "OriginalName": "PrintDeviceConfigurationService.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "PrintConfig.dll",
+    "Label": "Printer Extensions and Notifications",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "PrintNotify",
+    "OriginalName": "PRINTCONFIG.DLL",
+    "PerUserService": false
+  },
+  {
+    "Executable": "PrintScanBrokerService.dll",
+    "Label": "PrintScanBrokerService",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "PrintScanBrokerService",
+    "OriginalName": "PrintScanBrokerService.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "profsvc.dll",
+    "Label": "User Profile Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "ProfSvc",
+    "OriginalName": "ProfSvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "PushToInstall.dll",
+    "Label": "Windows PushToInstall Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "PushToInstall",
+    "OriginalName": "PushToInstall.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "qwave.dll",
+    "Label": "Quality Windows Audio Video Experience",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "QWAVE",
+    "OriginalName": "qwave.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "rasauto.dll",
+    "Label": "Remote Access Auto Connection Manager",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "RasAuto",
+    "OriginalName": "rasauto.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "rasmans.dll",
+    "Label": "Remote Access Connection Manager",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "RasMan",
+    "OriginalName": "Rasmans.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "ReFsDedupSvc.exe",
+    "Label": "ReFS Dedup Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "refsdedupsvc",
+    "OriginalName": "ReFsDedupSvc.exe.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "mprdim.dll",
+    "Label": "Routing and Remote Access",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "RemoteAccess",
+    "OriginalName": "MPRDIM.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "regsvc.dll",
+    "Label": "Remote Registry",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "RemoteRegistry",
+    "OriginalName": "REGSVC.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "RDXService.dll",
+    "Label": "Retail Demo Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "RetailDemo",
+    "OriginalName": "RDXService.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "RMapi.dll",
+    "Label": "Radio Management Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "RmSvc",
+    "OriginalName": "RMapi.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "RpcEpMap.dll",
+    "Label": "RPC Endpoint Mapper",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "RpcEptMapper",
+    "OriginalName": "RpcEpMap.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "locator.exe",
+    "Label": "Remote Procedure Call (RPC) Locator",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "RpcLocator",
+    "OriginalName": "locator.exe.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "rpcss.dll",
+    "Label": "Remote Procedure Call (RPC)",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "RpcSs",
+    "OriginalName": "rpcss.dll",
+    "PerUserService": false
+  },
+  {
+    "Executable": "RtkAudUService64.exe",
+    "Label": "Realtek Audio Universal Service",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Windows Hardware Compatibility Publisher"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Realtek HD Audio Universal Service",
+    "WindowsComponent": false,
+    "ServiceName": "RtkAudioUniversalService",
+    "OriginalName": "RtkAudUService.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "RtkBtManServ.exe",
+    "Label": "Realtek Bluetooth Device Manager Service",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Windows Hardware Compatibility Publisher"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Bluetooth Software",
+    "WindowsComponent": false,
+    "ServiceName": "RtkBtManServ",
+    "OriginalName": "BTDevMan.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "lsass.exe",
+    "Label": "Security Accounts Manager",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "SamSs",
+    "OriginalName": "lsass.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "SamsungMagicianSVC.exe",
+    "Label": "SamsungMagicianSVC",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Samsung Electronics Co., Ltd."
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Samsung Magician",
+    "WindowsComponent": false,
+    "ServiceName": "SamsungMagicianSVC",
+    "OriginalName": "SamsungMagicianSVC.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "SCardSvr.dll",
+    "Label": "Smart Card",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "SCardSvr",
+    "OriginalName": "SCardSvr.exe.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "ScDeviceEnum.dll",
+    "Label": "Smart Card Device Enumeration Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "ScDeviceEnum",
+    "OriginalName": "ScDeviceEnum.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "schedsvc.dll",
+    "Label": "Task Scheduler",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "Schedule",
+    "OriginalName": "schedsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "certprop.dll",
+    "Label": "Smart Card Removal Policy",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "SCPolicySvc",
+    "OriginalName": "certprop.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "SDRSVC.dll",
+    "Label": "Windows Backup",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "SDRSVC",
+    "OriginalName": "SDRSVC.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "seclogon.dll",
+    "Label": "Secondary Log-on",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "seclogon",
+    "OriginalName": "SECLOGON.EXE.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "SecurityHealthService.exe",
+    "Label": "Windows Security Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "SecurityHealthService",
+    "OriginalName": "SecurityHealthService.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "SEMgrSvc.dll",
+    "Label": "Payments and NFC/SE Manager",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "SEMgrSvc",
+    "OriginalName": "SEMgrSvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "sens.dll",
+    "Label": "System Event Notification Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "SENS",
+    "OriginalName": "sens.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "SensorDataService.exe",
+    "Label": "Sensor Data Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "SensorDataService",
+    "OriginalName": "SensorDataService.exe.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "SensorService.dll",
+    "Label": "Sensor Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "SensorService",
+    "OriginalName": "SensorService.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "sensrsvc.dll",
+    "Label": "Sensor Monitoring Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "SensrSvc",
+    "OriginalName": "sensrsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "sessenv.dll",
+    "Label": "Remote Desktop Configuration",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "SessionEnv",
+    "OriginalName": "SessEnv.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "ipnathlp.dll",
+    "Label": "Internet Connection Sharing (ICS)",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "SharedAccess",
+    "OriginalName": "IPNATHLP.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "shsvcs.dll",
+    "Label": "Shell Hardware Detection",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "ShellHWDetection",
+    "OriginalName": "SHSVCS.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "Windows.SharedPC.AccountManager.dll",
+    "Label": "Shared PC Account Manager",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "shpamsvc",
+    "OriginalName": "SharedPC.AccountManager.dll",
+    "PerUserService": false
+  },
+  {
+    "Executable": "smphost.dll",
+    "Label": "Microsoft Storage Spaces SMP",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "smphost",
+    "OriginalName": "smphost.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "SmsRouterSvc.dll",
+    "Label": "Microsoft Windows SMS Router Service.",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "SmsRouter",
+    "OriginalName": "SmsRouterSvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "snmptrap.exe",
+    "Label": "SNMP Trap",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "SNMPTrap",
+    "OriginalName": "snmptrap.exe.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "spoolsv.exe",
+    "Label": "Print Spooler",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "Spooler",
+    "OriginalName": "spoolsv.exe.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "sppsvc.exe",
+    "Label": "Software Protection",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "sppsvc",
+    "OriginalName": "sppsvc.exe.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "ssdpsrv.dll",
+    "Label": "SSDP Discovery",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "SSDPSRV",
+    "OriginalName": "ssdpsrv.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "sstpsvc.dll",
+    "Label": "Secure Socket Tunneling Protocol Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "SstpSvc",
+    "OriginalName": "sstpsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "windows.staterepository.dll",
+    "Label": "State Repository Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "StateRepository",
+    "OriginalName": "Windows.StateRepository.dll.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "steamservice.exe",
+    "Label": "Steam Client Service",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Valve Corp."
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Steam Client Service",
+    "WindowsComponent": false,
+    "ServiceName": "Steam Client Service",
+    "OriginalName": "SteamService.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "wiaservc.dll",
+    "Label": "Windows Image Acquisition (WIA)",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "StiSvc",
+    "OriginalName": "WIASERVC.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "storsvc.dll",
+    "Label": "Storage Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "StorSvc",
+    "OriginalName": "StorSvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "svsvc.dll",
+    "Label": "Spot Verifier",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "svsvc",
+    "OriginalName": "svsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "swprv.dll",
+    "Label": "Microsoft Software Shadow Copy Provider",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "swprv",
+    "OriginalName": "SWPRV.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "sysmain.dll",
+    "Label": "SysMain",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "SysMain",
+    "OriginalName": "sysmain.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "SystemEventsBrokerServer.dll",
+    "Label": "System Events Broker",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "SystemEventsBroker",
+    "OriginalName": "SystemEventsBrokerServer.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "tapisrv.dll",
+    "Label": "Telephony",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "TapiSrv",
+    "OriginalName": "TAPISRV.EXE.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "termsrv.dll",
+    "Label": "Remote Desktop Services",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "TermService",
+    "OriginalName": "termsrv.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "TabSvc.dll",
+    "Label": "Text Input Management Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "TextInputManagementService",
+    "OriginalName": "TabSvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "themeservice.dll",
+    "Label": "Themes",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "Themes",
+    "OriginalName": "THEMESERVICE.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "TieringEngineService.exe",
+    "Label": "Storage Tiers Management",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "TieringEngineService",
+    "OriginalName": "TieringEngineService.exe.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "TimeBrokerServer.dll",
+    "Label": "Time Broker",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "TimeBrokerSvc",
+    "OriginalName": "TimeBrokerServer.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "TokenBroker.dll",
+    "Label": "Web Account Manager",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "TokenBroker",
+    "OriginalName": "TokenBroker.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "trkwks.dll",
+    "Label": "Distributed Link Tracking Client",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "TrkWks",
+    "OriginalName": "trkwks.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "MitigationClient.dll",
+    "Label": "Recommended Troubleshooting Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "TroubleshootingSvc",
+    "OriginalName": "mitigationclient.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "TrustedInstaller.exe",
+    "Label": "Windows Modules Installer",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "TrustedInstaller",
+    "OriginalName": "TrustedInstaller.exe.mui",
+    "PerUserService": false,
+    "PathScopes": [
+      "Servicing"
+    ]
+  },
+  {
+    "Executable": "tzautoupdate.dll",
+    "Label": "Auto Time Zone Updater",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "tzautoupdate",
+    "OriginalName": "tzautoupdate.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "umrdp.dll",
+    "Label": "Remote Desktop Services UserMode Port Redirector",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "UmRdpService",
+    "OriginalName": "umrdp.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "upnphost.dll",
+    "Label": "UPnP Device Host",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "upnphost",
+    "OriginalName": "unpnhost.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "usermgr.dll",
+    "Label": "User Manager",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "UserManager",
+    "OriginalName": "usermgr.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "usosvc.dll",
+    "Label": "Update Orchestrator Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "UsoSvc",
+    "OriginalName": "USOSvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "vaultsvc.dll",
+    "Label": "Credential Manager",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "VaultSvc",
+    "OriginalName": "vaultsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "vds.exe",
+    "Label": "Virtual Disk",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "vds",
+    "OriginalName": "vds.exe.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "icsvc.dll",
+    "Label": "Hyper-V Guest Service Interface",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "vmicguestinterface",
+    "OriginalName": "icsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "icsvc.dll",
+    "Label": "Hyper-V Heartbeat Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "vmicheartbeat",
+    "OriginalName": "icsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "icsvc.dll",
+    "Label": "Hyper-V Data Exchange Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "vmickvpexchange",
+    "OriginalName": "icsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "icsvcext.dll",
+    "Label": "Hyper-V Remote Desktop Virtualization Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "vmicrdv",
+    "OriginalName": "icsvcext.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "icsvc.dll",
+    "Label": "Hyper-V Guest Shutdown Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "vmicshutdown",
+    "OriginalName": "icsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "icsvc.dll",
+    "Label": "Hyper-V Time Synchronization Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "vmictimesync",
+    "OriginalName": "icsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "icsvc.dll",
+    "Label": "Hyper-V PowerShell Direct Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "vmicvmsession",
+    "OriginalName": "icsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "icsvcvss.dll",
+    "Label": "Hyper-V Volume Shadow Copy Requestor",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "vmicvss",
+    "OriginalName": "icsvcvss.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "VSInstallerElevationService.exe",
+    "Label": "Visual Studio Installer Elevation Service",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Visual Studio",
+    "WindowsComponent": false,
+    "ServiceName": "VSInstallerElevationService",
+    "OriginalName": "VSInstallerElevationService.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "vssvc.exe",
+    "Label": "Volume Shadow Copy",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "VSS",
+    "OriginalName": "VSSVC.EXE.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "StandardCollector.Service.exe",
+    "Label": "Visual Studio Standard Collector Service 150",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Microsoft® Visual Studio®",
+    "WindowsComponent": false,
+    "ServiceName": "VSStandardCollectorService150",
+    "OriginalName": "StandardCollector.Service.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "w32time.dll",
+    "Label": "Windows Time",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "W32Time",
+    "OriginalName": "w32time.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "WaaSMedicSvc.dll",
+    "Label": "WaaSMedicSvc",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WaaSMedicSvc",
+    "OriginalName": "WaasMedicSvc",
+    "PerUserService": false
+  },
+  {
+    "Executable": "WalletService.dll",
+    "Label": "WalletService",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WalletService",
+    "OriginalName": "WalletService.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "Windows.WARP.JITService.dll",
+    "Label": "Warp JIT Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WarpJITSvc",
+    "OriginalName": "Windows.WARP.JITService.dll",
+    "PerUserService": false
+  },
+  {
+    "Executable": "wbengine.exe",
+    "Label": "Block Level Backup Engine Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "wbengine",
+    "OriginalName": "wbengine.exe.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "wbiosrvc.dll",
+    "Label": "Windows Biometric Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WbioSrvc",
+    "OriginalName": "wbiosrvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "wcmsvc.dll",
+    "Label": "Windows Connection Manager",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "Wcmsvc",
+    "OriginalName": "wcmsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "wcncsvc.dll",
+    "Label": "Windows Connect Now - Config Registrar",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "wcncsvc",
+    "OriginalName": "WCNCSVC.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "wdi.dll",
+    "Label": "Diagnostic Service Host",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WdiServiceHost",
+    "OriginalName": "wdi.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "wdi.dll",
+    "Label": "Diagnostic System Host",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WdiSystemHost",
+    "OriginalName": "wdi.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "NisSrv.exe",
+    "Label": "Microsoft Defender Antivirus Network Inspection Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows Publisher"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WdNisSvc",
+    "OriginalName": "NisSrv.exe",
+    "PerUserService": false,
+    "PathScopes": [
+      "System32",
+      "DefenderPlatform"
+    ]
+  },
+  {
+    "Executable": "webclnt.dll",
+    "Label": "WebClient",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WebClient",
+    "OriginalName": "davsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "webthreatdefsvc.dll",
+    "Label": "Web Threat Defense Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "webthreatdefsvc",
+    "OriginalName": "webthreatdefsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "wecsvc.dll",
+    "Label": "Windows Event Collector",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "Wecsvc",
+    "OriginalName": "wecsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "wephostsvc.dll",
+    "Label": "Windows Encryption Provider Host Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WEPHOSTSVC",
+    "OriginalName": "wephostsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "wercplsupport.dll",
+    "Label": "Problem Reports Control Panel Support",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "wercplsupport",
+    "OriginalName": "ERC",
+    "PerUserService": false
+  },
+  {
+    "Executable": "WerSvc.dll",
+    "Label": "Windows Error Reporting Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WerSvc",
+    "OriginalName": "wersvc",
+    "PerUserService": false
+  },
+  {
+    "Executable": "wfdsconmgrsvc.dll",
+    "Label": "Wi-Fi Direct Services Connection Manager Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WFDSConMgrSvc",
+    "OriginalName": "WFDSConMgrSvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "whesvc.dll",
+    "Label": "Windows Health and Optimized Experiences",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "whesvc",
+    "OriginalName": "whesvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "wiarpc.dll",
+    "Label": "Still Image Acquisition Events",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WiaRpc",
+    "OriginalName": "WIARPC.DLL.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "MsMpEng.exe",
+    "Label": "Microsoft Defender Antivirus Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows Publisher"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WinDefend",
+    "OriginalName": "MsMpEng.exe",
+    "PerUserService": false,
+    "PathScopes": [
+      "System32",
+      "DefenderPlatform"
+    ]
+  },
+  {
+    "Executable": "winhttp.dll",
+    "Label": "WinHTTP Web Proxy Auto-Discovery Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WinHttpAutoProxySvc",
+    "OriginalName": "winhttp.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "WMIsvc.dll",
+    "Label": "Windows Management Instrumentation",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "Winmgmt",
+    "OriginalName": "wmisvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "WsmSvc.dll",
+    "Label": "Windows Remote Management (WS-Management)",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WinRM",
+    "OriginalName": "WsmSvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "flightsettings.dll",
+    "Label": "Windows Insider Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "wisvc",
+    "OriginalName": "flightsettings.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "wlansvc.dll",
+    "Label": "WLAN AutoConfig",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WlanSvc",
+    "OriginalName": "wlansvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "wlidsvc.dll",
+    "Label": "Microsoft Account Sign-in Assistant",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "wlidsvc",
+    "OriginalName": "Wlidsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "lpasvc.dll",
+    "Label": "Local Profile Assistant Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "wlpasvc",
+    "OriginalName": "LpaSvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "Windows.Management.Service.dll",
+    "Label": "Windows Management Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WManSvc",
+    "OriginalName": "Windows.Management.Service.dll.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "WmiApSrv.exe",
+    "Label": "WMI Performance Adapter",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "wmiApSrv",
+    "OriginalName": "WmiApSrv.exe.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "wmpnetwk.exe",
+    "Label": "Windows Media Player Network Sharing Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WMPNetworkSvc",
+    "OriginalName": "WMPNetwk.exe.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "workfolderssvc.dll",
+    "Label": "Work Folders",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "workfolderssvc",
+    "OriginalName": "workfolderssvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "WpcDesktopMonSvc.dll",
+    "Label": "Parental Controls",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WpcMonSvc",
+    "OriginalName": "WpcMonSvc.dll",
+    "PerUserService": false
+  },
+  {
+    "Executable": "wpdbusenum.dll",
+    "Label": "Portable Device Enumerator Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WPDBusEnum",
+    "OriginalName": "WpdBusEnum.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "WpnService.dll",
+    "Label": "Windows Push Notifications System Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WpnService",
+    "OriginalName": "WpnService.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "WSAIFabricHost.dll",
+    "Label": "Windows AI Components Host",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WSAIFabricSvc",
+    "OriginalName": "WSAIFabricHost.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "wscsvc.dll",
+    "Label": "Security Center",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "wscsvc",
+    "OriginalName": "wscsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "SearchIndexer.exe",
+    "Label": "Windows Search",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Windows® Search",
+    "WindowsComponent": false,
+    "ServiceName": "WSearch",
+    "OriginalName": "SearchIndexer.exe.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "wuaueng.dll",
+    "Label": "Windows Update",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "wuauserv",
+    "OriginalName": "wuaueng.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "Microsoft.Data.UsageAndQualityInsights.dll",
+    "Label": "Microsoft Usage and Quality Insights",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "wuqisvc",
+    "OriginalName": "Microsoft.Data.UsageAndQualityInsights.dll.MUI",
+    "PerUserService": false
+  },
+  {
+    "Executable": "wwansvc.dll",
+    "Label": "WWAN AutoConfig",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WwanSvc",
+    "OriginalName": "WwanSvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "XblAuthManager.dll",
+    "Label": "Xbox Live Auth Manager",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "XblAuthManager",
+    "OriginalName": "XblAuthManager.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "XblGameSave.dll",
+    "Label": "Xbox Live Game Save",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "XblGameSave",
+    "OriginalName": "XblGameSave.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "XboxGipSvc.dll",
+    "Label": "Xbox Accessory Management Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "XboxGipSvc",
+    "OriginalName": "xboxgipsvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "XboxNetApiSvc.dll",
+    "Label": "Xbox Live Networking Service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/optimize/services",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "XboxNetApiSvc",
+    "OriginalName": "XboxNetApiSvc.dll.mui",
+    "PerUserService": false
+  },
+  {
+    "Executable": "CredentialEnrollmentManager.exe",
+    "Label": "CredentialEnrollmentManagerUserSvc — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "CredentialEnrollmentManagerUserSvc",
+    "OriginalName": "CredentialEnrollmentManager.exe.mui",
+    "PerUserService": true
+  },
+  {
+    "Executable": "GamingServicesNet.exe",
+    "Label": "Gaming Services",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Microsoft Gaming Install Services",
+    "WindowsComponent": false,
+    "ServiceName": "GamingServicesNet",
+    "OriginalName": "GamingServices.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "GamingServices.exe",
+    "Label": "Gaming Services",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Microsoft Gaming Install Services",
+    "WindowsComponent": false,
+    "ServiceName": "GamingServices",
+    "OriginalName": "GamingServices.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "MixedRealityLinkSvc.exe",
+    "Label": "Mixed Reality Link",
+    "Purpose": "BackgroundHelper",
+    "Signers": [
+      "Microsoft Corporation"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/win32/services/services",
+    "Product": "Mixed Reality Link",
+    "WindowsComponent": false,
+    "ServiceName": "MixedRealityLinkSvc",
+    "OriginalName": "MixedRealityLinkSvc.exe",
+    "PerUserService": false
+  },
+  {
+    "Executable": "codex.exe",
+    "Label": "OpenAI-signed command-line helper",
+    "Purpose": "Unknown",
+    "Signers": [
+      "OpenAI OpCo, LLC"
+    ],
+    "SourceUrl": "https://developers.openai.com/codex/windows/",
+    "PublisherOnly": true
+  },
+  {
+    "Executable": "codex-computer-use-swift.exe",
+    "Label": "OpenAI-signed computer-use helper",
+    "Purpose": "Unknown",
+    "Signers": [
+      "OpenAI OpCo, LLC"
+    ],
+    "SourceUrl": "https://developers.openai.com/codex/windows/",
+    "PublisherOnly": true
+  },
+  {
+    "Executable": "node_repl.exe",
+    "Label": "OpenAI-signed JavaScript helper",
+    "Purpose": "Unknown",
+    "Signers": [
+      "OpenAI OpCo, LLC"
+    ],
+    "SourceUrl": "https://developers.openai.com/codex/windows/",
+    "PublisherOnly": true
+  },
+  {
+    "Executable": "PlexScriptHost.exe",
+    "Label": "Plex-signed script helper",
+    "Purpose": "Unknown",
+    "Signers": [
+      "Plex, Inc."
+    ],
+    "SourceUrl": "https://support.plex.tv/",
+    "PublisherOnly": true
+  },
+  {
+    "Executable": "agy.exe",
+    "Label": "Google-signed helper",
+    "Purpose": "Unknown",
+    "Signers": [
+      "Google LLC"
+    ],
+    "SourceUrl": "https://www.google.com/",
+    "PublisherOnly": true
+  },
+  {
+    "Executable": "NVDisplay.Container.exe",
+    "Label": "NVIDIA-signed display helper",
+    "Purpose": "Unknown",
+    "Signers": [
+      "NVIDIA Corporation"
+    ],
+    "SourceUrl": "https://www.nvidia.com/en-us/software/nvidia-app/",
+    "PublisherOnly": true
+  },
+  {
+    "Executable": "AppleMobileDeviceProcess.exe",
+    "Label": "Apple-signed mobile-device helper",
+    "Purpose": "Unknown",
+    "Signers": [
+      "Apple Inc."
+    ],
+    "SourceUrl": "https://support.apple.com/en-ca/102347",
+    "PublisherOnly": true
+  },
+  {
+    "Executable": "codex-code-mode-host.exe",
+    "Label": "OpenAI-signed host helper",
+    "Purpose": "Unknown",
+    "Signers": [
+      "OpenAI OpCo, LLC"
+    ],
+    "SourceUrl": "https://developers.openai.com/codex/windows/",
+    "PublisherOnly": true
+  },
+  {
+    "Executable": "Plex Tuner Service.exe",
+    "Label": "Plex-signed tuner helper",
+    "Purpose": "Unknown",
+    "Signers": [
+      "Plex, Inc."
+    ],
+    "SourceUrl": "https://support.plex.tv/",
+    "PublisherOnly": true
+  },
+  {
+    "Executable": "nvcontainer.exe",
+    "Label": "NVIDIA-signed container helper",
+    "Purpose": "Unknown",
+    "Signers": [
+      "NVIDIA Corporation"
+    ],
+    "SourceUrl": "https://www.nvidia.com/en-us/software/nvidia-app/",
+    "PublisherOnly": true
+  },
+  {
+    "Executable": "claude.exe",
+    "Label": "Claude Code",
+    "Purpose": "DeveloperTool",
+    "Signers": [
+      "Anthropic, PBC"
+    ],
+    "SourceUrl": "https://code.claude.com/docs/en/overview",
+    "Product": "Claude Code"
+  },
+  {
+    "Executable": "Microsoft.Bluetooth.UserService.dll",
+    "Label": "BluetoothUserService — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "BluetoothUserService",
+    "OriginalName": "Microsoft.Bluetooth.UserService.dll.MUI",
+    "PerUserService": true
+  },
+  {
+    "Executable": "CaptureService.dll",
+    "Label": "CaptureService — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "CaptureService",
+    "OriginalName": "CaptureService.dll.mui",
+    "PerUserService": true
+  },
+  {
+    "Executable": "CDPUserSvc.dll",
+    "Label": "CDPUserSvc — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "CDPUserSvc",
+    "OriginalName": "CDPUserSvc.dll.mui",
+    "PerUserService": true
+  },
+  {
+    "Executable": "cbdhsvc.dll",
+    "Label": "cbdhsvc — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "cbdhsvc",
+    "OriginalName": "CBDHSvc.dll.mui",
+    "PerUserService": true
+  },
+  {
+    "Executable": "DevicesFlowBroker.dll",
+    "Label": "DevicesFlowUserSvc — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "DevicesFlowUserSvc",
+    "OriginalName": "DevicesFlowBroker.dll.mui",
+    "PerUserService": true
+  },
+  {
+    "Executable": "npsm.dll",
+    "Label": "NPSMSvc — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "NPSMSvc",
+    "OriginalName": "NPSM.dll.mui",
+    "PerUserService": true
+  },
+  {
+    "Executable": "PimIndexMaintenance.dll",
+    "Label": "PimIndexMaintenanceSvc — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "PimIndexMaintenanceSvc",
+    "OriginalName": "PimIndexMaintenance.dll.mui",
+    "PerUserService": true
+  },
+  {
+    "Executable": "windowsudkservices.shellcommon.dll",
+    "Label": "UdkUserSvc — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "UdkUserSvc",
+    "OriginalName": "windowsudkservices.shellcommon.dll.mui",
+    "PerUserService": true
+  },
+  {
+    "Executable": "unistore.dll",
+    "Label": "UnistoreSvc — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "UnistoreSvc",
+    "OriginalName": "Unistore.dll.mui",
+    "PerUserService": true
+  },
+  {
+    "Executable": "userdataservice.dll",
+    "Label": "UserDataSvc — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "UserDataSvc",
+    "OriginalName": "USERDATASERVICE.dll.mui",
+    "PerUserService": true
+  },
+  {
+    "Executable": "webthreatdefusersvc.dll",
+    "Label": "webthreatdefusersvc — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "webthreatdefusersvc",
+    "OriginalName": "webthreatdefusersvc.dll.mui",
+    "PerUserService": true
+  },
+  {
+    "Executable": "WpnUserService.dll",
+    "Label": "WpnUserService — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "WpnUserService",
+    "OriginalName": "WpnUserService.dll.mui",
+    "PerUserService": true
+  },
+  {
+    "Executable": "Windows.Devices.Picker.dll",
+    "Label": "DevicePickerUserSvc — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "DevicePickerUserSvc",
+    "OriginalName": "Windows.Devices.Picker.dll.MUI",
+    "PerUserService": true
+  },
+  {
+    "Executable": "ConsentUxClient.dll",
+    "Label": "ConsentUxUserSvc — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "ConsentUxUserSvc",
+    "OriginalName": "ConsentUxClient.dll.mui",
+    "PerUserService": true
+  },
+  {
+    "Executable": "PrintWorkflowService.dll",
+    "Label": "PrintWorkflowUserSvc — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "PrintWorkflowUserSvc",
+    "OriginalName": "Windows.Graphics.Internal.Printing.WorkflowService.dll.MUI",
+    "PerUserService": true
+  },
+  {
+    "Executable": "BcastDVRUserService.dll",
+    "Label": "BcastDVRUserService — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "BcastDVRUserService",
+    "OriginalName": "bcastdvrusersvc.dll.mui",
+    "PerUserService": true
+  },
+  {
+    "Executable": "APHostService.dll",
+    "Label": "OneSyncSvc — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "OneSyncSvc",
+    "OriginalName": "APHostService.dll",
+    "PerUserService": true
+  },
+  {
+    "Executable": "MessagingService.dll",
+    "Label": "MessagingService — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "MessagingService",
+    "OriginalName": "MessagingService.dll.mui",
+    "PerUserService": true
+  },
+  {
+    "Executable": "PenService.dll",
+    "Label": "PenService — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "PenService",
+    "OriginalName": "PenService.dll.mui",
+    "PerUserService": true
+  },
+  {
+    "Executable": "AarSvc.dll",
+    "Label": "AarSvc — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "AarSvc",
+    "OriginalName": "AarSvc.dll",
+    "PerUserService": true
+  },
+  {
+    "Executable": "CloudRestoreLauncher.dll",
+    "Label": "CloudBackupRestoreSvc — Windows per-user service",
+    "Purpose": "OSComponent",
+    "Signers": [
+      "Microsoft Windows"
+    ],
+    "SourceUrl": "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+    "Product": "Microsoft® Windows® Operating System",
+    "WindowsComponent": true,
+    "ServiceName": "CloudBackupRestoreSvc",
+    "OriginalName": "CloudRestoreLauncher.dll.mui",
+    "PerUserService": true
+  }
+]

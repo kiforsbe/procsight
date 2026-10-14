@@ -51,11 +51,16 @@ command context identifies a renderer, GPU worker, extension host, language serv
 host. Specific roles remain visible after a generic executable assessment arrives. Derived
 command labels are display-only and never enter provider payloads or persistence.
 
-A bundled catalog supplies 15 common-task purpose rules for Windows components, browsers,
+A bundled catalog supplies 373 process/service definitions for Windows components, applications,
 and developer runtimes. These are shared definitions with reference links, gated by verified
 signer and product/original-name metadata. They do not declare a task safe or essential.
 Learned findings and fresh user corrections take precedence; purpose conflicts remain unresolved.
-Inspect the bundled catalog in Knowledge. Command collection still follows the chosen privacy mode.
+Search the bundled catalog in Knowledge by executable, service, product, or publisher. Publisher-only
+references leave purpose unknown. Service rules verify the configured executable or service DLL;
+the host's signature cannot authenticate its DLL. Loaded-module state is not verified.
+Local command rules also recognize Python modules, .NET operations, PowerShell invocation modes,
+and language-server entry points. They never execute scripts or decode encoded payloads.
+Command collection still follows the chosen privacy mode.
 The Windows native host
 in VidVNC informed the WinUI shell, spacing, preferences, and component boundaries.
 

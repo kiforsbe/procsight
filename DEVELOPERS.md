@@ -86,6 +86,15 @@ data, never executable code.
 
 ## Contributions and verification
 
+The embedded [common catalog](src/ProcSight.Core/Rules/common-tasks.json) contains shared
+process/service definitions, not a machine inventory. Extend it with public file/product/service
+identifiers and reference links; never retain machine paths, per-user instance suffixes, command
+arguments, hashes, state, or PIDs. Product variants and service scopes need distinct IDs.
+Missing product/original-file evidence permits only an explicit publisher reference with unknown
+purpose. Test wrong signers, unsigned files, and service host/module separation when adding gates.
+The [local command matcher](src/ProcSight.Core/Rules/LocalCommandRules.cs) uses bounded tokenization
+and fixed declarative tables. It never interprets script contents or decodes PowerShell payloads.
+
 Keep changes focused and describe their purpose, validation, and limitations. Use synthetic
 process/service fixtures with no personal paths, credentials, or real command-line dumps.
 Real API keys and machine metadata must remain outside the repository.

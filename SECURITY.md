@@ -61,6 +61,14 @@ native handles; an icon is cosmetic and never identity or security evidence.
 AI classifications are not antivirus verdicts. A legitimate signer or cached explanation
 does not alone establish that a running process is safe.
 
+Services use configuration evidence from WMI and read-only registry values. Their configured
+executable or DLL is hashed and verified separately from the host. A verified host signature
+does not authenticate a hosted DLL; actual loaded-module state is not established. Inaccessible,
+network, and ambiguous unquoted executable paths remain unavailable. Verification uses offline
+WinVerifyTrust, so it does not establish current online revocation status. Publisher-only
+references identify a publisher family while leaving purpose unresolved.
+Local command rules never execute code, decode encoded commands, or inspect interpreter payloads.
+
 ## Handling sensitive data during development
 
 Use synthetic fixtures and redact diagnostic material before sharing. Ignore local secrets,

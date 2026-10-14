@@ -16,11 +16,11 @@ Locked restore and native Release build passed with zero warnings/errors. Test r
 
 | Project | Passed | Focus |
 | --- | ---: | --- |
-| Core | 37 | Identity/privacy/rules and common catalog gates, signer subjects, conflicts |
-| Application | 13 | Stable ordering, group churn, tree collapse, local roles/scripts, 500-process churn |
+| Core | 49 | Identity/privacy/rules and common catalog gates, signer subjects, conflicts |
+| Application | 23 | Stable ordering, group churn, tree collapse, local roles/scripts, 500-process churn |
 | Infrastructure | 32 | Persistence/providers/coordinator, common-purpose evaluation offline |
-| Windows | 13 | Native reads, real icons, signed service-host matching, preferences/credentials |
-| Total | 95 | No failed or skipped tests |
+| Windows | 18 | Native reads, real icons, signed service-host matching, preferences/credentials |
+| Total | 122 | No failed or skipped tests |
 
 Key behaviors covered include same-name owners at different paths, PID reuse, all three
 classification axes, rejected name-only rules, expired referenced evidence, changed-owner
@@ -65,7 +65,7 @@ capture returned the background window, and input failed with unavailable coordi
 geometry. Therefore desktop clicks, keyboard/screen-reader behavior, and live caption/Mica
 appearance are not claimed verified by that tool.
 
-Six Mermaid class, sequence, and state diagrams in [ARCHITECTURE.md](../ARCHITECTURE.md) were
+Eight Mermaid class, sequence, and state diagrams in [ARCHITECTURE.md](../ARCHITECTURE.md) were
 parsed and rendered locally. Local documentation targets and whitespace were checked.
 
 ## Outstanding acceptance work
@@ -90,3 +90,17 @@ existing post-reconciliation action refresh; collapse now selects the parent exp
 
 Disk/network counters remain unavailable; GPU collection and management/cleanup actions are
 deferred. Missing/inaccessible executable artwork uses a fallback native symbol.
+
+## Signed catalog and invocation rules extension
+
+The same Release verification covers 373 bundled references (96 process/277 service), scoped
+unique IDs, actual .NET signer/product metadata, publisher-only unknown purpose, separate service
+host/implementation proofs, module replacement, private service-argument exclusion, per-user
+suffix constraints, and Windows servicing/Defender location gates. Runtime tests cover Python,
+.NET and PowerShell roles, opaque inline code, option arity, and script-argument boundaries.
+Independent focused review found two coverage/parsing defects; both have regression tests.
+
+The catalog was curated from read-only local observations into public identifiers and references.
+The real inventory remains ignored scratch data and is not distributed. Windows enrichment does
+not verify actual loaded service modules or online certificate revocation. Searchable catalog
+UI builds successfully; its physical desktop input remains part of outstanding UI validation.

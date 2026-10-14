@@ -23,6 +23,13 @@ labels stay transient. Icon loading is bounded, cached, off-thread, and releases
 
 ## Product boundaries
 
+- Bundled definitions live in `src/ProcSight.Core/Rules/common-tasks.json`; maintain stable
+  executable/product/service scopes, public reference links, and signature/metadata gates.
+  Never copy a real inventory, instance suffix, personal path, or command argument into it.
+- Service implementation and host proofs are separate. Configuration enrichment does not
+  establish loaded-module state. Publisher-only references must preserve unknown purpose.
+- Local command rules describe invocation only. Keep interpreter payloads opaque and retain
+  only allowlisted command categories in knowledge; arbitrary script labels remain transient.
 - First release: understand and investigate processes/services, without modifying them.
 - Local evidence and reusable rules precede automatic provider analysis.
 - Keep purpose, security, and optionality separate; unknown and unavailable are valid.

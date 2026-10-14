@@ -10,6 +10,7 @@ public sealed class WindowsSnapshotSource : IWindowsSnapshotSource
     private DateTimeOffset servicesAt;
     private (long Idle,long Kernel,long User)? priorSystemTimes;
     private int forceServiceRefresh;
+    private int serviceCursor;
     public void RequestRefresh()=>Interlocked.Exchange(ref forceServiceRefresh,1);
     public async Task<MachineSnapshot> CaptureAsync(CommandLineMode mode, CancellationToken ct)
     {
@@ -28,7 +29,19 @@ public sealed class WindowsSnapshotSource : IWindowsSnapshotSource
                     else if(executable.FullPath is not null && remaining-->0) executable=await enricher.EnrichAsync(executable,ct);
                     enriched.Add(process with { Executable=executable });
                 }
-                return snapshot with { Processes=enriched };
+                var serviceRows=snapshot.Services.ToArray(); var budget=8;
+                for(var offset=0;offset<serviceRows.Length;offset++) {
+                    var index=(serviceCursor+offset)%serviceRows.Length; var service=serviceRows[index];
+                    async Task<ExecutableMetadata?> Enrich(ExecutableMetadata? file) {
+                        if(file is null) return null;
+                        if(enricher.TryGetCached(file,out var value)) return value;
+                        return budget-->0?await enricher.EnrichAsync(file,ct):file;
+                    }
+                    serviceRows[index]=service with { Implementation=await Enrich(service.Implementation),HostExecutable=await Enrich(service.HostExecutable),
+                        BinaryPath=mode==CommandLineMode.Off?null:service.BinaryPath };
+                }
+                serviceCursor=serviceRows.Length==0?0:(serviceCursor+4)%serviceRows.Length;
+                return snapshot with { Processes=enriched,Services=serviceRows };
             },ct);
         }
         finally { captureGate.Release(); }
@@ -54,7 +67,7 @@ public sealed class WindowsSnapshotSource : IWindowsSnapshotSource
                 var executable = metadata.Read(name, path) with { PackageIdentity=counters.Package };
                 var sample = sampler.Sample(key,counters.Cpu,counters.Memory,now,Environment.ProcessorCount);
                 rows.Add(new(key,process.Value.Parent, executable, sample,
-                    services.Where(s => s.HostPid == pid).Select(s => s.Name).ToArray(),
+                    services.Where(s => s.HostPid == pid && (started is null || started<=servicesAt)).Select(s => s.Name).ToArray(),
                     commands.TryGetValue(pid, out var command) ? new(command, now) : null));
         }
         sampler.Prune(rows.Select(r => r.Key).ToHashSet());

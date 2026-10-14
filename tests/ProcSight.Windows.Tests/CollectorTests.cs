@@ -28,6 +28,7 @@ public sealed class CollectorTests
         }
         Assert.Contains(snapshot.Processes, p => p.Key.Pid == Environment.ProcessId);
         Assert.All(snapshot.Processes, p => Assert.Null(p.CommandLine));
+        Assert.All(snapshot.Services, s => Assert.Null(s.BinaryPath));
     }
     [Fact] public async Task ProtectedReadsDoNotThrowFirstChanceProcessExceptions()
     {

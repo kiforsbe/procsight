@@ -42,9 +42,12 @@ public sealed class IdentityResolver
         }
         foreach (var service in snapshot.Services)
         {
-            var facts = new Dictionary<string,string> { ["service"] = service.Name, ["product"] = service.DisplayName };
-            result.Add(new(MakeIdentity("service:" + service.Name + "|" + service.BinaryPath), service.DisplayName,
-                null, null, service, facts, [new("service:" + service.Name, DataOrigin.ShareableMetadata,
+            var facts = service.Implementation is { } module?Facts(module):new Dictionary<string,string>();
+            facts["service"]=service.Name;
+            var identity=MakeIdentity("service:"+service.Name+"|"+service.HostExecutable?.FullPath+"|"+service.Implementation?.FullPath+
+                "|"+service.Implementation?.ContentHash+"|"+service.Implementation?.Signature+"|"+service.Implementation?.VerifiedSigner);
+            result.Add(new(identity, service.DisplayName,
+                null, null, service, facts, [new("service:" + identity.Value, DataOrigin.ShareableMetadata,
                     snapshot.CapturedAt, null, "ServiceMetadata", facts)], [DataOrigin.ShareableMetadata]));
         }
         return result;

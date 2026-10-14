@@ -11,7 +11,7 @@ public sealed partial class MainWindow
         panel.Children.Add(new TextBlock { Text="Knowledge",FontSize=24 });
         panel.Children.Add(new TextBlock { Text=$"{ProcSight.Core.Rules.KnownTaskCatalog.Definitions.Count} bundled common-task rules · purpose only · require verified identity metadata",TextWrapping=TextWrapping.Wrap });
         var common=new Button { Content="Inspect bundled common-task rules…" };
-        common.Click+=async(_,_)=>await MessageAsync("Common-task catalog",System.Text.Json.JsonSerializer.Serialize(ProcSight.Core.Rules.KnownTaskCatalog.Definitions,new System.Text.Json.JsonSerializerOptions { WriteIndented=true }));
+        common.Click+=async(_,_)=>await InspectCommonTasksAsync();
         panel.Children.Add(common);
         var count=new TextBlock { Text="Loading reusable rules…",TextWrapping=TextWrapping.Wrap }; panel.Children.Add(count);
         var clear=new Button { Content="Clear generated knowledge…" }; clear.Click+=async(_,_)=>await ClearKnowledgeAsync(ClearScope.GeneratedKnowledge);
@@ -58,6 +58,29 @@ public sealed partial class MainWindow
             }
             catch { count.Text="Knowledge unavailable. Local collection continues; use Settings to preserve and recover the database."; }
         }
+    }
+    private async Task InspectCommonTasksAsync()
+    {
+        var panel=new StackPanel { Spacing=8,Width=560 };
+        var search=new TextBox { PlaceholderText="Filter by process, service, product, or publisher" };
+        var list=new ListView { Height=240,SelectionMode=ListViewSelectionMode.Single };
+        var information=new TextBlock { TextWrapping=TextWrapping.Wrap,IsTextSelectionEnabled=true };
+        var link=new HyperlinkButton { Content="Open reference",Visibility=Visibility.Collapsed };
+        panel.Children.Add(search); panel.Children.Add(list);
+        panel.Children.Add(new ScrollViewer { Content=information,MaxHeight=160 }); panel.Children.Add(link);
+        void Filter() {
+            list.ItemsSource=ProcSight.Core.Rules.KnownTaskCatalog.Definitions.Where(d=>
+                (d.Label+" "+d.Executable+" "+d.ServiceName+" "+d.Product+" "+string.Join(" ",d.Signers)).Contains(search.Text,StringComparison.OrdinalIgnoreCase)).ToArray();
+        }
+        list.DisplayMemberPath="Label";
+        list.SelectionChanged+=(_,_)=> {
+            if(list.SelectedItem is not ProcSight.Core.Rules.KnownTaskDefinition d) return;
+            information.Text=$"{d.Executable}\nService: {d.ServiceName ?? "Process rule"}\nProduct: {d.Product ?? "Unknown"}\nOriginal file: {d.OriginalName ?? d.Executable}\nVerified signer: {string.Join(", ",d.Signers)}\n"+
+                (d.PublisherOnly?"Publisher reference only; purpose remains unknown.":$"Purpose: {d.Purpose}. Security and optionality remain unresolved.");
+            link.NavigateUri=new Uri(d.SourceUrl); link.Visibility=Visibility.Visible;
+        };
+        search.TextChanged+=(_,_)=>Filter(); Filter();
+        await new ContentDialog { XamlRoot=PageContent.XamlRoot,Title="Bundled process and service rules",Content=panel,CloseButtonText="Close" }.ShowAsync();
     }
     private async Task ClearKnowledgeAsync(ClearScope scope)
     {

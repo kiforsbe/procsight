@@ -285,7 +285,7 @@ a newly reused PID. Shutdown cancels queued work and stops collection.
 
 ## Rule lifecycle
 
-The bundled catalog contains 15 machine-independent reference definitions. It is versioned
+The bundled catalog contains 373 machine-independent process/service reference definitions. It is versioned
 with source rather than mixed into the learned-rule database. Verified certificate subjects
 are parsed as distinguished names; product/original-file metadata gates matching. Windows
 localized `.exe.mui` original filenames are accepted only for the corresponding component.
@@ -390,7 +390,8 @@ maintenance pauses observation and drains queued work before explicit recovery/r
 Toolhelp and nonthrowing native process queries enumerate protected processes without using
 exception-based access probes. Resource intervals and unavailable facts remain explicit.
 Service configuration uses WMI with a ten-second cache; command lines are WMI opt-in only.
-Executable enrichment hashes/verifies at most sixteen uncached files per poll and caches by
+Executable enrichment hashes/verifies at most sixteen uncached process files and eight service
+files per poll, rotates service work for fairness, and caches by
 file stamps. Offline WinVerifyTrust does not initiate online certificate retrieval.
 
 Do not persist continuous resource history or raw snapshot DTOs. Prune unreferenced history
@@ -442,6 +443,68 @@ fallback when unavailable. Pixels are cosmetic, never identity or security evide
 creates WinUI bitmaps on its dispatcher and checks asset identity before applying async results.
 
 ## Extensions and maintenance
+
+### Authenticated shared knowledge and invocation hints
+
+The embedded [catalog](src/ProcSight.Core/Rules/common-tasks.json) supplies 373 definitions:
+96 process references and 277 service references, including publisher-only hints. IDs include
+executable/product/service scope. Full matches require verified signer and exact product or
+original-file/Windows-path evidence. Publisher-only matches retain unknown purpose. Reference
+links provide product/Windows background; configured metadata supplies the file evidence.
+Purpose rules cannot establish security, optionality, or exact invocation behavior.
+
+[ServiceBinaryReader](src/ProcSight.Windows/Collection/ServiceBinaryReader.cs) reads configured
+executables and root/Parameters ServiceDll values. Per-user template fallback requires a hex
+instance suffix and the registry per-user Type bit. Network and ambiguous unquoted paths are
+unavailable. [Collection](src/ProcSight.Windows/Collection/WindowsSnapshotSource.cs) separately
+hashes/verifies the implementation and host; the resolver scopes knowledge to implementation
+path/hash/signature and uses identity-scoped evidence IDs. Raw configured arguments are JsonIgnore
+and excluded from shareable identities. Configuration does not establish loaded-module state.
+
+This UML class view separates authenticated file evidence from invocation hints:
+
+```mermaid
+classDiagram
+    ServiceSnapshot o-- ExecutableMetadata : configured implementation
+    ServiceSnapshot o-- ExecutableMetadata : configured host
+    IdentityResolver --> ServiceSnapshot : scopes module identity
+    KnownTaskCatalog --> ExecutableMetadata : verified signer and metadata
+    KnownTaskCatalog --> LocalAnalysis : purpose or unknown publisher
+    LocalCommandRules --> LocalCommandRole : bounded token rules
+    ProcessRoleLabels --> LocalCommandRole : transient display label
+    AnalysisCoordinator --> LocalCommandRole : allowlisted category only
+    class LocalCommandRole {
+        Label
+        Category
+        RuleId
+    }
+```
+
+[LocalCommandRules](src/ProcSight.Core/Rules/LocalCommandRules.cs) uses bounded Windows quote
+tokenization and fixed switch/entry-point/module tables. Inline interpreter code and encoded
+payloads remain opaque; no rule can execute or fetch code. Only Renderer/Utility/Worker/CLI
+categories enter command-origin evidence, while arbitrary entry-point names remain display-only.
+Local-only HMAC context and derived findings retain their existing cloud exclusion.
+
+The UML sequence shows the distinction between service host and implementation verification:
+
+```mermaid
+sequenceDiagram
+    participant W as WMI and read-only registry
+    participant C as Background collector
+    participant V as Offline file verifier
+    participant I as Identity resolver
+    participant K as Shared catalog
+    participant U as Investigation UI
+    C->>W: Read configured host and service implementation
+    W-->>C: Local paths or unavailable
+    C->>V: Bounded cached hash and signature checks
+    V-->>C: Separate host and implementation proofs
+    C->>I: Snapshot without persisted raw arguments
+    I->>K: Match own module signer and metadata
+    K-->>U: Purpose reference or unknown
+    Note over U: Host proof cannot authenticate service DLL. Loaded module is unverified
+```
 
 Phase 2 adds an explicitly initiated management-command boundary with fresh target identity,
 permission, and impact checks. Phase 3 adds installation/startup/dependency evidence for

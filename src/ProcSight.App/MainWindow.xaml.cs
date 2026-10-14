@@ -144,7 +144,10 @@ public sealed partial class MainWindow : Window
         detail.Text = $"{row.Name}\n\nOwnership: {e.Owner ?? "Unknown"}\n\n" +
             (localRole.UsesCommandContext?$"Local role: {localRole.Label}\n{localRole.Explanation}\n\n":"")+
             (e.Process is { } p ? $"PID: {p.Key.Pid}\nExecutable: {p.Executable.Name}\nPath: {p.Executable.FullPath ?? "Unavailable"}\nProduct: {p.Executable.Product ?? "Unavailable"}\nCompany metadata: {p.Executable.Company ?? "Unavailable"}\nSignature: {p.Executable.Signature}\nServices: {string.Join(", ",p.ServiceNames)}" :
-            $"Service: {e.Service!.Name}\nState: {e.Service.State}\nStart mode: {e.Service.StartMode}\nHost PID: {e.Service.HostPid}\nBinary: {e.Service.BinaryPath}") +
+            $"Service: {e.Service!.Name}\nState: {e.Service.State}\nStart mode: {e.Service.StartMode}\nHost PID: {e.Service.HostPid}\n"+
+            $"Configured implementation: {e.Service.Implementation?.FullPath ?? "Unavailable"}\nImplementation signature: {e.Service.Implementation?.Signature.ToString() ?? "Unavailable"}\n"+
+            $"Implementation signer: {e.Service.Implementation?.VerifiedSigner ?? "Unavailable"}\nConfigured host signature: {e.Service.HostExecutable?.Signature.ToString() ?? "Unavailable"}\n"+
+            "Configuration identifies a file; loaded-module state has not been verified. Host signature does not authenticate its service DLL.") +
             "\n\n" + FormatAnalysis(e);
         _=ShowEvidenceAsync(e);
     }
