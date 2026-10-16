@@ -49,13 +49,39 @@ validate a maximum of 32 profiles under the existing bounded atomic JSON store.
 [Migration](src/ProcSight.Application/Settings/ConnectionSettingsMigration.cs) copies existing API
 credentials to independent protected slots before publishing profiles, preserving analysis/sharing
 permissions and defaulting fallback off. Legacy fields remain for compatible migration; routing/UI
-integration is in progress. Account references are opaque; no secret enters ordinary preferences.
+integration uses native selectable connection settings. Account references are opaque; no secret
+enters ordinary preferences.
 [ConnectionRouter](src/ProcSight.Application/Analysis/ConnectionRouter.cs) now resolves enabled
 profiles by priority, with LocalOnly preferring a local model. The coordinator pauses authentication
 per connection and only traverses the rest of the route on opted-in availability/rate/auth fallback.
 Every attempt rebuilds its destination projection and reserves online budget; malformed output,
 refusals, cancellation and valid Unknown results never trigger fallback. Activity records the actual
 provider/model and a typed fallback reason; accepted rule provenance uses the winning connection.
+
+[ImmediateSettingsController](src/ProcSight.Application/Settings/ImmediateSettingsController.cs)
+serializes persistence and rejects stale completions. A restrictive overlay revokes sharing before
+waiting for disk; enabling waits for successful persistence. WinUI keeps incomplete drafts outside
+active policy, debounces text 400 ms, and flushes valid text on focus loss/unload. API-key edits use
+explicit Enter/focus loss; a changed endpoint drops the prior credential binding.
+[ConnectionTester](src/ProcSight.Application/Analysis/ConnectionTester.cs) invokes exactly the selected
+profile with synthetic metadata and budget/activity accounting, independent of enabled/fallback routing.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Valid
+    Valid --> Draft: edit text
+    Draft --> Draft: incomplete / inline validation
+    Draft --> Persisting: valid / debounce or focus loss
+    Valid --> Persisting: toggle or selection
+    Persisting --> Valid: saved / publish newest policy
+    Persisting --> Unsaved: storage failure
+    Unsaved --> Persisting: retry edit
+    note right of Persisting
+        Revoke permissions immediately.
+        Enable only after persistence.
+        Ignore superseded completion.
+    end note
+```
 
 ```mermaid
 sequenceDiagram

@@ -105,3 +105,9 @@ names trim before neighboring metadata. File icons are cosmetic, not authenticat
 Settings account/model selectors share a row when there is room and stack at narrow widths.
 Keep Refresh models beside the model selector, group account actions compactly, and preserve
 native keyboard focus order when controls move between rows.
+
+Settings apply immediately: native toggles/selections apply directly, valid text edits debounce
+400 ms and flush on focus loss. Show incomplete values inline and retain the last valid setting.
+API keys commit only on Enter/focus loss, never per keystroke. Use the compact selectable connection
+list for enabling, ordering and explicit testing; Test connection targets the selected row, not a
+hidden global provider. No Save button or stale “then save” guidance belongs on the settings page.

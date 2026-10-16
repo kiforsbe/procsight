@@ -6,7 +6,7 @@ public sealed partial class MainWindow
 {
     private string? settingsChatGptAccountId;
     private string? settingsChatGptModel;
-    private FrameworkElement BuildChatGptSettings(ComboBox provider,TextBox model,Action signedOut)
+    private FrameworkElement BuildChatGptSettings(ComboBox provider,TextBox model,Action signedOut,ProcSight.Core.Models.ProviderSettings? configured=null)
     {
         var accounts=new ComboBox { Header="Saved ChatGPT accounts",DisplayMemberPath="Label",HorizontalAlignment=HorizontalAlignment.Stretch };
         var models=new ComboBox { Header="Models available to this account",DisplayMemberPath="DisplayName",HorizontalAlignment=HorizontalAlignment.Stretch };
@@ -19,7 +19,7 @@ public sealed partial class MainWindow
         void LoadAccounts()
         {
             updating=true;
-            try { accounts.ItemsSource=ChatGpt.Accounts; accounts.SelectedItem=ChatGpt.Accounts.FirstOrDefault(a=>a.Id==(policy.Provider?.Id=="chatgpt"?policy.Provider.AccountId:ChatGpt.ActiveAccountId));
+            try { accounts.ItemsSource=ChatGpt.Accounts; accounts.SelectedItem=ChatGpt.Accounts.FirstOrDefault(a=>a.Id==(configured?.AccountId??(policy.Provider?.Id=="chatgpt"?policy.Provider.AccountId:ChatGpt.ActiveAccountId)));
                 settingsChatGptAccountId=(accounts.SelectedItem as ChatGptAccount)?.Id; settingsChatGptModel=null; }
             catch { feedback.Text="Protected ChatGPT account storage is unavailable."; }
             finally { updating=false; }
@@ -32,7 +32,7 @@ public sealed partial class MainWindow
                 var list=await ChatGpt.ListModelsAsync(account.Id,lifetime.Token);
                 if(unloaded||version!=modelLoadVersion||accounts.SelectedItem is not ChatGptAccount selected||selected.Id!=account.Id) return;
                 models.ItemsSource=list; models.SelectedItem=list.FirstOrDefault(m=>m.Slug==model.Text);
-                feedback.Text=list.Count==0?"No eligible models returned. Reconnect this account or review its ChatGPT plan permissions.":"Choose a model, then save settings to use this connection.";
+                feedback.Text=list.Count==0?"No eligible models returned. Reconnect this account or review its ChatGPT plan permissions.":"Model changes apply automatically. Sign-in does not enable analysis.";
             } catch(ChatGptAuthenticationException e) { feedback.Text=e.Message; }
             catch(OperationCanceledException) { feedback.Text="Model discovery cancelled."; }
             catch { feedback.Text="Could not load models. Reconnect this account or check its permissions and connection."; }
@@ -71,9 +71,9 @@ public sealed partial class MainWindow
             if(accounts.SelectedItem is not ChatGptAccount account) return;
             signOut.IsEnabled=false;
             try {
-                if(policy.Provider?.Id=="chatgpt"&&policy.Provider.AccountId==account.Id) {
-                    var next=policy with { AutomaticEnabled=false,Revision=policy.Revision+1 }; preferences.Save(next,presentation); policy=next;
-                    await coordinator.ChangePolicyAsync(next,lifetime.Token); await coordinator.WaitForIdleAsync(lifetime.Token);
+                if(policy.Provider?.AccountId==account.Id||policy.Connections?.Any(p=>p.Provider.AccountId==account.Id)==true) {
+                    await ApplySettingsAsync(policy with { Connections=policy.Connections?.Select(p=>p.Provider.AccountId==account.Id?p with { Enabled=false }:p).ToArray() });
+                    await coordinator.WaitForIdleAsync(lifetime.Token);
                     signedOut();
                 }
                 var revoked=await ChatGpt.SignOutAsync(account.Id,lifetime.Token);
@@ -104,7 +104,7 @@ public sealed partial class MainWindow
         selectors.SizeChanged+=(_,e)=>Arrange(e.NewSize.Width); Arrange(0);
         usage.Padding=new Thickness(0); usage.HorizontalAlignment=HorizontalAlignment.Left;
         var expander=SettingsExpander("\uE77B","ChatGPT account","Connect with your ChatGPT plan",info,selectors,buttons,usage,feedback);
-        expander.IsExpanded=policy.Provider?.Id=="chatgpt";
+        expander.IsExpanded=configured?.Id=="chatgpt"||policy.Provider?.Id=="chatgpt";
         expander.Expanding+=async(_,_)=>await LoadModelsAsync();
         if(expander.IsExpanded) _=LoadModelsAsync();
         expander.Unloaded+=(_,_)=> { unloaded=true; signingIn?.Cancel(); ++modelLoadVersion; };

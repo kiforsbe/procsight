@@ -134,6 +134,11 @@ or invented explanations about ownership.
 
 ## Native UI design maintenance
 
+Settings apply valid values immediately, with 400 ms text debounce and focus-loss flush; partial
+drafts cannot replace active configuration. API keys commit only on Enter/focus loss. Restrictive
+changes cancel dispatch before disk writes; failed persistence must not enable broader sharing.
+Tests target the selected connection with synthetic metadata and never implicitly invoke fallback.
+
 Read and apply [the Windows 11 / WinUI 3 design guide](docs/WINUI3-DESIGN.md) before changing UI.
 Keep its project conventions current with shared UI changes. Use actual native controls and theme
 resources, compact selectable lists, adaptive details, structured evidence, and contextual feedback.

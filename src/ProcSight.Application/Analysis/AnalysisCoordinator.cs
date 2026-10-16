@@ -130,7 +130,7 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
             if(config.FallbackEnabled) { fallbackReason=ProviderErrorKind.Auth; continue; }
             Publish(entity,AnalysisState.Failed,local,"This connection needs sign-in or updated credentials in Settings."); return;
         }
-        var useLocal=connection.IsLocal;
+        var useLocal=ConnectionRouter.IsLocal(config,connection);
         var selected=connection.Provider;
         var provider=providers(selected,useLocal);
         Publish(entity,AnalysisState.Analyzing,local);

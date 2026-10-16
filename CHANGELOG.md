@@ -7,6 +7,11 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Immediate settings with inline validation, independent selectable connection configuration,
+  enable/disable and priority controls, and a selected-connection synthetic test action. Removed
+  the Save button; incomplete edits retain the last valid configuration. Sharing restrictions take
+  effect before storage writes, and endpoint changes discard previous API-key bindings.
+
 - Enabled connection priority routing with opt-in availability/authentication fallback, independent
   authentication pauses, and per-attempt provider activity/provenance. Settings integration follows.
 

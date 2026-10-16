@@ -19,6 +19,10 @@ public sealed partial class MainWindow
         var output=Path.GetFullPath(args[2]);
         if(args.Length>5&&args[5].StartsWith("settings",StringComparison.Ordinal)) {
             chatGpt=new(new FixtureCredentials()); page="Settings";
+            policy=new(Connections:[
+                new("fixture-local",new("local",new("http://127.0.0.1:1234/v1"),"Local example model"),true,0),
+                new("fixture-plan",new("chatgpt",new("https://api.openai.com/v1"),"Example account model",AccountId:"fixture-account"),true,1),
+                new("fixture-api",new("openai",new("https://api.openai.com/v1"),"Example API model"),false,2)]);
         }
         presentation=new(Theme:args.Length>3&&args[3]=="Light"?"Light":"Dark",Grouped:args.Length>5&&args[5]=="groups"); sort=ProcSight.Application.Presentation.ProcessSort.Name;
         ConfigureChrome(); WindowRoot.Background=new SolidColorBrush(presentation.Theme=="Light"?Microsoft.UI.Colors.White:global::Windows.UI.Color.FromArgb(255,32,32,32));
@@ -156,6 +160,16 @@ public sealed partial class MainWindow
                     if(args[5]=="settings-expanded"&&PageContent.Children.FirstOrDefault() is Microsoft.UI.Xaml.Controls.ScrollViewer { Content:Microsoft.UI.Xaml.Controls.StackPanel settingsPanel })
                         settingsPanel.Children.OfType<Microsoft.UI.Xaml.Controls.Expander>().First().IsExpanded=true;
                     await Task.Delay(250); WindowRoot.UpdateLayout();
+                    Microsoft.UI.Xaml.Controls.Button? FindSettingsButton(DependencyObject root,string label) {
+                        if(root is Microsoft.UI.Xaml.Controls.Button button&&button.Content?.ToString()==label) return button;
+                        for(var index=0;index<VisualTreeHelper.GetChildrenCount(root);index++)
+                            if(FindSettingsButton(VisualTreeHelper.GetChild(root,index),label) is { } found) return found;
+                        return null;
+                    }
+                    if(FindSettingsButton(PageContent,"Save settings") is not null)
+                        throw new InvalidOperationException("Settings still require Save.");
+                    if(FindSettingsButton(PageContent,"Test connection") is null)
+                        throw new InvalidOperationException("Selected-connection test action missing.");
                 }
                 if(args.Length>5&&args[5].StartsWith("activity",StringComparison.Ordinal)) {
                     Navigation.SelectedItem=Navigation.MenuItems.OfType<Microsoft.UI.Xaml.Controls.NavigationViewItem>().First(i=>i.Tag?.ToString()=="AI activity");

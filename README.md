@@ -39,6 +39,9 @@ This is the actual XAML rendering, using synthetic processes and a synthetic ana
   and separately enabled online research with source links.
 - Direct **Continue with ChatGPT** connection for eligible ChatGPT plans, with account-specific
   models and protected renewable sessions. Live model discovery and targeted inference smoke checks passed.
+- Settings apply valid changes automatically. Configure independent connections, enable or disable
+  them, move them up/down in priority, and explicitly test the selected connection using synthetic
+  metadata. Fallback to another enabled connection is optional and off by default; API billing may apply.
 - An **AI activity** page showing queried processes/services, provider/model, retries, returned
   classifications and explanations, research evidence counts, and failures. The last 200 requests
   stay in memory, with filtering, Pause recording and Clear; raw transport/debug data is omitted.

@@ -143,5 +143,7 @@ public sealed partial class MainWindow : Window
         RefreshRows();
     }
     private void SavePresentation()
-    { if(preferences is null) return; try { preferences.Save(policy,presentation); } catch { runtimeWarning="View preferences could not be saved."; } }
+    { if(preferences is null) return; _=SaveViewAsync(); }
+    private async Task SaveViewAsync()
+    { try { if(!(await ApplySettingsAsync(policy)).Persisted) runtimeWarning="View preferences could not be saved."; } catch { runtimeWarning="View preferences could not be saved."; } }
 }
