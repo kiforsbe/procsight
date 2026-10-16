@@ -14,6 +14,15 @@ public sealed class FakeHttp(string body,HttpStatusCode status=HttpStatusCode.OK
 }
 public sealed class ProviderTests
 {
+    [Theory] [InlineData("failed")] [InlineData("cancelled")] [InlineData("in_progress")] [InlineData("incomplete")]
+    public async Task InlineSearchCannotAcceptPartialOutputBeforeSuccessfulCompletion(string status)
+    {
+        var body=JsonSerializer.Serialize(new { status,output=new[]{new { content=new[]{new { type="output_text",text="{\"assessments\":[],\"rules\":[]}" }} }} });
+        var http=new FakeHttp(body);
+        var result=await new OpenAiResponsesProvider(new("openai",new("https://api.openai.com/v1"),"model"),()=>"key",new(http))
+            .AnalyzeAsync(Payload() with { ResearchEnabled=true },default);
+        Assert.NotNull(result.Error); Assert.Null(result.Proposal); Assert.Null(result.ResearchEvidence);
+    }
     private static AnalysisPayload Payload()=>new(new("fixture"),new(){["name"]="node.exe"},[],null,0,AnalysisDestination.CloudModel);
     [Fact] public async Task ResponsesRequestUsesStrictSchema()
     {

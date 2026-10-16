@@ -2,6 +2,13 @@ using ProcSight.Core.Models;
 namespace ProcSight.Core.Privacy;
 public sealed class AnalysisProjection
 {
+    public static bool ResearchField(string field)=>field is "name" or "product" or "signer" or "hash" or "service" or "claim" or "threatHash";
+    public static AnalysisPayload ForResearchAnalysis(AnalysisPayload payload)=>payload with {
+        ResearchEnabled=true,CommandLine=null,Metadata=payload.Metadata.Where(f=>ResearchField(f.Key)).ToDictionary(),
+        Evidence=payload.Evidence.Where(e=>e.Origin is DataOrigin.ShareableMetadata or DataOrigin.Research)
+            .Select(e=>e with { Facts=e.Facts.Where(f=>ResearchField(f.Key)).ToDictionary() }).ToList() };
+    public static bool ResearchSafe(AnalysisPayload payload)=>payload.CommandLine is null&&
+        payload.Metadata.Keys.All(ResearchField)&&payload.Evidence.All(e=>(e.Origin is DataOrigin.ShareableMetadata or DataOrigin.Research)&&e.Facts.Keys.All(ResearchField));
     private static readonly HashSet<string> Allowed=["name","path","hash","product","version","package","signer","owner","ownerIdentity","service"];
     public static bool IdentifyingField(string field)=>field is "path" or "package" or "owner" or "ownerIdentity" or "service";
     public AnalysisPayload Build(ResolvedEntity entity,AnalysisPolicy policy,AnalysisDestination destination)

@@ -1,6 +1,6 @@
 # Development verification
 
-Recorded 2026-10-16. ProcSight is an unreleased development preview, not a completed
+Recorded 2026-10-17. ProcSight is an unreleased development preview, not a completed
 release certification. No real API credentials, process dumps, or paid provider requests
 were used for automated verification.
 
@@ -16,11 +16,36 @@ Locked restore and native Release build passed with zero warnings/errors. Test r
 
 | Project | Passed | Focus |
 | --- | ---: | --- |
-| Core | 67 | Identity/privacy/rules and validated independent connection profiles |
-| Application | 102 | Presentation, immediate settings races, profile removal and elevated session privacy |
-| Infrastructure | 114 | Storage/OAuth/SSE, profile routing/fallback, scoped tests and consent revocation |
+| Core | 70 | Identity/privacy/rules, research projection and independent connection profiles |
+| Application | 109 | Presentation, rejection/research diagnostics, routing and immediate settings |
+| Infrastructure | 131 | Storage/OAuth/SSE, inline search/citation validation and scoped rule decisions |
 | Windows | 49 | Collection/lifetimes/icons, credential binding, tray metrics/lifecycle and elevation handoff |
-| Total | 332 | No failed or skipped tests |
+| Total | 359 | No failed or skipped tests |
+
+### 2026-10-17 analysis and account-dialog corrections
+
+Locked Release verification passed with zero warnings/errors. Regression tests first reproduced
+case/path-root false rejection, early invocation-scope rejection, ChatGPT routing exclusion, source
+11 incorrectly rejected after truncation, and failed inline responses accepted as valid. The corrected
+tests pass, with forged source references still rejected and command/private metadata excluded from
+tools-enabled requests. Original rejection codes and research outcome survive SQLite restart.
+
+Separate from automated tests, an authorized live smoke used the configured ChatGPT account and
+synthetic public Notepad metadata only. The first research request exposed the unsupported
+max_tool_calls parameter. After its removal, web search returned one cited record in 8.4 seconds.
+The final combined analysis/search request returned all three assessments, ten attributable source
+records and one tool call in 15.7 seconds. Actual model discovery returned seven eligible models in
+0.8 seconds. These are observations, not performance guarantees; no tokens/account IDs, actual local
+process data or raw provider responses were copied into the repository.
+
+The native delayed-model fixture reproduced permanent disabled/empty controls after panel reattachment
+before the fix, then passed with a populated enabled picker and selected configured model afterward.
+Wide/narrow light/dark fixtures validate viewport fit. Rejected/Unknown rule fixtures render prominent
+decision/recovery and research status. [Account dialog](images/chatgpt-models-dialog.png) and
+[rejection details](images/rules-rejection-details.png) contain synthetic data only. Independent review
+findings about decision provenance, adaptive button positions, source truncation and terminal-success
+checks were addressed with regression coverage. Keyboard/Narrator, high contrast and additional display
+scaling remain unverified; live checks do not establish release readiness.
 
 The 2026-10-16 account-settings layout change passed the full locked-restore/Release/test
 script above (zero build warnings/errors). Synthetic actual-XAML captures at 1100px dark

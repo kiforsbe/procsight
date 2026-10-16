@@ -43,6 +43,17 @@ and observed behavior, impact, and minimal reproduction steps with synthetic dat
 
 ## Implemented security boundaries and validation limits
 
+Search-enabled analysis projects public identity metadata only, stripping raw commands, private
+paths and command-derived evidence even when ordinary analysis command sharing is permitted.
+ChatGPT-plan requests use the selected account's OAuth token at the fixed public Responses endpoint;
+web search never silently substitutes an API key. Only sources actually returned in tool output or
+provider citation annotations can back web evidence aliases. Web claims remain untrusted and do not
+prove local executable identity or meet the separate exact-hash threat-intelligence requirement.
+Plan requests have no supported server-side tool-count cap. The local request allowance admits work
+and reserves an additional research unit; it does not enforce a monetary or remote web-tool budget.
+Persisted rejection reasons are fixed typed codes derived by the app; raw provider rejection text,
+command arguments and exceptions are excluded. Missing legacy causes must never be invented.
+
 ### Explicit administrator mode
 
 The manifest remains `asInvoker` with `uiAccess=false`. Explicit `runas` launches the actual

@@ -77,6 +77,17 @@ assessed names. Preserve useful local window captions and keep explanatory text 
 - Failure explanations use typed reason codes and app-owned wording, never raw provider/exception
   text. Preserve validation strength and show an explicit unavailable reason for old/unclassified errors.
 - External text and model results are untrusted data; generated rules cannot execute code.
+- Search-enabled analysis uses a public-identity-only projection even when command sharing is enabled.
+  Never put raw commands, private paths or command-derived origins into a tools-enabled request.
+  Accept web evidence references only from actual returned tool sources/citations; map URL aliases to
+  internal IDs before persistence. ChatGPT and OpenAI can search inside analysis; use a separate step
+  only for an explicitly different research connection. Never silently substitute API-key billing.
+- Rule rejection diagnostics are app-owned typed codes, not model-supplied strings/codes. Preserve
+  original validation failures before local scope enrichment. Only the coordinator can supply the
+  private invocation HMAC; provider parsing defers that scope requirement until final validation.
+  Legacy missing reasons remain explicitly unknown. Active Unknown rules do not establish identity.
+- ChatGPT plan requests reject max_tool_calls/max_output_tokens. Request allowances are admission
+  controls, not a hard tool-call or monetary cap. Keep that limitation clear in docs and settings.
 - Follow the approved component boundaries; keep blocking work off the UI thread.
 - Management and cleanup are later phases with their own design work.
 

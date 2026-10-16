@@ -7,6 +7,16 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Web search inside ChatGPT-plan/OpenAI analysis requests, with attributable source evidence,
+  explicit research outcomes and no silent change of billing connection. Search-enabled requests
+  exclude private command/path context. A different explicitly chosen research connection still
+  uses a separate research step. Request allowances are not monetary or strict ChatGPT tool caps.
+- Prominent recorded rejection causes and recovery guidance in rule details; legacy rules explicitly
+  distinguish missing historical diagnostics from current evidence validation. Fixed false rejection
+  from case/path-root comparison and validation before private invocation scope was attached.
+- Responsive ChatGPT configuration without clipped nested content. Model discovery recovers after
+  dialog reattachment, rejects stale results and exposes loading, timeout and retry feedback.
+
 - Restructured connection management into a compact native toolbar, selectable priority list and
   separate fallback row. Add/Configure opens a per-connection dialog; Remove deletes profiles from
   routing without signing out shared accounts. Routine success messages no longer occupy settings rows.

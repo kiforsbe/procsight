@@ -121,7 +121,7 @@ public sealed partial class MainWindow
                 var dummy=new ComboBox { SelectedIndex=-1 }; dummy.Items.Add("API"); dummy.Items.Add("Compatible"); dummy.Items.Add("ChatGPT"); dummy.SelectedIndex=2;
                 editor.Children.Add(BuildChatGptSettings(dummy,model,()=> { profiles.Clear(); profiles.AddRange(policy.Connections??[]); RefreshList(); },profile.Provider,()=>coordinator.RetryConnection(profile.ProfileId))); editing=false;
             } else { editor.Children.Add(endpoint); editor.Children.Add(model); editor.Children.Add(strict); if(!profile.IsLocal) editor.Children.Add(key); }
-            if(profile.Provider.Id=="openai") {
+            if(ConnectionRouter.SupportsResearch(profile.Provider)) {
                 var research=new CheckBox { Content="Use this connection for explicitly enabled online research",IsChecked=policy.ResearchProfileId==profile.ProfileId };
                 research.Click+=async(_,_)=> { var result=await ApplySettingsAsync(policy with { ResearchProfileId=research.IsChecked==true?profile.ProfileId:null }); feedback.Text=SettingsResultText(result); };
                 editor.Children.Add(research);
@@ -139,7 +139,7 @@ public sealed partial class MainWindow
             Edit();
             var dialog=new ContentDialog {
                 Title="Configure connection",CloseButtonText="Close",XamlRoot=PageContent.XamlRoot,RequestedTheme=WindowRoot.ActualTheme,
-                Content=new ScrollViewer { Content=editor,Width=Math.Clamp(WindowRoot.ActualWidth-160,260,560),MaxHeight=Math.Max(200,WindowRoot.ActualHeight-240),
+                Content=new ScrollViewer { Content=editor,MaxWidth=560,MaxHeight=Math.Max(200,WindowRoot.ActualHeight-240),HorizontalContentAlignment=HorizontalAlignment.Stretch,
                     HorizontalScrollMode=ScrollMode.Disabled,HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled }
             };
             connectionConfigurationDialog=dialog;

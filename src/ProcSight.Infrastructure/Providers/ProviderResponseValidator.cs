@@ -46,8 +46,12 @@ public static class ProviderResponseValidator
                     r.Predicates.Any(p=>p.Field=="hash")?100:r.Predicates.Count*10);
             }).ToList();
             var projected=OutputPrivacyFilter.Project(new(assessments,rules,wire.IdentityLabel,wire.Role),payload);
-            return projected with { Rules=projected.Rules.Select(r=>r with { State=r.State==RuleState.Rejected ||
-                !new RuleValidator().Validate(r,payload.Evidence,now).Accepted?RuleState.Rejected:RuleState.Active }).ToList() };
+            return projected with { Rules=projected.Rules.Select(r=> {
+                // Only the coordinator can append the private HMAC scope; validate that requirement there.
+                var invalid=new RuleValidator().Validate(r,payload.Evidence,now).Reasons.Any(reason=>payload.CommandLine is null||
+                    RuleValidator.ReasonCode(reason)!=RuleRejectionReason.MissingInvocationScope);
+                return r with { State=r.State==RuleState.Rejected||invalid?RuleState.Rejected:RuleState.Active };
+            }).ToList() };
         }
         catch(Exception e) when(e is JsonException or ArgumentException or NullReferenceException)
         { throw new InvalidDataException("Provider returned malformed structured data.",e); }

@@ -5,6 +5,22 @@ using Xunit;
 namespace ProcSight.Application.Tests;
 public sealed class RuleInspectionTests
 {
+    [Fact] public void RejectedRuleExplainsOriginalDecisionSeparatelyFromCurrentEvidence()
+    {
+        var rule=Rule() with { State=RuleState.Rejected,RejectionReasons=[RuleRejectionReason.PrivatePredicateOmitted] };
+        var text=RuleInspection.Rejection(rule,[],Samples.Now);
+        Assert.Contains("not supported by submitted metadata",text);
+        Assert.Contains("Analyze again",text);
+        Assert.Contains("Current evidence",text);
+    }
+    [Fact] public void LegacyRejectionDoesNotInventHistoricalCause()=>Assert.Contains("original rejection reason was not recorded",
+        RuleInspection.Rejection(Rule() with { State=RuleState.Rejected },[],Samples.Now));
+    [Fact] public void ResearchHistoryDistinguishesMissingConfigurationFromNoSources()
+    {
+        Assert.Contains("not run",RuleInspection.Research(ResearchOutcome.Unavailable));
+        Assert.Contains("no attributable",RuleInspection.Research(ResearchOutcome.NoSources));
+        Assert.Contains("not recorded",RuleInspection.Research(null));
+    }
     private static RuleDefinition Rule()=>new(Guid.NewGuid(),1,RuleState.Active,DataOrigin.ShareableMetadata,Samples.Now,
         Samples.Now.AddDays(7),Samples.Now.AddDays(7),[new(PredicateKind.Exact,"hash","fixture-hash",["fixture-evidence"])],
         [new(AssessmentAxis.Purpose,"Application","Fixture reason",Confidence.Medium,["fixture-evidence"],Samples.Now.AddDays(7),[DataOrigin.ShareableMetadata])],["fixture-evidence"],100);

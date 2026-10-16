@@ -9,13 +9,13 @@ public sealed partial class MainWindow
     private FrameworkElement BuildChatGptSettings(ComboBox provider,TextBox model,Action signedOut,ProcSight.Core.Models.ProviderSettings? configured=null,Action? reauthorized=null)
     {
         var accounts=new ComboBox { Header="Saved ChatGPT accounts",DisplayMemberPath="Label",HorizontalAlignment=HorizontalAlignment.Stretch };
-        var models=new ComboBox { Header="Models available to this account",DisplayMemberPath="DisplayName",HorizontalAlignment=HorizontalAlignment.Stretch };
+        var models=new ComboBox { Header="Models available to this account",PlaceholderText="Choose a model",DisplayMemberPath="DisplayName",HorizontalAlignment=HorizontalAlignment.Stretch };
         var info=new TextBlock { Text="Use your eligible ChatGPT plan. Usage is shared with other apps; API-key billing remains separate. Connecting does not enable automatic analysis.",TextWrapping=TextWrapping.Wrap };
-        var feedback=new TextBlock { TextWrapping=TextWrapping.Wrap };
+        var feedback=SettingsFeedback();
         var connect=new Button { Content="Continue with ChatGPT" }; var refresh=new Button { Content="Refresh models" };
         var signOut=new Button { Content="Sign out of selected account" }; var cancel=new Button { Content="Cancel sign-in",Visibility=Visibility.Collapsed };
         var usage=new HyperlinkButton { Content="Manage ChatGPT usage and app access",NavigateUri=new("https://chatgpt.com/#settings/Usage") };
-        CancellationTokenSource? signingIn=null; var updating=false; var unloaded=false; var modelLoadVersion=0;
+        CancellationTokenSource? signingIn=null; CancellationTokenSource? modelLoad=null; var updating=false; var unloaded=false; var modelLoadVersion=0;
         void LoadAccounts()
         {
             updating=true;
@@ -28,14 +28,17 @@ public sealed partial class MainWindow
         {
             if(unloaded||accounts.SelectedItem is not ChatGptAccount account) return;
             var version=++modelLoadVersion; settingsChatGptModel=null; refresh.IsEnabled=false; models.IsEnabled=false;
+            modelLoad?.Cancel(); modelLoad?.Dispose(); modelLoad=CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
+            modelLoad.CancelAfter(TimeSpan.FromSeconds(30)); var requestToken=modelLoad.Token;
+            feedback.Text="Loading models for the selected ChatGPT account…";
             try {
-                var list=await ChatGpt.ListModelsAsync(account.Id,lifetime.Token);
+                var list=await ChatGpt.ListModelsAsync(account.Id,requestToken);
                 if(unloaded||version!=modelLoadVersion||accounts.SelectedItem is not ChatGptAccount selected||selected.Id!=account.Id) return;
                 models.ItemsSource=list; models.SelectedItem=list.FirstOrDefault(m=>m.Slug==model.Text);
-                feedback.Text=list.Count==0?"No eligible models returned. Reconnect this account or review its ChatGPT plan permissions.":"Model changes apply automatically. Sign-in does not enable analysis.";
-            } catch(ChatGptAuthenticationException e) { feedback.Text=e.Message; }
-            catch(OperationCanceledException) { feedback.Text="Model discovery cancelled."; }
-            catch { feedback.Text="Could not load models. Reconnect this account or check its permissions and connection."; }
+                feedback.Text=list.Count==0?"No eligible models returned. Reconnect this account or review its ChatGPT plan permissions.":"";
+            } catch(ChatGptAuthenticationException e) { if(!unloaded&&version==modelLoadVersion) feedback.Text=e.Message; }
+            catch(OperationCanceledException) { if(!unloaded&&version==modelLoadVersion) feedback.Text="Model discovery timed out or was cancelled. Select Refresh models to try again."; }
+            catch { if(!unloaded&&version==modelLoadVersion) feedback.Text="Could not load models. Reconnect this account or check its permissions and connection."; }
             finally { if(version==modelLoadVersion) { refresh.IsEnabled=true; models.IsEnabled=true; } }
         }
         accounts.SelectionChanged+=async(_,_)=> {
@@ -89,10 +92,11 @@ public sealed partial class MainWindow
         selectors.RowDefinitions.Add(new() { Height=GridLength.Auto }); selectors.RowDefinitions.Add(new() { Height=GridLength.Auto });
         selectors.Children.Add(accounts);
         var modelRow=new Grid { ColumnSpacing=8 }; modelRow.ColumnDefinitions.Add(new()); modelRow.ColumnDefinitions.Add(new() { Width=GridLength.Auto });
-        modelRow.Children.Add(models); Grid.SetColumn(refresh,1); refresh.VerticalAlignment=VerticalAlignment.Bottom; modelRow.Children.Add(refresh); selectors.Children.Add(modelRow);
+        modelRow.RowDefinitions.Add(new() { Height=GridLength.Auto }); modelRow.RowDefinitions.Add(new() { Height=GridLength.Auto });
+        modelRow.Children.Add(models); refresh.VerticalAlignment=VerticalAlignment.Bottom; modelRow.Children.Add(refresh); selectors.Children.Add(modelRow);
         var buttons=new Grid { ColumnSpacing=8,RowSpacing=8,HorizontalAlignment=HorizontalAlignment.Left };
         for(var i=0;i<3;i++) buttons.ColumnDefinitions.Add(new() { Width=GridLength.Auto });
-        buttons.RowDefinitions.Add(new() { Height=GridLength.Auto }); buttons.RowDefinitions.Add(new() { Height=GridLength.Auto });
+        for(var i=0;i<4;i++) buttons.RowDefinitions.Add(new() { Height=GridLength.Auto });
         buttons.Children.Add(connect); buttons.Children.Add(add); buttons.Children.Add(signOut); buttons.Children.Add(cancel);
         void Arrange(double width) {
             var compact=width<660;
@@ -100,14 +104,26 @@ public sealed partial class MainWindow
             Grid.SetColumnSpan(accounts,compact?2:1);
             Grid.SetColumn(add,1); Grid.SetColumn(signOut,compact?0:2); Grid.SetRow(signOut,compact?1:0);
             Grid.SetColumn(cancel,compact?1:0); Grid.SetRow(cancel,1);
+            var narrow=width<480;
+            Grid.SetColumn(refresh,narrow?0:1); Grid.SetRow(refresh,narrow?1:0);
+            refresh.Margin=new Thickness(0,narrow?8:0,0,0);
+            if(narrow) {
+                Grid.SetColumnSpan(models,2);
+                foreach(var (button,index) in new[]{connect,add,signOut,cancel}.Select((button,index)=>(button,index))) {
+                    Grid.SetColumn(button,0); Grid.SetRow(button,index); Grid.SetColumnSpan(button,3);
+                }
+            } else {
+                Grid.SetColumn(connect,0); Grid.SetRow(connect,0); Grid.SetRow(add,0);
+                Grid.SetColumnSpan(models,1);
+                foreach(var button in new[]{connect,add,signOut,cancel}) Grid.SetColumnSpan(button,1);
+            }
         }
         selectors.SizeChanged+=(_,e)=>Arrange(e.NewSize.Width); Arrange(0);
         usage.Padding=new Thickness(0); usage.HorizontalAlignment=HorizontalAlignment.Left;
-        var expander=SettingsExpander("\uE77B","ChatGPT account","Connect with your ChatGPT plan",info,selectors,buttons,usage,feedback);
-        expander.IsExpanded=configured?.Id=="chatgpt"||policy.Provider?.Id=="chatgpt";
-        expander.Expanding+=async(_,_)=>await LoadModelsAsync();
-        if(expander.IsExpanded) _=LoadModelsAsync();
-        expander.Unloaded+=(_,_)=> { unloaded=true; signingIn?.Cancel(); ++modelLoadVersion; };
-        return expander;
+        var panel=new StackPanel { Spacing=16,HorizontalAlignment=HorizontalAlignment.Stretch };
+        foreach(var control in new FrameworkElement[]{info,selectors,feedback,buttons,usage}) panel.Children.Add(control);
+        panel.Loaded+=async(_,_)=> { unloaded=false; await LoadModelsAsync(); };
+        panel.Unloaded+=(_,_)=> { unloaded=true; signingIn?.Cancel(); modelLoad?.Cancel(); ++modelLoadVersion; };
+        return panel;
     }
 }

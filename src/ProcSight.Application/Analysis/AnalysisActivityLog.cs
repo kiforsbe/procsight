@@ -12,7 +12,8 @@ public sealed record AnalysisActivityEntry(Guid Id,AnalysisActivityKind Kind,Ana
     AnalysisDestination Destination,string SourceName,int? ProcessId,string? ServiceIdentity,int Attempt,
     IReadOnlyDictionary<string,string> Metadata,IReadOnlyList<string> MetadataFields,int EvidenceCount,
     bool CommandIncluded,IReadOnlyList<ActivityAssessment> Assessments,int ProposedRuleCount=0,
-    int ReturnedEvidenceCount=0,ProviderErrorKind? ErrorKind=null,ProviderFailureReason? FailureReason=null,ProviderErrorKind? FallbackReason=null);
+    int ReturnedEvidenceCount=0,ProviderErrorKind? ErrorKind=null,ProviderFailureReason? FailureReason=null,ProviderErrorKind? FallbackReason=null,
+    ResearchOutcome? Research=null);
 
 /// <summary>Bounded transient product activity; never retains transport payloads or exception text.</summary>
 public sealed class AnalysisActivityLog(TimeProvider? clock=null)
@@ -27,7 +28,7 @@ public sealed class AnalysisActivityLog(TimeProvider? clock=null)
     public IReadOnlyList<AnalysisActivityEntry> Snapshot() { lock(gate) return Array.AsReadOnly(entries.AsEnumerable().Reverse().ToArray()); }
     public void Clear() { lock(gate) entries.Clear(); Notify(); }
     public Guid? Begin(AnalysisPayload payload,ProviderSettings provider,string sourceName,int? processId=null,
-        string? serviceIdentity=null,AnalysisActivityKind kind=AnalysisActivityKind.Analysis,int attempt=1,ProviderErrorKind? fallbackReason=null)
+        string? serviceIdentity=null,AnalysisActivityKind kind=AnalysisActivityKind.Analysis,int attempt=1,ProviderErrorKind? fallbackReason=null,ResearchOutcome? research=null)
     {
         try
         {
@@ -44,7 +45,7 @@ public sealed class AnalysisActivityLog(TimeProvider? clock=null)
                 entries.Add(new(id,kind,AnalysisActivityStatus.Running,time.GetUtcNow(),null,null,Safe(provider.Id,128),Safe(provider.Model,128),
                     payload.Destination,Safe(sourceName,256),processId,serviceIdentity is null?null:Safe(serviceIdentity,256),Math.Max(1,attempt),
                     new ReadOnlyDictionary<string,string>(metadata),Array.AsReadOnly(fields),payload.Evidence.Count,payload.CommandLine is not null,
-                    Array.AsReadOnly(Array.Empty<ActivityAssessment>()),FallbackReason:fallbackReason));
+                    Array.AsReadOnly(Array.Empty<ActivityAssessment>()),FallbackReason:fallbackReason,Research:research));
                 if(entries.Count>Capacity) entries.RemoveAt(0);
                 return id;
             }
@@ -59,6 +60,8 @@ public sealed class AnalysisActivityLog(TimeProvider? clock=null)
             var projected=result.Proposal is null?null:OutputPrivacyFilter.Project(result.Proposal,payload);
             Finish(id,row=>row with {
                 Status=Status(result.Error),ErrorKind=result.Error?.Kind,FailureReason=result.Error?.FailureReason,
+                Research=payload.ResearchEnabled?result.Error is not null?ResearchOutcome.Failed:result.ResearchEvidence is { Count:>0 }?ResearchOutcome.SourcesFound:ResearchOutcome.NoSources:row.Research,
+                ReturnedEvidenceCount=payload.ResearchEnabled?result.ResearchEvidence?.Count??0:row.ReturnedEvidenceCount,
                 Assessments=Array.AsReadOnly((projected?.Assessments ?? []).Take(3)
                     .Select(a=>new ActivityAssessment(a.Axis,AssessmentValue(a),Safe(a.Reason,1024),a.Confidence)).ToArray()),
                 ProposedRuleCount=result.Proposal?.Rules.Count ?? 0 });

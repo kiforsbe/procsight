@@ -5,6 +5,8 @@ using System.Text.Json.Nodes;
 using ProcSight.Application.Providers;
 using ProcSight.Core.Models;
 using ProcSight.Infrastructure.Authentication;
+using ProcSight.Infrastructure.Research;
+using ProcSight.Core.Privacy;
 
 namespace ProcSight.Infrastructure.Providers;
 
@@ -24,10 +26,11 @@ public sealed class ChatGptPlanProvider : IAnalysisProvider
             throw new ArgumentException("ChatGPT plan inference requires the public OpenAI endpoint.",nameof(settings));
         this.settings=settings; this.accessToken=accessToken; client=http ?? ProviderHttp.Create();
     }
-    public Task<ProviderCapabilities> GetCapabilitiesAsync(CancellationToken ct)=>Task.FromResult(new ProviderCapabilities(true,false));
+    public Task<ProviderCapabilities> GetCapabilitiesAsync(CancellationToken ct)=>Task.FromResult(new ProviderCapabilities(true,true));
 
     public async Task<ProviderResult> AnalyzeAsync(AnalysisPayload payload,CancellationToken ct)
     {
+        if(payload.ResearchEnabled&&!AnalysisProjection.ResearchSafe(payload)) return Failure(ProviderErrorKind.Unsupported,"Web research requires public identity metadata without command context.",0);
         using var timeout=CancellationTokenSource.CreateLinkedTokenSource(ct);
         timeout.CancelAfter(TimeSpan.FromSeconds(60));
         var calls=0;
@@ -41,6 +44,13 @@ public sealed class ChatGptPlanProvider : IAnalysisProvider
                 ["input"]=new JsonArray(new JsonObject { ["role"]="user",["content"]=JsonSerializer.Serialize(payload) }),
                 ["text"]=new JsonObject { ["format"]=new JsonObject { ["type"]="json_schema",["name"]="process_analysis",
                     ["strict"]=true,["schema"]=AnalysisResponseSchema.Schema } } };
+            if(payload.ResearchEnabled) {
+                body["tools"]=new JsonArray(new JsonObject { ["type"]="web_search" }); body["tool_choice"]="required";
+                body["include"]=new JsonArray("web_search_call.action.sources");
+                body["instructions"]=AnalysisResponseSchema.Instructions.Replace("using only submitted facts and evidence","using submitted facts, evidence and attributable web search results")
+                    .Replace("Do not request files, commands or tools.","Use web search within this analysis to identify the executable or service. No files, commands or other tools. Use one focused search where possible.")+
+                    " For web evidence, put the exact HTTPS source URL returned by the search tool in evidenceIds; never invent URLs. Local evidence IDs remain valid. Distinguish a likely public product match from authenticated local executable identity.";
+            }
             using var request=new HttpRequestMessage(HttpMethod.Post,Endpoint) {
                 Content=new StringContent(body.ToJsonString(),Encoding.UTF8,"application/json") };
             request.Headers.Authorization=new AuthenticationHeaderValue("Bearer",token);
@@ -74,6 +84,7 @@ public sealed class ChatGptPlanProvider : IAnalysisProvider
         // Frame bytes before decoding: neither an unterminated line nor a comment can evade the total limit.
         var chunk=new byte[8192]; using var line=new MemoryStream(); var frame=new StringBuilder();
         var text=new StringBuilder(); var total=0; var textBytes=0;
+        var items=new SortedDictionary<int,JsonNode>();
         var utf8=new UTF8Encoding(false,true);
         int read;
         while((read=await stream.ReadAsync(chunk,ct))>0)
@@ -87,7 +98,7 @@ public sealed class ChatGptPlanProvider : IAnalysisProvider
                 if(value.Length==0)
                 {
                     if(frame.Length==0) continue;
-                    var result=ReadEvent(frame.ToString(),text,ref textBytes,payload); frame.Clear();
+                    var result=ReadEvent(frame.ToString(),text,ref textBytes,payload,items); frame.Clear();
                     if(result is not null) return result;
                 }
                 else if(value.StartsWith("data:",StringComparison.Ordinal))
@@ -100,7 +111,7 @@ public sealed class ChatGptPlanProvider : IAnalysisProvider
         return Failure(ProviderErrorKind.Malformed,"ChatGPT plan stream ended before completed inference.",reason:ProviderFailureReason.StreamEnded);
     }
 
-    private static ProviderResult? ReadEvent(string data,StringBuilder text,ref int textBytes,AnalysisPayload payload)
+    private static ProviderResult? ReadEvent(string data,StringBuilder text,ref int textBytes,AnalysisPayload payload,SortedDictionary<int,JsonNode> items)
     {
         if(data=="[DONE]") return Failure(ProviderErrorKind.Malformed,"ChatGPT plan stream lacks completed inference.",reason:ProviderFailureReason.StreamEnded);
         var item=JsonNode.Parse(data) ?? throw new InvalidDataException();
@@ -117,6 +128,8 @@ public sealed class ChatGptPlanProvider : IAnalysisProvider
             return Failure(kind,"ChatGPT plan inference failed; error content withheld.");
         }
         if(type=="response.incomplete") return Failure(ProviderErrorKind.Malformed,"ChatGPT plan inference was incomplete.",reason:ProviderFailureReason.OutputIncomplete);
+        if(payload.ResearchEnabled&&type=="response.output_item.done"&&item["item"] is { } completedItem)
+            items[item["output_index"]?.GetValue<int>()??items.Count]=completedItem.DeepClone();
         if(type=="response.output_text.delta")
         {
             var delta=item["delta"]?.GetValue<string>() ?? throw new InvalidDataException();
@@ -128,6 +141,8 @@ public sealed class ChatGptPlanProvider : IAnalysisProvider
         var response=item["response"] ?? throw new InvalidDataException();
         if(response["status"]?.GetValue<string>()!="completed" || response["error"] is not null || response["incomplete_details"] is not null)
             return Failure(ProviderErrorKind.Malformed,"ChatGPT plan inference was not completed.",reason:ProviderFailureReason.OutputIncomplete);
+        if(payload.ResearchEnabled&&response["output"] is not JsonArray { Count:>0 }&&items.Count>0)
+            response["output"]=new JsonArray(items.Values.Select(n=>n.DeepClone()).ToArray());
         var final=text.ToString();
         if(response["output"] is not null)
         {
@@ -139,7 +154,7 @@ public sealed class ChatGptPlanProvider : IAnalysisProvider
         }
         if(string.IsNullOrWhiteSpace(final)) return Failure(ProviderErrorKind.Malformed,"No explanation returned.",reason:ProviderFailureReason.NoOutput);
         if(Encoding.UTF8.GetByteCount(final)>TextLimit) return Failure(ProviderErrorKind.Malformed,"Explanation exceeded the output limit.",reason:ProviderFailureReason.OutputTooLarge);
-        return new(ProviderResponseValidator.Parse(final,payload,DateTimeOffset.UtcNow));
+        return payload.ResearchEnabled?InlineResearchResult.Parse(final,response,payload):new(ProviderResponseValidator.Parse(final,payload,DateTimeOffset.UtcNow));
     }
     private static bool ContainsRefusal(JsonNode? node) => node switch
     {

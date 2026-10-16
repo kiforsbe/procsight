@@ -35,6 +35,11 @@ public sealed partial class MainWindow
         panel.Children.Add(RuleText(RuleInspection.Name(rule,evidence),"SubtitleTextBlockStyle"));
         panel.Children.Add(RuleText(RuleInspection.Source(rule),"CaptionTextBlockStyle",true));
         var statusText=RuleText(RuleInspection.State(rule,DateTimeOffset.UtcNow),"BodyStrongTextBlockStyle"); panel.Children.Add(statusText);
+        if(rule.State==RuleState.Rejected) panel.Children.Add(new InfoBar { IsOpen=true,IsClosable=false,Severity=InfoBarSeverity.Warning,
+            Title="Why this rule was rejected",Message=RuleInspection.Rejection(rule,evidence,DateTimeOffset.UtcNow) });
+        panel.Children.Add(RuleText(RuleInspection.Research(rule.Provenance?.Research),"CaptionTextBlockStyle",true));
+        if(rule.State!=RuleState.Rejected&&rule.Assessments.All(a=>a.Value=="Unknown")) panel.Children.Add(new InfoBar { IsOpen=true,IsClosable=false,
+            Severity=InfoBarSeverity.Informational,Title="Identity remains unresolved",Message="Active means this rule is eligible to match. Its Unknown classifications do not identify this process or establish safety. Check the evidence and research outcome, then Analyze again when more information is available." });
         if(entity is not null) panel.Children.Add(RuleText(RuleInspection.ApplicationStatus(rule.Id,current)));
         var actions=new CommandBar { Background=null,DefaultLabelPosition=CommandBarDefaultLabelPosition.Right };
         var toggle=new AppBarButton { Icon=new SymbolIcon(Symbol.Accept) };

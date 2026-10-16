@@ -14,7 +14,8 @@ public static class ConnectionRouter
     public static bool IsLocal(AnalysisPolicy policy,ConnectionProfile connection)=>connection.IsLocal||
         policy.Connections is null&&ReferenceEquals(connection.Provider,policy.LocalModel);
     public static bool CanFallback(ProviderError error)=>error.Kind is ProviderErrorKind.Auth or ProviderErrorKind.RateLimited or ProviderErrorKind.Transient;
-    public static ProviderSettings? Research(AnalysisPolicy policy,ProviderSettings primary)=>policy.Connections is null
-        ? primary
-        : policy.Connections.FirstOrDefault(p=>p.Enabled&&p.ProfileId==policy.ResearchProfileId&&p.Provider.Id=="openai")?.Provider;
+    public static bool SupportsResearch(ProviderSettings provider)=>provider.Id is "openai" or "chatgpt";
+    public static ProviderSettings? Research(AnalysisPolicy policy,ProviderSettings primary)=>policy.ResearchProfileId is { } id
+        ? policy.Connections?.FirstOrDefault(p=>p.Enabled&&p.ProfileId==id&&SupportsResearch(p.Provider))?.Provider
+        : policy.Connections is null||SupportsResearch(primary)?primary:null;
 }

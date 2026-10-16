@@ -37,6 +37,10 @@ This is the actual XAML rendering, using synthetic processes and a synthetic ana
   cases. Validated rules are reused for matching processes, reducing repeated API calls.
 - User-configured OpenAI or compatible API endpoints, optional loopback local models,
   and separately enabled online research with source links.
+- ChatGPT-plan and OpenAI analysis can search within the same request when research is enabled.
+  Search-enabled requests use public identity metadata, excluding command lines and private paths.
+  An explicitly different research connection uses a separate step; API billing remains separate.
+  AI activity and learned rules show the research outcome; rejected rules explain their recorded cause.
 - Direct **Continue with ChatGPT** connection for eligible ChatGPT plans, with account-specific
   models and protected renewable sessions. Live model discovery and targeted inference smoke checks passed.
 - Settings apply valid changes automatically. Configure independent connections, enable or disable
@@ -126,16 +130,17 @@ verdicts or authorization to change the computer.
 Settings follows the Windows 11 Task Manager card layout: Appearance, AI connections,
 Analysis and privacy, and Advanced, with expandable options and responsive controls.
 For ChatGPT plan usage, expand **ChatGPT account**, select **Continue with ChatGPT**, complete
-browser consent, choose an available model, select **ChatGPT plan** as provider, and save.
+browser consent and choose an available model. Valid settings apply automatically.
 Use **Use another account** to register another account; sign-out disables automatic analysis
 for the connected profile. Plan usage shares the user's ChatGPT allowance; no API-key billing fallback occurs.
-API-key profiles remain separately billed. Research currently requires the OpenAI API-key profile.
+API-key profiles remain separately billed. ChatGPT-plan and OpenAI connections support web search.
 
 Automatic analysis and research start disabled. Configure a model and connection in Settings,
 save API keys in Windows Credential Manager when using API-key profiles, and use the synthetic connection test before
-enabling automatic analysis. Default daily limits are 20 automatic jobs and 60 billable
-calls, including retries and reserved research calls. OpenAI research requires a model that
-supports web search; compatible/local providers currently supply analysis only.
+enabling automatic analysis. Default daily limits are 20 automatic jobs and 60 online-request
+allowance units, including retries and an extra unit reserved for research. This is an admission
+limit, not a monetary or strict remote tool-call cap. Research requires an eligible model/account;
+compatible/local providers currently supply analysis only.
 
 Preferences and SQLite knowledge live under `%LOCALAPPDATA%\ProcSight`. Usage accounting
 uses a separate database and survives knowledge resets. Local models must use loopback

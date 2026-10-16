@@ -514,7 +514,7 @@ sequenceDiagram
         Note over A,M: No provider call
     else Unresolved and analysis permitted
         A->>A: Deduplicate and reserve usage
-        opt Research enabled and supported
+        opt Research uses an explicitly different connection
             A->>P: Build sanitized research identity query
             P-->>A: Research request without command line
             A->>R: Research identity
@@ -522,9 +522,13 @@ sequenceDiagram
         end
         A->>P: Build destination-specific analysis payload
         P-->>A: Permitted facts and policy revision
+        opt Same-connection research enabled
+            A->>P: Strip command context and private fields
+            P-->>A: Public identity payload with web search permitted
+        end
         A->>A: Recheck policy before dispatch
         A->>M: Analyze bounded request
-        M-->>A: Structured proposal or typed failure
+        M-->>A: Structured proposal and attributable tool sources, or typed failure
         A->>P: Project persistable output and origins
         A->>L: Validate evidence, predicates, scope, freshness
         alt Valid and privacy-compliant proposal
@@ -537,10 +541,23 @@ sequenceDiagram
     end
 ```
 
-The single in-flight default, daily job/call caps, bounded responses, and limited retries
-prevent runaway analysis. Authentication failures pause provider work; collection remains
+The single in-flight default, daily job/request allowances, bounded responses, and limited retries
+limit request admission. ChatGPT plan requests reject `max_tool_calls`, so the additional research
+allowance unit is not a strict remote tool-count or spending cap. API-key research can enforce one
+tool call. Authentication failures pause provider work; collection remains
 available. Results can enrich executable history after a process exits but cannot attach to
 a newly reused PID. Shutdown cancels queued work and stops collection.
+
+[ChatGptPlanProvider](src/ProcSight.Infrastructure/Providers/ChatGptPlanProvider.cs) and
+[OpenAiResponsesProvider](src/ProcSight.Infrastructure/Providers/OpenAiResponsesProvider.cs) enable
+web search in the analysis request when the research and analysis connections agree. An explicitly
+different profile uses the separate research adapter. [AnalysisProjection](src/ProcSight.Core/Privacy/AnalysisProjection.cs)
+strips commands, private fields and command origins from tools-enabled requests, independently of
+ordinary online command-sharing consent. [InlineResearchResult](src/ProcSight.Infrastructure/Research/InlineResearchResult.cs)
+validates URL aliases against completed tool sources/citations and maps them to internal evidence IDs.
+The bounded full source set is checked before retaining at most ten records, prioritizing cited sources.
+Partial or failed responses never activate findings. Web sources establish public context, not local
+binary authenticity. See the [2026-10-17 revision](docs/superpowers/specs/2026-10-17-analysis-research-diagnostics.md).
 
 ## Rule lifecycle
 
@@ -554,13 +571,18 @@ Knowledge and detail views expose the definitions and primary reference links.
 
 Rules are constrained declarative data. AI may propose rules for all axes, but automatic
 activation requires structural and semantic validation against attributable evidence.
+The coordinator persists app-owned `RuleRejectionReason` codes from original and final validation,
+separate from later revalidation against stored evidence. Missing legacy decisions are explicitly
+unrecorded. Only the coordinator supplies the private invocation HMAC: provider parsing defers that
+single requirement, then final validation requires it. Privacy predicate matching uses the same
+case-insensitive exact/path-root semantics as rule matching, while unobserved literals are omitted.
 Similarity selects candidates; missing required facts prevent matching. Threat findings
 cannot generalize from an exact executable to an entire family without appropriate evidence.
 
 ```mermaid
 stateDiagram-v2
     [*] --> Proposed
-    Proposed --> Rejected: Schema, evidence, or scope invalid
+    Proposed --> Rejected: Persist typed schema, evidence, or scope failure
     Proposed --> Active: Validated and automatically activated
     Active --> Disabled: User disables
     Disabled --> Active: User enables and validity checks pass
@@ -671,6 +693,9 @@ Summaries retain local process name/PID or service identity, selected provider/m
 number, safe metadata values/categories and a command-inclusion flag. They never retain the payload
 or raw command. Returned assessments pass OutputPrivacyFilter before location/secret sanitization;
 research keeps only the evidence count. Proposed rule counts are not claims that rules were activated.
+An analysis entry records same-request research outcome and returned source count; it does not create
+a fictitious separate research attempt. `RuleProvenance.Research` preserves the actual outcome for
+future rule inspection. An Active rule containing only Unknown values remains unresolved.
 ProviderError carries an optional typed ProviderFailureReason through the adapters and activity entry.
 [ProviderFailureExplanation](src/ProcSight.Core/Models/ProviderFailureExplanation.cs) maps it to
 app-owned cause/recovery wording; validator messages and rejected provider text are never retained.

@@ -6,6 +6,28 @@ using Xunit;
 namespace ProcSight.Core.Tests;
 public sealed class PrivacyTests
 {
+    [Fact] public void InlineResearchCannotBeDispatchedWithCommandsPrivateFieldsOrRevokedResearchPermission()
+    {
+        var policy=new AnalysisPolicy(ResearchEnabled:true,CommandLineMode:CommandLineMode.OnlineFull,ShareIdentifyingMetadata:true);
+        var raw=new AnalysisProjection().Build(Entity(),policy,AnalysisDestination.CloudModel) with { ResearchEnabled=true };
+        Assert.False(CommandLinePolicy.CanDispatch(raw,policy));
+        var safe=AnalysisProjection.ForResearchAnalysis(raw);
+        Assert.True(CommandLinePolicy.CanDispatch(safe,policy));
+        Assert.False(CommandLinePolicy.CanDispatch(safe,policy with { ResearchEnabled=false }));
+        Assert.DoesNotContain("SYNTHETIC_SECRET",System.Text.Json.JsonSerializer.Serialize(safe));
+        Assert.Null(safe.CommandLine); Assert.DoesNotContain("path",safe.Metadata.Keys);
+    }
+    [Theory]
+    [InlineData(PredicateKind.Exact,"name","WORKER.EXE","worker.exe")]
+    [InlineData(PredicateKind.PathRoot,"path",@"C:\Program Files\Example",@"C:\Program Files\Example\worker.exe")]
+    public void CommandPrivacyGateAcceptsObservedPredicateSemantics(PredicateKind kind,string field,string value,string observed)
+    {
+        var request=new AnalysisPayload(new("fixture"),new(),
+            [new("observed",DataOrigin.ShareableMetadata,Samples.Now,null,"File",new(){[field]=observed})],"fixture --private",0,AnalysisDestination.CloudModel);
+        var rule=new RuleDefinition(Guid.NewGuid(),1,RuleState.Active,DataOrigin.ShareableMetadata,Samples.Now,Samples.Now.AddDays(7),Samples.Now.AddDays(7),
+            [new(kind,field,value,["observed"])],[],["observed"],0);
+        Assert.Equal(RuleState.Active,OutputPrivacyFilter.Project(new([],[rule]),request).Rules[0].State);
+    }
     [Fact] public void GeneratedRuleKeepsApplicationOwnershipContext()
     {
         var payload=new AnalysisPayload(new("fixture"),new(){["ownerIdentity"]="owner-a"},

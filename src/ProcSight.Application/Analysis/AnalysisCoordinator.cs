@@ -135,9 +135,13 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
         var provider=providers(selected,useLocal);
         Publish(entity,AnalysisState.Analyzing,local);
         var researchSettings=ConnectionRouter.Research(config,selected);
-        if(config.ResearchEnabled && !useLocal && researchSettings is not null && research?.Invoke(researchSettings) is { } researchProvider)
+        var researchOutcome=!config.ResearchEnabled?ResearchOutcome.Disabled:useLocal?ResearchOutcome.LocalAnalysis:ResearchOutcome.Unavailable;
+        var inlineResearch=config.ResearchEnabled&&!useLocal&&researchSettings==selected&&selected.Id is "chatgpt" or "openai";
+        if(inlineResearch) researchOutcome=ResearchOutcome.Searching;
+        if(!inlineResearch&&config.ResearchEnabled && !useLocal && researchSettings is not null && research?.Invoke(researchSettings) is { } researchProvider)
         {
-            // Reserve the HTTP request and maximum one billable web-tool call before dispatch.
+            // Reserve the request plus a research allowance. API-key search enforces one tool call;
+            // plan search has no server-enforced cap and this allowance is not a spending guarantee.
             if(!await ledger.TryReserveAsync(UsageKind.BillableCall,date,limits,ct) || !await ledger.TryReserveAsync(UsageKind.BillableCall,date,limits,ct))
             { Publish(entity,AnalysisState.BudgetPaused,local,"Research call budget reached."); return; }
             var request=projection.BuildResearchRequest(entity,config);
@@ -153,15 +157,19 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
             catch(OperationCanceledException) { activity?.Fail(researchActivity,true); throw; }
             catch { activity?.Fail(researchActivity); throw; }
             if(researched.Error is null) entity=entity with { Evidence=[..entity.Evidence,..researched.Evidence] };
+            researchOutcome=researched.Error is not null?ResearchOutcome.Failed:researched.Evidence.Count>0?ResearchOutcome.SourcesFound:ResearchOutcome.NoSources;
         }
         var payload=projection.Build(entity,config,useLocal?AnalysisDestination.LocalModel:AnalysisDestination.CloudModel);
+        if(inlineResearch) payload=AnalysisProjection.ForResearchAnalysis(payload);
         for(var retry=0;retry<=2;retry++)
         {
             ct.ThrowIfCancellationRequested(); if(work.Policy!=policy || !CommandLinePolicy.CanDispatch(payload,policy)) return;
             if(!useLocal&&!await ledger.TryReserveAsync(UsageKind.BillableCall,date,limits,ct))
             { Publish(entity,AnalysisState.BudgetPaused,local,"Daily provider-call limit reached."); return; }
+            if(inlineResearch&&!await ledger.TryReserveAsync(UsageKind.BillableCall,date,limits,ct))
+            { Publish(entity,AnalysisState.BudgetPaused,local,"Research request allowance reached."); return; }
             var attemptActivity=activity?.Begin(payload,selected,entity.DisplayName,entity.Process?.Key.Pid,entity.Service?.Name,
-                attempt:retry+1,fallbackReason:fallbackReason);
+                attempt:retry+1,fallbackReason:fallbackReason,research:researchOutcome);
             ProviderResult result;
             try
             {
@@ -181,29 +189,35 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
             }
             if(result.Proposal is not { } proposal) { Publish(entity,AnalysisState.Unknown,local); return; }
             ct.ThrowIfCancellationRequested(); if(work.Policy!=policy) return;
-            var projected=OutputPrivacyFilter.Project(proposal,payload);
+            if(inlineResearch) researchOutcome=result.ResearchEvidence is { Count:>0 }?ResearchOutcome.SourcesFound:ResearchOutcome.NoSources;
+            var evaluatedPayload=payload with { Evidence=[..payload.Evidence,..inlineResearch?result.ResearchEvidence??[]:[]] };
+            var projected=OutputPrivacyFilter.Project(proposal,evaluatedPayload);
             var providerId=MetadataSanitizer.Normalize(selected.Id);
             var model=MetadataSanitizer.Normalize(selected.Model);
             var provenance=new RuleProvenance(providerId[..Math.Min(providerId.Length,128)],model[..Math.Min(model.Length,256)],
-                payload.Destination,time.GetUtcNow());
+                payload.Destination,time.GetUtcNow(),researchOutcome);
             // Keep local ownership boundaries even when the provider never receives these fields.
             var scopeFacts=entity.Facts.Where(f=>f.Key is "path" or "ownerIdentity" or "service")
                 .Where(f=>f.Value.Length is >0 and <=512).ToDictionary(f=>f.Key,f=>f.Value);
             var scopeEvidence=new EvidenceRecord("local-scope:"+(entity.ShareableIdentity ?? entity.Identity).Value,
                 DataOrigin.ShareableMetadata,time.GetUtcNow(),null,"LocalRuleScope",scopeFacts);
-            var storedEvidence=payload.Evidence.Concat(new[]{scopeEvidence}).ToList();
+            var storedEvidence=evaluatedPayload.Evidence.Concat(new[]{scopeEvidence}).ToList();
             var invocationEvidence=payload.CommandLine is not null && entity.Facts.TryGetValue("commandContext",out var context)?
                 new EvidenceRecord("invocation-scope:"+context,payload.Destination==AnalysisDestination.LocalModel?DataOrigin.LocalCommandLine:DataOrigin.OnlineCommandLine,
                     time.GetUtcNow(),null,"InvocationScope",new(){["commandContext"]=context}):null;
             if(invocationEvidence is not null) storedEvidence.Add(invocationEvidence);
             var rules=projected.Rules.Select(rule=> {
+                var originalReasons=rule.State==RuleState.Rejected?new RuleValidator().Validate(rule,evaluatedPayload.Evidence,time.GetUtcNow()).Reasons
+                    .Where(reason=>invocationEvidence is null||RuleValidator.ReasonCode(reason)!=RuleRejectionReason.MissingInvocationScope).Select(RuleValidator.ReasonCode).ToList():[];
                 // Provider responses cannot choose their attribution or retain account identifiers.
                 var scoped=rule with { Provenance=provenance,Predicates=[..rule.Predicates,..scopeFacts.Where(f=>!rule.Predicates.Any(p=>p.Field==f.Key))
                     .Select(f=>new Predicate(PredicateKind.Exact,f.Key,f.Value,[scopeEvidence.Id]))] };
                 if(invocationEvidence is not null) scoped=scoped with { Predicates=[..scoped.Predicates,
                     new(PredicateKind.Exact,"commandContext",invocationEvidence.Facts["commandContext"],[invocationEvidence.Id])] };
-                return scoped with { State=scoped.State==RuleState.Rejected ||
-                    !new RuleValidator().Validate(scoped,storedEvidence,time.GetUtcNow()).Accepted?RuleState.Rejected:RuleState.Active };
+                var validation=new RuleValidator().Validate(scoped,storedEvidence,time.GetUtcNow());
+                var reasons=(scoped.RejectionReasons??[]).Concat(originalReasons).Concat(validation.Reasons.Select(RuleValidator.ReasonCode)).Distinct().ToList();
+                if(scoped.State==RuleState.Rejected&&reasons.Count==0) reasons.Add(RuleRejectionReason.Unspecified);
+                return scoped with { State=reasons.Count>0?RuleState.Rejected:RuleState.Active,RejectionReasons=reasons };
             }).ToList();
             var entry=new KnowledgeEntry(entity.Identity,time.GetUtcNow(),projected.Assessments,storedEvidence,rules,knowledge.Corrections,
                 rules.Where(r=>r.State==RuleState.Active).Select(r=>r.Id).ToList(),projected.IdentityLabel,projected.Role);

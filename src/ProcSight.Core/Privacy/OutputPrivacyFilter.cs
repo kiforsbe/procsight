@@ -1,4 +1,5 @@
 using ProcSight.Core.Models;
+using ProcSight.Core.Rules;
 namespace ProcSight.Core.Privacy;
 public static class OutputPrivacyFilter
 {
@@ -23,13 +24,14 @@ public static class OutputPrivacyFilter
             if(request.CommandLine is not null && context is not null && !scoped.Any(p=>p.Field=="commandRole"))
                 scoped.Add(new(PredicateKind.Exact,"commandRole",context.Facts["commandRole"],[context.Id]));
             var unsafePredicate=request.CommandLine is not null && rule.Predicates.Any(p=>
-                !request.Evidence.Any(e=>e.Facts.TryGetValue(p.Field,out var observed)&&observed==p.Value));
+                !request.Evidence.Any(e=>e.Facts.TryGetValue(p.Field,out var observed)&&Enum.IsDefined(p.Kind)&&PredicateMatcher.Matches(p,observed)));
             return rule with {
             Origin=origin, Assessments=rule.Assessments.Select(ProjectAssessment).ToList(),
             IdentityLabel=label,Role=role,
             Predicates=scoped.Select(p=>unsafePredicate?new Predicate(PredicateKind.Exact,"invalid","Private proposal omitted",[]):
                 p with { Value=MetadataSanitizer.Normalize(p.Value),EvidenceIds=p.EvidenceIds.Where(knownIds.Contains).ToList() }).ToList(),
             EvidenceIds=rule.EvidenceIds.Where(knownIds.Contains).ToList(),
+            RejectionReasons=unsafePredicate?[RuleRejectionReason.PrivatePredicateOmitted]:null,
             State=unsafePredicate ? RuleState.Rejected : rule.State };
         }
         return new(proposal.Assessments.Select(ProjectAssessment).ToList(),proposal.Rules.Select(ProjectRule).ToList(),label,role);

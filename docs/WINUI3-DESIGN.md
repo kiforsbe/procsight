@@ -64,6 +64,14 @@ as a substitute for semantic secondary text resources.
 
 ## Progressive disclosure and feedback
 
+Rejected rules put their cause and recovery guidance immediately below state, before classifications.
+Keep original decisions distinct from current validation. Active Unknown rules explicitly explain
+that eligibility to match does not establish identity. Research status distinguishes disabled,
+unavailable, failed and completed-without-sources outcomes; do not imply a search happened from a toggle.
+Configuration dialogs use their actual content viewport rather than a width derived from the main
+window. Avoid nesting a settings Expander inside a focused account dialog. Async pickers expose
+loading/retry status beside the field, recover after reattachment, and discard stale completions.
+
 Show identity, source and state first, followed by classifications and matching conditions.
 Put long evidence, history and identifiers in labeled expanders. Use contextual InfoBar
 feedback for loading, empty results, validation and operation failures. Reserve modal dialogs

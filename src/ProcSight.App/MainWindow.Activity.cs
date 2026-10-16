@@ -50,11 +50,13 @@ public sealed partial class MainWindow
                 $"Destination: {(entry.Destination==ProcSight.Core.Models.AnalysisDestination.LocalModel?"Local model":"Online provider")}",$"Command context sent: {(entry.CommandIncluded?"Yes; full line omitted from activity":"No")}",
                 $"Evidence records sent: {entry.EvidenceCount}","","Submitted metadata categories: "+string.Join(", ",entry.MetadataFields.Select(ActivityField)) };
             if(entry.ServiceIdentity is { } service) details.Insert(1,"Service: "+service);
+            if(entry.Kind==AnalysisActivityKind.Analysis) details.Insert(2,ProcSight.Application.Presentation.RuleInspection.Research(entry.Research));
             foreach(var pair in entry.Metadata) details.Add(ActivityField(pair.Key)+": "+pair.Value);
             details.Add(""); details.Add("Returned results");
             foreach(var assessment in entry.Assessments) details.Add($"{assessment.Axis}: {ActivityWords(assessment.Value)} ({assessment.Confidence})\n{assessment.Reason}\n");
             details.Add($"Proposed reusable rules: {entry.ProposedRuleCount}");
             if(entry.Kind.ToString()=="Research") details.Add($"Returned evidence records: {entry.ReturnedEvidenceCount}");
+            if(entry.Kind==AnalysisActivityKind.Analysis&&entry.Research is not null) details.Add($"Web sources returned with analysis: {entry.ReturnedEvidenceCount}");
             if(entry.ErrorKind is { } error) {
                 var failure=ProcSight.Core.Models.ProviderFailureExplanation.Describe(error,entry.FailureReason);
                 details.Add("What went wrong: "+failure.Summary); details.Add(failure.Details);

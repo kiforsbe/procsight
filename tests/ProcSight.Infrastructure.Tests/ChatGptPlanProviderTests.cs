@@ -10,6 +10,38 @@ namespace ProcSight.Infrastructure.Tests;
 
 public sealed class ChatGptPlanProviderTests
 {
+    [Fact] public async Task AnalysisRetainsCitedSourceBeyondFirstTenSearchResults()
+    {
+        const string document="""{"identityLabel":null,"role":null,"assessments":[{"axis":"Purpose","value":"DeveloperTool","reason":"The source describes a tool.","confidence":"Medium","evidenceIds":["https://example.com/source-11"]}],"rules":[]}""";
+        var stream=Event(new { type="response.completed",response=new { status="completed",output=new object[]{
+            new { type="web_search_call",status="completed",action=new { sources=Enumerable.Range(1,15).Select(i=>new { url="https://example.com/source-"+i,title="Fixture source" }).ToArray() } },
+            new { type="message",content=new[]{new { type="output_text",text=document }} } } } });
+        var result=await Provider(new(stream)).AnalyzeAsync(Payload() with { ResearchEnabled=true },default);
+        Assert.Null(result.Error); Assert.Contains(result.ResearchEvidence!,e=>e.SourceUrl=="https://example.com/source-11");
+        Assert.True(result.ResearchEvidence!.Count<=10);
+    }
+    [Fact] public async Task AnalysisCanSearchInSameRequestAndOnlyAcceptToolReturnedSources()
+    {
+        const string document="""{"identityLabel":"Example tool","role":"CLI","assessments":[{"axis":"Purpose","value":"DeveloperTool","reason":"The attributable source describes a developer tool.","confidence":"Medium","evidenceIds":["https://example.com/tool"]}],"rules":[]}""";
+        var completion=Event(new { type="response.completed",response=new { status="completed",output=new object[]{
+            new { type="web_search_call",status="completed",action=new { sources=new[]{new { type="url",url="https://example.com/tool",title="Example tool documentation" }} } },
+            new { type="message",content=new[]{new { type="output_text",text=document }} } } } });
+        var handler=new Handler(completion);
+        var result=await Provider(handler).AnalyzeAsync(Payload() with { ResearchEnabled=true },default);
+        Assert.Null(result.Error); Assert.Single(result.ResearchEvidence!); Assert.Equal(1,handler.Calls); Assert.Equal(1,result.ToolUses);
+        Assert.Equal(Assert.Single(result.ResearchEvidence!).Id,Assert.Single(result.Proposal!.Assessments).EvidenceIds[0]);
+        Assert.Contains("web_search",handler.Body!); Assert.Contains("web_search_call.action.sources",handler.Body!);
+        Assert.DoesNotContain("max_tool_calls",handler.Body!);
+        // The wire JSON is nested in JSON text; test unknown URL through a separate response below.
+        var invalid=Event(new { type="response.completed",response=new { status="completed",output=new[]{new { content=new[]{new { type="output_text",text=document }} }} } });
+        Assert.Equal(ProviderFailureReason.UnknownEvidence,(await Provider(new(invalid)).AnalyzeAsync(Payload() with { ResearchEnabled=true },default)).Error?.FailureReason);
+    }
+    [Fact] public async Task ResearchAnalysisRejectsCommandBearingPayloadBeforeNetwork()
+    {
+        var handler=new Handler(Delta(Valid)+Completed());
+        var result=await Provider(handler).AnalyzeAsync(Payload() with { ResearchEnabled=true,CommandLine="PRIVATE_COMMAND" },default);
+        Assert.NotNull(result.Error); Assert.Equal(0,handler.Calls);
+    }
     private const string Valid = """{"identityLabel":null,"role":null,"assessments":[],"rules":[]}""";
     private static AnalysisPayload Payload() => new(new("fixture"),new(){["name"]="fixture.exe"},[],null,0,AnalysisDestination.CloudModel);
     private static string Event(object value) => "data: " + JsonSerializer.Serialize(value) + "\n\n";
@@ -34,7 +66,7 @@ public sealed class ChatGptPlanProviderTests
         Assert.True(body.GetProperty("text").GetProperty("format").GetProperty("strict").GetBoolean());
         Assert.False(body.TryGetProperty("max_output_tokens",out _)); Assert.False(body.TryGetProperty("tools",out _));
         Assert.DoesNotContain("synthetic-token",handler.Body!);
-        Assert.Equal(new ProviderCapabilities(true,false),await provider.GetCapabilitiesAsync(default));
+        Assert.Equal(new ProviderCapabilities(true,true),await provider.GetCapabilitiesAsync(default));
     }
     [Fact] public void ArbitraryEndpointRejected() => Assert.Throws<ArgumentException>(()=>
         new ChatGptPlanProvider(new("chatgpt-plan",new("https://example.com/v1"),"model"),_=>Task.FromResult<string?>("token")));

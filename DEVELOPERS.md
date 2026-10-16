@@ -23,6 +23,14 @@ Tests use synthetic signed tokens, fake HTTP, in-memory protected storage, and r
 Never inspect or copy another application's credentials to validate this integration.
 The Debug `--visual-fixture <absolute.png> Dark 1000 settings` option renders actual Settings using
 in-memory credentials, without real account reads or network traffic.
+`settings-connection-chatgpt` uses an in-memory account and delayed fake model catalog, detaches and
+reattaches the account panel, and asserts a populated enabled picker with the configured model selected.
+Connection fixtures also assert that controls fit their actual dialog viewport. `rules-rejected` and
+`rules-unknown` exercise prominent decision diagnostics and research outcomes with synthetic records.
+ChatGPT research uses the public Responses web-search tool in the analysis request, with validated
+source-URL aliases mapped to internal evidence IDs. Keep `max_tool_calls` and `max_output_tokens` out
+of plan requests; the documented plan route rejects them. API-key requests may set these fields.
+The local allowance controls admission, not a provider-side spending cap; do not imply otherwise.
 Use `settings-admin` for simulated elevated-session UI or `settings-tray` for tray preferences;
 these fixtures do not elevate, invoke UAC, create a tray icon or read real accounts.
 `settings-connection` and `settings-connection-api` invoke the real Configure action through UI

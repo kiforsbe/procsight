@@ -59,7 +59,8 @@ public sealed partial class MainWindow
         : settings.Id=="openai"&&!local
         ? new OpenAiResponsesProvider(settings,()=>ProcSight.Application.Settings.ConnectionCredentials.Read(settings,policy.Connections is not null,credentials),providerHttp) :
         new CompatibleChatProvider(settings,()=>ProcSight.Application.Settings.ConnectionCredentials.Read(settings,policy.Connections is not null,credentials),providerHttp,local:local);
-    private IResearchProvider? CreateResearch(ProviderSettings settings)=>settings.Id=="openai"?
+    private IResearchProvider? CreateResearch(ProviderSettings settings)=>settings.Id=="chatgpt"?
+        new ChatGptWebResearchProvider(settings,ct=>settings.AccountId is { } id?ChatGpt.GetAccessTokenAsync(id,ct):Task.FromResult<string?>(null),providerHttp):settings.Id=="openai"?
         new OpenAiWebResearchProvider(settings,()=>ProcSight.Application.Settings.ConnectionCredentials.Read(settings,policy.Connections is not null,credentials),providerHttp):null;
     private async Task ReadAnalysisAsync()
     {

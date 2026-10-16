@@ -3,6 +3,36 @@ using ProcSight.Core.Rules;
 namespace ProcSight.Application.Presentation;
 public static class RuleInspection
 {
+    public static string Research(ResearchOutcome? outcome)=>outcome switch {
+        ResearchOutcome.Disabled=>"Web research was not run: disabled for this analysis.",
+        ResearchOutcome.LocalAnalysis=>"Web research was not run: local analysis.",
+        ResearchOutcome.Unavailable=>"Web research was not run: no enabled supported research connection was available.",
+        ResearchOutcome.SourcesFound=>"Web research returned attributable sources for this analysis.",
+        ResearchOutcome.NoSources=>"Web research completed but returned no attributable sources.",
+        ResearchOutcome.Failed=>"Web research failed. No successful research result was available; see AI activity for the failed request.",
+        ResearchOutcome.Searching=>"Web search is enabled within this analysis request; waiting for the completed result.",
+        _=>"Web research history was not recorded for this analysis." };
+    public static string Rejection(RuleDefinition rule,IReadOnlyList<EvidenceRecord> evidence,DateTimeOffset now)
+    {
+        var recorded=rule.RejectionReasons is { Count:>0 } reasons?string.Join(" ",reasons.Distinct().Select(RejectionText)):
+            "The original rejection reason was not recorded for this older rule.";
+        var validation=new RuleValidator().Validate(rule,evidence,now);
+        return recorded+"\nCurrent evidence: "+(validation.Accepted?"passes validation; this does not undo the original rejection.":string.Join("; ",validation.Reasons.Distinct()))+
+            "\nAnalyze again to generate a fresh rule. Rejected rules do not contribute assessments and cannot be enabled.";
+    }
+    private static string RejectionText(RuleRejectionReason reason)=>reason switch {
+        RuleRejectionReason.PrivatePredicateOmitted=>"A proposed condition was not supported by submitted metadata. It was omitted to prevent private command text entering stored rules.",
+        RuleRejectionReason.InvalidStructure=>"The proposed rule had an invalid structure.",
+        RuleRejectionReason.MissingInvocationScope=>"The command-derived rule lacked a private invocation scope.",
+        RuleRejectionReason.InsufficientIdentity=>"The proposed identity lacked a file hash or independent identifying fields.",
+        RuleRejectionReason.InvalidPredicate=>"A proposed matching condition was invalid.",
+        RuleRejectionReason.UnsupportedPredicate=>"A matching condition lacked supporting evidence.",
+        RuleRejectionReason.InvalidAssessment=>"A proposed classification was invalid.",
+        RuleRejectionReason.InvalidFreshness=>"A classification's review period was expired or outside its permitted limit.",
+        RuleRejectionReason.MissingAssessmentEvidence=>"A classification referenced unavailable evidence.",
+        RuleRejectionReason.UnsupportedThreat=>"The threat claim lacked attributable evidence for this exact file hash.",
+        RuleRejectionReason.MissingEvidence=>"Required evidence was absent or expired at validation.",
+        _=>"The proposal was rejected; a specific reason was unavailable." };
     private static string Words(string text)=>System.Text.RegularExpressions.Regex.Replace(text,"(?<=[a-z])(?=[A-Z])"," ");
     public static string Field(string field)=>field switch {
         "hash"=>"File hash","name"=>"Executable","product"=>"Product","signer"=>"Verified signer","path"=>"File location",
@@ -39,6 +69,8 @@ public static class RuleInspection
         var lines=new List<string> { Title(rule,evidence),Source(rule),"State: "+State(rule,now),"Rule ID: "+rule.Id,
             $"Created: {rule.CreatedAt.LocalDateTime:g}",$"Review: {rule.ReviewAt.LocalDateTime:g}",$"Expires: {rule.ExpiresAt.LocalDateTime:g}" };
         if(rule.Provenance is { } p) lines.Add($"Generated: {p.GeneratedAt.LocalDateTime:g} · {(p.Destination==AnalysisDestination.LocalModel?"Local model":"Online provider")}");
+        if(rule.State==RuleState.Rejected) lines.Add(Rejection(rule,evidence,now));
+        lines.Add(Research(rule.Provenance?.Research));
         if(entity is not null) lines.Add("For selected process/service: "+ApplicationStatus(rule.Id,analysis));
         lines.Add("\nConditions — all must match");
         foreach(var predicate in rule.Predicates) {

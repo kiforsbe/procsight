@@ -2,6 +2,17 @@ using ProcSight.Core.Models;
 namespace ProcSight.Core.Rules;
 public sealed class RuleValidator
 {
+    public static RuleRejectionReason ReasonCode(string reason)=>reason switch {
+        "Invalid structure"=>RuleRejectionReason.InvalidStructure,
+        "Command-derived rules require a private invocation context"=>RuleRejectionReason.MissingInvocationScope,
+        "Identity requires hash or independent identifying fields"=>RuleRejectionReason.InsufficientIdentity,
+        "Invalid predicate"=>RuleRejectionReason.InvalidPredicate,
+        "Predicate lacks supporting evidence"=>RuleRejectionReason.UnsupportedPredicate,
+        "Invalid assessment value"=>RuleRejectionReason.InvalidAssessment,
+        "Assessment freshness invalid"=>RuleRejectionReason.InvalidFreshness,
+        "Assessment evidence unavailable"=>RuleRejectionReason.MissingAssessmentEvidence,
+        "Known threat needs attributable exact-hash evidence"=>RuleRejectionReason.UnsupportedThreat,
+        "Required evidence expired or absent"=>RuleRejectionReason.MissingEvidence,_=>RuleRejectionReason.Unspecified };
     public static readonly Dictionary<AssessmentAxis,HashSet<string>> Values=new() {
         [AssessmentAxis.Purpose]=["OSComponent","Application","BackgroundHelper","Updater","DeveloperTool","Unknown"],
         [AssessmentAxis.Security]=["NoConcernObserved","Suspicious","KnownThreat","Unknown"],

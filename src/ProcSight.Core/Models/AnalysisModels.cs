@@ -16,7 +16,7 @@ public sealed record AnalysisUpdate(AnalysisIdentity Identity, AnalysisState Sta
 public enum AnalysisDestination { LocalRules, LocalModel, CloudModel }
 public sealed record AnalysisPayload(AnalysisIdentity Identity, Dictionary<string, string> Metadata,
     List<EvidenceRecord> Evidence, string? CommandLine, long PolicyRevision,
-    AnalysisDestination Destination);
+    AnalysisDestination Destination,[property:System.Text.Json.Serialization.JsonIgnore] bool ResearchEnabled=false);
 public sealed record AnalysisProposal(List<Assessment> Assessments, List<RuleDefinition> Rules,
     string? IdentityLabel = null,string? Role = null);
 public sealed record ResearchRequest(Dictionary<string, string> IdentityTerms);
@@ -26,6 +26,6 @@ public enum ProviderFailureReason { InvalidJson, InvalidStructure, UnknownEviden
     DuplicateAxes, InvalidRuleIndexes, IdentityLabelTooLong, ThreatEvidenceMissing, StreamEnded, OutputIncomplete, OutputTooLarge, NoOutput }
 public sealed record ProviderError(ProviderErrorKind Kind, string Message, TimeSpan? RetryAfter = null,ProviderFailureReason? FailureReason=null);
 public sealed record ProviderResult(AnalysisProposal? Proposal, ProviderError? Error = null,
-    int BillableCalls = 1, int ToolUses = 0);
+    int BillableCalls = 1, int ToolUses = 0,List<EvidenceRecord>? ResearchEvidence=null);
 public sealed record ResearchResult(List<EvidenceRecord> Evidence, ProviderError? Error = null,
     int BillableCalls = 1, int ToolUses = 0);

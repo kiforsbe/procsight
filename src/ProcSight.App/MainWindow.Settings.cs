@@ -35,9 +35,10 @@ public sealed partial class MainWindow
         SettingsSection(panel,"Analysis and privacy");
         var automatic=new ToggleSwitch { Header="Automatic AI analysis",IsOn=policy.AutomaticEnabled };
         automatic.Toggled+=async(_,_)=>await Apply(policy with { AutomaticEnabled=automatic.IsOn });
-        var research=new ToggleSwitch { Header="Online research (separately billed API requests)",IsOn=policy.ResearchEnabled };
+        var research=new ToggleSwitch { Header="Online research",IsOn=policy.ResearchEnabled };
         research.Toggled+=async(_,_)=>await Apply(policy with { ResearchEnabled=research.IsOn });
-        panel.Children.Add(SettingsExpander("\uE9CE","Automatic analysis","Local rules and saved knowledge are always checked first",automatic,research));
+        panel.Children.Add(SettingsExpander("\uE9CE","Automatic analysis","Local rules and saved knowledge are always checked first",automatic,research,
+            new TextBlock { Text="ChatGPT plan and OpenAI API connections can search within the analysis request. Choosing another research connection in Configure uses a separate search step. Search-enabled analysis excludes command lines and private paths. ChatGPT uses your plan; API connections may incur separate charges.",TextWrapping=TextWrapping.Wrap }));
         var mode=new ComboBox { Header="Command-line sharing",ItemsSource=new[]{"Exclude from online analysis","Prefer local model; exclude online","Include in online analysis"},SelectedIndex=(int)policy.CommandLineMode };
         mode.SelectionChanged+=async(_,_)=>await Apply(policy with { CommandLineMode=(CommandLineMode)mode.SelectedIndex });
         var identifying=new CheckBox { Content="Include file paths and ownership, package, and service identifiers online",IsChecked=policy.ShareIdentifyingMetadata };
@@ -45,13 +46,14 @@ public sealed partial class MainWindow
         panel.Children.Add(SettingsExpander("\uE72E","Online sharing","Choose which identifying metadata may leave this computer",mode,identifying,
             new TextBlock { Text="Full command lines always remain available locally. Online inclusion may transmit credentials and personal paths. Research never receives full commands. Changes cancel queued work; already transmitted requests cannot be recalled.",TextWrapping=TextWrapping.Wrap }));
         var jobs=new NumberBox { Header="Automatic jobs per day",Value=policy.Limits?.AutomaticJobs??20,Minimum=0,Maximum=10000,SpinButtonPlacementMode=NumberBoxSpinButtonPlacementMode.Compact };
-        var calls=new NumberBox { Header="Billable calls per day (including retries and research)",Value=policy.Limits?.BillableCalls??60,Minimum=0,Maximum=10000,SpinButtonPlacementMode=NumberBoxSpinButtonPlacementMode.Compact };
+        var calls=new NumberBox { Header="Daily online request allowance",Value=policy.Limits?.BillableCalls??60,Minimum=0,Maximum=10000,SpinButtonPlacementMode=NumberBoxSpinButtonPlacementMode.Compact };
         async void LimitsChanged(NumberBox sender,NumberBoxValueChangedEventArgs args) {
             if(double.IsFinite(jobs.Value)&&double.IsFinite(calls.Value)) await Apply(policy with { Limits=new((int)jobs.Value,(int)calls.Value) });
             else feedback.Text="Enter a valid request limit. The last valid limit remains active.";
         }
         jobs.ValueChanged+=LimitsChanged; calls.ValueChanged+=LimitsChanged;
-        panel.Children.Add(SettingsExpander("\uE9D9","Request limits","Bound automatic work and online requests",jobs,calls));
+        panel.Children.Add(SettingsExpander("\uE9D9","Request limits","Bound automatic work and online requests",jobs,calls,
+            new TextBlock { Text="Research reserves an extra allowance unit per request. This controls request admission; provider usage limits and charges still apply. ChatGPT plan requests do not offer a strict web-tool-call cap.",TextWrapping=TextWrapping.Wrap }));
         panel.Children.Add(feedback);
         SettingsSection(panel,"Advanced");
         panel.Children.Add(BuildPrivilegeSettings());

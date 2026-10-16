@@ -19,7 +19,13 @@ public sealed partial class MainWindow
         var output=Path.GetFullPath(args[2]);
         if(args.Length>5&&args[5].StartsWith("settings",StringComparison.Ordinal)) {
             elevated=args[5]=="settings-admin";
-            chatGpt=new(new FixtureCredentials()); page="Settings";
+            var fixtureCredentials=new FixtureCredentials();
+            var protectedFixture=new ProcSight.Infrastructure.Authentication.ChatGptProtectedStore(fixtureCredentials);
+            protectedFixture.Set("catalog",System.Text.Json.JsonSerializer.Serialize(new { HostId="urn:uuid:00000000-0000-0000-0000-000000000001",ActiveAccountId="fixture-account",
+                Accounts=new[]{new ProcSight.Infrastructure.Authentication.ChatGptAccount("fixture-account","person@example.invalid","fixture-client")} }));
+            protectedFixture.Set("account:fixture-account",System.Text.Json.JsonSerializer.Serialize(new { Issuer="https://auth.openai.com",Subject="fixture-subject",ClientId="fixture-client",
+                AccessToken="synthetic-access",RefreshToken="synthetic-refresh",Scopes="openid offline_access resource.invoke chatgpt.tokens.use.direct",Expires=DateTimeOffset.UtcNow.AddHours(1) }));
+            chatGpt=new(fixtureCredentials,new HttpClient(new FixtureModelHandler())); page="Settings";
             policy=new(Connections:[
                 new("fixture-local",new("local",new("http://127.0.0.1:1234/v1"),"Local example model"),true,0),
                 new("fixture-plan",new("chatgpt",new("https://api.openai.com/v1"),"Example account model",AccountId:"fixture-account"),true,1),
@@ -64,6 +70,10 @@ public sealed partial class MainWindow
             var learned=new RuleDefinition(Guid.NewGuid(),1,RuleState.Active,DataOrigin.ShareableMetadata,now,now.AddDays(7),now.AddDays(7),
                 [new(PredicateKind.Exact,"hash",node.Facts["hash"],[node.Evidence[0].Id])],[purpose],[node.Evidence[0].Id],100,
                 Provenance:new("chatgpt","example-model",AnalysisDestination.CloudModel,now));
+            if(args[5]=="rules-rejected") learned=learned with { State=RuleState.Rejected,RejectionReasons=[RuleRejectionReason.PrivatePredicateOmitted],
+                Provenance=learned.Provenance! with { Research=ResearchOutcome.SourcesFound } };
+            if(args[5]=="rules-unknown") learned=learned with { Assessments=[purpose with { Value="Unknown" }],
+                Provenance=learned.Provenance! with { Research=ResearchOutcome.Unavailable } };
             knowledge.SaveAsync(new(node.Identity,now,[purpose],node.Evidence,[learned],[]),default).GetAwaiter().GetResult();
             var update=analysis[node.Identity]; analysis[node.Identity]=update with { Result=update.Result with { MatchingRuleIds=[learned.Id],AppliedRuleIds=[learned.Id] } };
             page=args[5].StartsWith("rules",StringComparison.Ordinal)&&args[5]!="rules-process"?"Knowledge":"Processes";
@@ -105,7 +115,7 @@ public sealed partial class MainWindow
                     if(args[5]!="rules-process") { Navigation.SelectedItem=Navigation.MenuItems.OfType<Microsoft.UI.Xaml.Controls.NavigationViewItem>().First(i=>i.Tag?.ToString()=="Knowledge"); page="Knowledge"; RenderPage(); }
                     else { page="Processes"; RenderPage(); detailsOpen=true; table!.SelectedItem=rows.First(r=>r.Entity.Identity==node.Identity); UpdateDetailsLayout(); ShowDetail(table.SelectedItem as ViewModels.ProcessRow); }
                     await Task.Delay(350); WindowRoot.UpdateLayout();
-                    if(args[5] is "rules-detail" or "rules-actions") {
+                    if(args[5] is "rules-detail" or "rules-actions" or "rules-rejected" or "rules-unknown") {
                         Microsoft.UI.Xaml.Controls.ListView? FindRulesList(DependencyObject parent) {
                             if(parent is Microsoft.UI.Xaml.Controls.ListView found) return found;
                             for(var i=0;i<VisualTreeHelper.GetChildrenCount(parent);i++) if(FindRulesList(VisualTreeHelper.GetChild(parent,i)) is { } nested) return nested;
@@ -181,14 +191,14 @@ public sealed partial class MainWindow
                         return false;
                     }
                     if(HasInlineConfiguration(PageContent)) throw new InvalidOperationException("Provider fields remain inline in the connection list.");
-                    if(args[5] is "settings-connection" or "settings-connection-api") {
-                        if(args[5]=="settings-connection-api") {
+                    if(args[5] is "settings-connection" or "settings-connection-api" or "settings-connection-chatgpt") {
+                        if(args[5] is "settings-connection-api" or "settings-connection-chatgpt") {
                             Microsoft.UI.Xaml.Controls.ListView? FindConnections(DependencyObject root) {
                                 if(root is Microsoft.UI.Xaml.Controls.ListView found) return found;
                                 for(var index=0;index<VisualTreeHelper.GetChildrenCount(root);index++) if(FindConnections(VisualTreeHelper.GetChild(root,index)) is { } nested) return nested;
                                 return null;
                             }
-                            FindConnections(PageContent)!.SelectedIndex=2;
+                            FindConnections(PageContent)!.SelectedIndex=args[5]=="settings-connection-chatgpt"?1:2;
                         }
                         var configure=(Microsoft.UI.Xaml.Controls.AppBarButton)FindSettingsButton(PageContent,"Configure")!;
                         var peer=new Microsoft.UI.Xaml.Automation.Peers.AppBarButtonAutomationPeer(configure);
@@ -196,7 +206,29 @@ public sealed partial class MainWindow
                         await Task.Delay(400); WindowRoot.UpdateLayout();
                         if(connectionConfigurationDialog is null) throw new InvalidOperationException("Configure did not open the native dialog.");
                         if(connectionConfigurationDialog.ActualTheme!=WindowRoot.ActualTheme) throw new InvalidOperationException("Connection dialog does not follow the selected app theme.");
-                        if(!HasInlineConfiguration(connectionConfigurationDialog)) throw new InvalidOperationException("Configuration dialog is missing provider fields.");
+                        if(args[5]!="settings-connection-chatgpt"&&!HasInlineConfiguration(connectionConfigurationDialog)) throw new InvalidOperationException("Configuration dialog is missing provider fields.");
+                        if(args[5]=="settings-connection-chatgpt"&&connectionConfigurationDialog.Content is Microsoft.UI.Xaml.Controls.ScrollViewer modelViewport&&modelViewport.Content is Microsoft.UI.Xaml.Controls.StackPanel modelEditor) {
+                            var accountPanel=modelEditor.Children[0]; modelEditor.Children.RemoveAt(0); await Task.Delay(50); modelEditor.Children.Insert(0,accountPanel);
+                            await Task.Delay(1100); WindowRoot.UpdateLayout();
+                            Microsoft.UI.Xaml.Controls.ComboBox? FindModels(DependencyObject root) {
+                                if(root is Microsoft.UI.Xaml.Controls.ComboBox combo&&combo.Header?.ToString()=="Models available to this account") return combo;
+                                for(var index=0;index<VisualTreeHelper.GetChildrenCount(root);index++) if(FindModels(VisualTreeHelper.GetChild(root,index)) is { } nested) return nested;
+                                return null;
+                            }
+                            var modelPicker=FindModels(modelEditor);
+                            if(modelPicker is not { IsEnabled:true,Items.Count:2,SelectedItem:not null }) throw new InvalidOperationException("Model discovery did not recover after dialog reattachment.");
+                        }
+                        if(connectionConfigurationDialog.Content is Microsoft.UI.Xaml.Controls.ScrollViewer viewport) {
+                            void AssertFits(DependencyObject root) {
+                                if(root is Microsoft.UI.Xaml.Controls.Button or Microsoft.UI.Xaml.Controls.ComboBox or Microsoft.UI.Xaml.Controls.TextBox) {
+                                    var control=(FrameworkElement)root; var point=control.TransformToVisual(viewport).TransformPoint(new global::Windows.Foundation.Point());
+                                    if(control.Visibility==Visibility.Visible&&control.ActualWidth>0&&(point.X< -1||point.X+control.ActualWidth>viewport.ActualWidth+1))
+                                        throw new InvalidOperationException("Connection dialog control exceeds its viewport: "+control.GetType().Name);
+                                }
+                                for(var index=0;index<VisualTreeHelper.GetChildrenCount(root);index++) AssertFits(VisualTreeHelper.GetChild(root,index));
+                            }
+                            AssertFits((DependencyObject)viewport.Content);
+                        }
                     }
                     if(args[5] is "settings-admin" or "settings-tray"&&PageContent.Children.FirstOrDefault() is Microsoft.UI.Xaml.Controls.ScrollViewer settingsScroll&&settingsScroll.Content is Microsoft.UI.Xaml.Controls.StackPanel sections) {
                         foreach(var expander in sections.Children.OfType<Microsoft.UI.Xaml.Controls.Expander>()) expander.IsExpanded=false;
@@ -374,6 +406,14 @@ public sealed partial class MainWindow
         public string? Get(string id)=>values.GetValueOrDefault(id);
         public void Set(string id,string value)=>values[id]=value;
         public void Remove(string id)=>values.Remove(id);
+    }
+    private sealed class FixtureModelHandler : HttpMessageHandler
+    {
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken ct) {
+            if(request.RequestUri?.AbsolutePath!="/v1/models") throw new InvalidOperationException("Unexpected fixture request.");
+            await Task.Delay(700,ct);
+            return new(System.Net.HttpStatusCode.OK) { Content=new StringContent("""{"models":[{"slug":"Example account model","display_name":"Example account model","visibility":"list"},{"slug":"Alternative example model","display_name":"Alternative example model","visibility":"list"}]}""") };
+        }
     }
 }
 #endif
