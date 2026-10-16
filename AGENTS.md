@@ -29,6 +29,12 @@ assessed names. Preserve useful local window captions and keep explanatory text 
 
 ## Product boundaries
 
+- Startup stays asInvoker/uiAccess=false; administrator restart is explicit and full-app, with no
+  SeDebugPrivilege or management actions. Preserve the original until owned-window readiness.
+  Saved normal settings stay separate from cached elevated-session effective policy. Route, preview,
+  research and tests honor session permissions, which reset on restart. Never borrow original-user
+  credentials/settings on alternate-account elevation. A collector-only broker is future work.
+
 - Connection profiles route only enabled entries in saved priority order, preferring local in
   LocalOnly mode. Fallback is explicit and off by default, with per-profile authentication pause.
   Stop on rejected output, policy cancellation and exhausted budgets; rebuild privacy projection

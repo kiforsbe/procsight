@@ -35,10 +35,35 @@ and observed behavior, impact, and minimal reproduction steps with synthetic dat
 
 ## Implemented security boundaries and validation limits
 
+### Explicit administrator mode
+
+The manifest remains `asInvoker` with `uiAccess=false`. Explicit `runas` launches the actual
+absolute app executable, never a path from preferences, process arguments or model output.
+The original stays available until the returned process owns a visible ready-marked window;
+cancellation, early exit and a 20-second timeout preserve it. No privilege adjustment,
+SeDebugPrivilege, process/service modification or arbitrary privileged IPC is introduced.
+Protected/PPL metadata may remain unavailable.
+
+The entire UI, native parsing, SQLite and provider code run elevated in this mode, increasing the
+consequence of a vulnerability. Only elevate a trusted app/runtime/dependency tree; an unsigned
+build in a user-writable checkout is not a hardened privileged distribution. A collector-only broker
+is future hardening; signed protected installation is future release work.
+
+Each elevated session blocks online analysis, tests and research until fresh consent. Commands
+and identifying metadata require separate session consent as well as saved sharing settings.
+Local analysis stays available. Consent is not persisted; saved policy and effective overlay stay
+separate. Revocation invalidates queued work; already transmitted data cannot be recalled.
+
+Settings/credentials resolve under the current Windows context. Alternate-account UAC and
+Administrator Protection must never borrow original-user credentials or settings. ProcSight never
+collects UAC credentials. To return to standard privileges, close and reopen through the unelevated
+shell; a child of an elevated app is not presumed unelevated. Live UAC/alternate-account/bootstrap
+and protected-process acceptance remain outstanding.
+
 The following boundaries exist in code and have focused automated checks. They do not
 constitute an independent security audit or verified behavior of a remote/local provider:
 
-- Read-only observation with ordinary user privilege in the first release.
+- Read-only observation with ordinary user privilege by default and explicit administrator restart.
 - Sanitized metadata for online analysis, with explicit opt-in for a verbatim full
   command line. Command lines may contain passwords, tokens, and personal paths.
 - Local-only command lines and derived findings remain out of cloud requests, including

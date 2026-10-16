@@ -41,6 +41,42 @@ verify the diagram source and rendering. Avoid diagrams that merely repeat a fil
 
 ## Component boundaries
 
+### Explicit administrator sessions
+
+[PrivilegeContext](src/ProcSight.Windows/Security/PrivilegeContext.cs) reads the active token;
+failed inspection uses restrictive privacy defaults. [ElevationLauncher](src/ProcSight.Windows/Security/ElevationLauncher.cs)
+requests `runas` for the actual executable, holds its returned process handle and confirms an owned
+visible window's ready property before allowing the original to close. Cancellation, startup failure
+and a bounded wait preserve the original. This confirms lifecycle, not installation security.
+
+Saved settings remain separate from cached [SessionPolicy](src/ProcSight.Application/Settings/SessionPolicy.cs)
+effective settings. Elevated sessions exclude cloud routing until explicit consent, suppress research
+and strip command/identifying sharing without separate consent. Local analysis remains available.
+Coordinator, tester and payload preview use effective policy; dispatch rejects cloud calls without
+permission. Consent changes invalidate old work, but session flags never enter persisted preferences.
+All storage/credentials use the active Windows context. No broker or privilege adjustment exists.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Normal as Standard app
+    participant Shell as Windows UAC
+    participant Admin as Administrator app
+    User->>Normal: Restart as administrator
+    Normal->>Shell: runas actual executable
+    alt Cancelled or startup fails
+        Shell-->>Normal: No confirmed ready window
+        Normal->>Normal: Remain usable
+    else Startup succeeds
+        Shell->>Admin: Start in chosen Windows context
+        Admin->>Admin: Load current-context settings and credentials
+        Admin->>Admin: Apply restrictive session overlay and mark ready
+        Normal->>Admin: Confirm window PID using retained process handle
+        Normal->>Normal: Close after confirmation
+        User->>Admin: Optional fresh sharing consent
+    end
+```
+
 ### System tray and app identity
 
 [MainWindow.Tray](src/ProcSight.App/MainWindow.Tray.cs) owns opt-in visibility, metric selection,
@@ -223,7 +259,8 @@ stateDiagram-v2
 Protocol source: [OpenAI open-source sign-in](https://developers.openai.com/siwc/token-sharing-open-source/sign-in)
 and [session management](https://developers.openai.com/siwc/token-sharing-open-source/profiles-and-sessions).
 
-The first release is an ordinary-privilege C#/WinUI 3 application on Windows 11. Collection,
+The first release is a C#/WinUI 3 application on Windows 11, ordinary-privilege by default with
+explicit administrator restart. Collection,
 identity enrichment, rules, storage, and provider work run away from the UI thread. The app
 does not need a background service or Node.js server. ChatGPT browser sign-in temporarily opens an
 IPv4 loopback callback listener; ordinary process collection has no listening network endpoint.

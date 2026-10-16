@@ -102,7 +102,10 @@ and label planned versus implemented behavior accurately.
 The plan separates Core domain models/rules/privacy, Application orchestration, Windows
 collection/credential storage, Infrastructure persistence/provider adapters, and the
 WinUI App. Domain tests must not require WinUI initialization. Collection is read-only
-and ordinary-privilege; no process/service management actions belong in the first release.
+and ordinary-privilege by default, with explicit full-app administrator mode; no process/service
+management actions belong in the first release. The manifest stays asInvoker/uiAccess=false.
+Elevated sessions use separate privacy consent and current-context credentials only. See SECURITY
+before testing elevation from an unsigned user-writable development checkout.
 
 Run collection and analysis away from the UI thread. Keep unavailable facts explicit.
 Do not derive identity from a name alone, trust metadata company names as verified

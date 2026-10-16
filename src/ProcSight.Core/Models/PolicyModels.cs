@@ -6,7 +6,8 @@ public sealed record ProviderSettings(string Id, Uri Endpoint, string Model, boo
 public sealed record AnalysisPolicy(bool AutomaticEnabled = false, bool ResearchEnabled = false,
     CommandLineMode CommandLineMode = CommandLineMode.Off, ProviderSettings? Provider = null,
     ProviderSettings? LocalModel = null, UsageLimits? Limits = null, long Revision = 0,bool ShareIdentifyingMetadata=false,
-    ConnectionProfile[]? Connections=null,bool FallbackEnabled=false,string? ResearchProfileId=null);
+    ConnectionProfile[]? Connections=null,bool FallbackEnabled=false,string? ResearchProfileId=null,
+    [property:System.Text.Json.Serialization.JsonIgnore] bool ExternalAnalysisAllowed=true);
 public sealed record PresentationPreferences(string Theme = "System", bool Grouped = true,
     string Sort = "Name", string Page = "Processes",bool SortDescending=false,
     bool ShowTrayIcon=false,TrayMetric TrayMetric=TrayMetric.Cpu,bool MinimizeToTray=false);

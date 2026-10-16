@@ -7,6 +7,7 @@ public sealed class ConnectionTester(Func<ProviderSettings,bool,IAnalysisProvide
     public async Task<ProviderResult> TestAsync(ConnectionProfile profile,AnalysisPolicy policy,CancellationToken ct)
     {
         ConnectionProfiles.Validate([profile]);
+        if(!profile.IsLocal&&!policy.ExternalAnalysisAllowed) return new(null,new(ProviderErrorKind.Unsupported,"Online analysis requires explicit consent for this administrator session."));
         if(!profile.IsLocal&&!await usage.TryReserveAsync(UsageKind.BillableCall,DateOnly.FromDateTime(DateTime.Now),policy.Limits??new(),ct))
             return new(null,new(ProviderErrorKind.Unsupported,"Daily call budget reached."));
         var payload=new AnalysisPayload(new("connection-test"),new(){["name"]="synthetic-connection-test.exe"},[],null,

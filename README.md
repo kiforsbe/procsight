@@ -45,6 +45,9 @@ This is the actual XAML rendering, using synthetic processes and a synthetic ana
 - A native app icon and optional system-tray graph for CPU, memory, disk busy, network throughput
   or busiest GPU engine. Choose the metric and minimize-to-tray behavior in Settings; closing still
   exits. Missing counters show unavailable, and tray Exit always exits.
+- Optional **Restart as administrator** in Settings, with an Administrator title and fresh
+  per-session online-sharing consent. Normal startup stays unelevated; collection stays read-only
+  and protected processes can still deny access. See [the security assessment](SECURITY.md).
 - An **AI activity** page showing queried processes/services, provider/model, retries, returned
   classifications and explanations, research evidence counts, and failures. The last 200 requests
   stay in memory, with filtering, Pause recording and Clear; raw transport/debug data is omitted.

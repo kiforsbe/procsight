@@ -124,7 +124,7 @@ public sealed partial class MainWindow
             if(flush is not null) await flush(); if(!validEditor) { feedback.Text="Complete the selected configuration before testing."; return; }
             var profile=profiles.FirstOrDefault(p=>p.ProfileId==selectedId); if(profile is null) return;
             test.IsEnabled=false;
-            try { var result=await new ConnectionTester(CreateProvider,usage,aiActivity).TestAsync(profile,policy,lifetime.Token);
+            try { var result=await new ConnectionTester(CreateProvider,usage,aiActivity).TestAsync(profile,EffectivePolicy,lifetime.Token);
                 feedback.Text=result.Error?.Message??"Connection returned a validated response. No real process metadata was sent."; }
             catch(OperationCanceledException) { feedback.Text="Connection test cancelled."; }
             catch { feedback.Text="Connection test unavailable. Check configuration and credential access."; }

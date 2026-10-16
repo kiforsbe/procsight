@@ -7,6 +7,10 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Explicit administrator restart with UAC cancellation/startup recovery, an Administrator title,
+  and separate session-only online-analysis/command/identifying consent. Default startup remains
+  unelevated and collection stays read-only; documented full-app elevation security risks.
+
 - Reproducible process-chip/magnifier app icon and optional live system-tray graph with CPU, memory,
   disk busy, network throughput or busiest GPU engine selection, explicit unavailable states,
   restoration/menu actions and opt-in minimize-to-tray behavior.

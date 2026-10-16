@@ -38,7 +38,7 @@ public sealed partial class MainWindow
             var migrated=ProcSight.Application.Settings.ConnectionSettingsMigration.Migrate(policy,credentials);
             if(migrated!=policy) { preferences.Save(migrated,presentation); policy=migrated; }
         }
-        catch { runtimeWarning="Settings could not be loaded. Online analysis is disabled until you save valid settings."; policy=new(); }
+        catch { runtimeWarning="Settings could not be loaded. Online analysis is disabled until valid settings are configured."; policy=new(); }
         knowledge=new(Path.Combine(dataFolder,"knowledge.db"));
         if(Enum.TryParse<ProcessSort>(presentation.Sort,out var savedSort)) sort=savedSort;
         sortDescending=presentation.SortDescending;
@@ -78,9 +78,9 @@ public sealed partial class MainWindow
     {
         var entity=(table?.SelectedItem as ViewModels.ProcessRow)?.Entity ?? entities.FirstOrDefault();
         if(entity is null) { await MessageAsync("No metadata available","Wait for collection or select an item first."); return; }
-        var destination=ConnectionRouter.Resolve(policy).FirstOrDefault()?.IsLocal==true?
+        var destination=ConnectionRouter.Resolve(EffectivePolicy).FirstOrDefault()?.IsLocal==true?
             AnalysisDestination.LocalModel:AnalysisDestination.CloudModel;
-        var payload=new AnalysisProjection().Build(entity,policy,destination);
+        var payload=new AnalysisProjection().Build(entity,EffectivePolicy,destination);
         await MessageAsync("Analysis payload preview",JsonSerializer.Serialize(payload,new JsonSerializerOptions { WriteIndented=true })+
             (policy.CommandLineMode!=CommandLineMode.Off&&payload.CommandLine is null?"\n\nFull command line is unavailable or not permitted for this destination.":""));
     }

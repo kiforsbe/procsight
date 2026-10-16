@@ -9,7 +9,7 @@ public sealed partial class MainWindow
     private ImmediateSettingsController? settingsController;
     private Task<SettingsApplyResult> ApplySettingsAsync(AnalysisPolicy next)
     {
-        settingsController??=new(preferences,async (value,ct)=> { policy=value; await coordinator.ChangePolicyAsync(value,ct); },policy,presentation);
+        settingsController??=new(preferences,async (value,ct)=> { policy=value; await coordinator.ChangePolicyAsync(EffectivePolicy,ct); },policy,presentation);
         return settingsController.ApplyAsync(next,presentation,lifetime.Token);
     }
     private static string SettingsResultText(SettingsApplyResult result)=>result.Failure switch {
@@ -54,6 +54,7 @@ public sealed partial class MainWindow
         panel.Children.Add(SettingsExpander("\uE9D9","Request limits","Bound automatic work and online requests",jobs,calls));
         panel.Children.Add(feedback);
         SettingsSection(panel,"Advanced");
+        panel.Children.Add(BuildPrivilegeSettings());
         var preview=new Button { Content="Preview payload…" }; preview.Click+=async(_,_)=>await PreviewAsync();
         var activity=new Button { Content="View AI activity" }; activity.Click+=(_,_)=>Navigation.SelectedItem=Navigation.MenuItems.OfType<NavigationViewItem>().First(i=>i.Tag?.ToString()=="AI activity");
         var recovery=new Button { Content="Recover knowledge database…" }; recovery.Click+=async(_,_)=>await RecoverKnowledgeAsync();

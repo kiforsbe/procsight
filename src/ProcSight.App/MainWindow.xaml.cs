@@ -45,11 +45,13 @@ public sealed partial class MainWindow : Window
         AppWindow.Show();
         LoadRuntime();
         ConfigureChrome();
+        if(elevated) { Title="ProcSight (Administrator)"; AppTitleBar.Title="ProcSight (Administrator)"; }
         ConfigureTray();
         Closed += async (_, _) => { lifetime.Cancel(); tray?.Dispose(); if(trayLoop is not null) await trayLoop; traySampler.Dispose(); await coordinator.DisposeAsync(); providerHttp.Dispose(); };
         RenderPage();
         _ = CollectAsync();
         _ = ReadAnalysisAsync();
+        if(elevated) ProcSight.Windows.Security.ElevationLauncher.MarkReady(WinRT.Interop.WindowNative.GetWindowHandle(this));
     }
     private void Navigate(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
@@ -80,14 +82,14 @@ public sealed partial class MainWindow : Window
             {
                 var mode=policy.CommandLineMode;
                 var snapshot = await collector.CaptureAsync(mode, lifetime.Token);
-                var resolved = coordinator.ResolveEntities(snapshot,policy);
+                var resolved = coordinator.ResolveEntities(snapshot,EffectivePolicy);
                 DispatcherQueue.TryEnqueue(() => { lastSnapshot=snapshot; entities = resolved; RefreshRows(); });
                 try { await knowledgeMaintenance.WaitAsync(lifetime.Token);
                     try { await Task.Run(async()=>
                     {
                         if(DateTimeOffset.UtcNow-prunedAt>TimeSpan.FromDays(1))
                         { await knowledge.PruneAsync(DateTimeOffset.UtcNow,lifetime.Token); prunedAt=DateTimeOffset.UtcNow; }
-                        await coordinator.ObserveAsync(snapshot,policy,lifetime.Token);
+                        await coordinator.ObserveAsync(snapshot,EffectivePolicy,lifetime.Token);
                     },lifetime.Token); } finally { knowledgeMaintenance.Release(); } }
                 catch(Exception e) when(e is not OperationCanceledException)
                 { DispatcherQueue.TryEnqueue(()=> { if(status is not null) status.Text="Knowledge unavailable; local collection continues. See Settings for recovery."; }); }

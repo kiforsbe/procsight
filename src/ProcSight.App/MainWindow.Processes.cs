@@ -196,7 +196,7 @@ public sealed partial class MainWindow
     }
     private void UpdateSelectionActions()
     {
-        if(analyzeButton is not null) analyzeButton.IsEnabled=table?.SelectedItem is ProcessRow { IsGroup:false } && (policy.Provider is not null||policy.LocalModel is not null);
+        if(analyzeButton is not null) analyzeButton.IsEnabled=table?.SelectedItem is ProcessRow { IsGroup:false } && ProcSight.Application.Analysis.ConnectionRouter.Resolve(EffectivePolicy).Count>0;
     }
     private void UpdateDetailsLayout()
     {
