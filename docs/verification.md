@@ -1,6 +1,6 @@
 # Development verification
 
-Recorded 2026-10-15. ProcSight is an unreleased development preview, not a completed
+Recorded 2026-10-16. ProcSight is an unreleased development preview, not a completed
 release certification. No real API credentials, process dumps, or paid provider requests
 were used for automated verification.
 
@@ -21,6 +21,15 @@ Locked restore and native Release build passed with zero warnings/errors. Test r
 | Infrastructure | 103 | Storage, OAuth/SSE/activity, safe failure reasons and empty-completion text preservation |
 | Windows | 33 | Native reads/icons/signatures and caption ownership/lifetime/timeout checks |
 | Total | 290 | No failed or skipped tests |
+
+The 2026-10-16 account-settings layout change passed the full locked-restore/Release/test
+script above (zero build warnings/errors). Synthetic actual-XAML captures at 1100px dark
+and 600px light showed adaptive account/model selectors and grouped account actions without
+overflow. The Debug fixture used a scratch output because a running debug app locked the
+normal apphost; the debug session was preserved. These captures used no real account data
+or network requests. Keyboard, Narrator, high contrast and additional scaling remain unverified.
+Immediate settings, profile priority, tray monitoring and administrator mode are planning
+work in the dated 2026-10-16 plans, not implemented or verified behavior.
 
 Key behaviors covered include same-name owners at different paths, PID reuse, all three
 classification axes, rejected name-only rules, expired referenced evidence, changed-owner

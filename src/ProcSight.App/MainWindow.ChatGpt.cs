@@ -84,8 +84,26 @@ public sealed partial class MainWindow
             finally { signOut.IsEnabled=true; }
         };
         LoadAccounts();
-        var buttons=new StackPanel { Spacing=8 }; buttons.Children.Add(connect); buttons.Children.Add(cancel); buttons.Children.Add(add); buttons.Children.Add(refresh); buttons.Children.Add(signOut);
-        var expander=SettingsExpander("\uE77B","ChatGPT account","Connect with your ChatGPT plan",info,accounts,models,buttons,usage,feedback);
+        var selectors=new Grid { ColumnSpacing=16,RowSpacing=12 };
+        selectors.ColumnDefinitions.Add(new()); selectors.ColumnDefinitions.Add(new());
+        selectors.RowDefinitions.Add(new() { Height=GridLength.Auto }); selectors.RowDefinitions.Add(new() { Height=GridLength.Auto });
+        selectors.Children.Add(accounts);
+        var modelRow=new Grid { ColumnSpacing=8 }; modelRow.ColumnDefinitions.Add(new()); modelRow.ColumnDefinitions.Add(new() { Width=GridLength.Auto });
+        modelRow.Children.Add(models); Grid.SetColumn(refresh,1); refresh.VerticalAlignment=VerticalAlignment.Bottom; modelRow.Children.Add(refresh); selectors.Children.Add(modelRow);
+        var buttons=new Grid { ColumnSpacing=8,RowSpacing=8,HorizontalAlignment=HorizontalAlignment.Left };
+        for(var i=0;i<3;i++) buttons.ColumnDefinitions.Add(new() { Width=GridLength.Auto });
+        buttons.RowDefinitions.Add(new() { Height=GridLength.Auto }); buttons.RowDefinitions.Add(new() { Height=GridLength.Auto });
+        buttons.Children.Add(connect); buttons.Children.Add(add); buttons.Children.Add(signOut); buttons.Children.Add(cancel);
+        void Arrange(double width) {
+            var compact=width<660;
+            Grid.SetColumn(modelRow,compact?0:1); Grid.SetRow(modelRow,compact?1:0); Grid.SetColumnSpan(modelRow,compact?2:1);
+            Grid.SetColumnSpan(accounts,compact?2:1);
+            Grid.SetColumn(add,1); Grid.SetColumn(signOut,compact?0:2); Grid.SetRow(signOut,compact?1:0);
+            Grid.SetColumn(cancel,compact?1:0); Grid.SetRow(cancel,1);
+        }
+        selectors.SizeChanged+=(_,e)=>Arrange(e.NewSize.Width); Arrange(0);
+        usage.Padding=new Thickness(0); usage.HorizontalAlignment=HorizontalAlignment.Left;
+        var expander=SettingsExpander("\uE77B","ChatGPT account","Connect with your ChatGPT plan",info,selectors,buttons,usage,feedback);
         expander.IsExpanded=policy.Provider?.Id=="chatgpt";
         expander.Expanding+=async(_,_)=>await LoadModelsAsync();
         if(expander.IsExpanded) _=LoadModelsAsync();

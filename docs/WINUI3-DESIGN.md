@@ -101,3 +101,7 @@ verify geometry through resizing rather than checking only a static screenshot.
 Service rows use a 16px Fluent gear fallback when their configured implementation/host file icon
 is unavailable. Keep the icon slot fixed and the service name in a constrained star column so long
 names trim before neighboring metadata. File icons are cosmetic, not authentication evidence.
+
+Settings account/model selectors share a row when there is room and stack at narrow widths.
+Keep Refresh models beside the model selector, group account actions compactly, and preserve
+native keyboard focus order when controls move between rows.

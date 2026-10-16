@@ -7,6 +7,9 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- ChatGPT account settings use adaptive account/model selectors, adjacent model refresh,
+  and compact account actions instead of a tall stack of full-width controls.
+
 - Restricted process lifetime scopes use optional Windows kernel sequence numbers, preventing
   repeated identity/details resets and allowing limited manual analysis to finish across collection.
   PID reuse and failed confirmation invalidate the scope; name-only automatic analysis stays Unknown.
