@@ -7,6 +7,10 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Reproducible process-chip/magnifier app icon and optional live system-tray graph with CPU, memory,
+  disk busy, network throughput or busiest GPU engine selection, explicit unavailable states,
+  restoration/menu actions and opt-in minimize-to-tray behavior.
+
 - Immediate settings with inline validation, independent selectable connection configuration,
   enable/disable and priority controls, and a selected-connection synthetic test action. Removed
   the Save button; incomplete edits retain the last valid configuration. Sharing restrictions take

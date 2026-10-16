@@ -1,0 +1,18 @@
+using ProcSight.Core.Models;
+using ProcSight.Windows.Storage;
+using Xunit;
+namespace ProcSight.Windows.Tests;
+public sealed class TrayPreferencesTests
+{
+    [Fact] public void DefaultsAreExplicitAndMetricRoundTrips()
+    {
+        var defaults=new PresentationPreferences(); Assert.False(defaults.ShowTrayIcon); Assert.False(defaults.MinimizeToTray); Assert.Equal(TrayMetric.Cpu,defaults.TrayMetric);
+        var folder=Path.Combine(Path.GetTempPath(),Guid.NewGuid().ToString());
+        try {
+            var store=new PreferencesStore(Path.Combine(folder,"settings.json"));
+            store.Save(new(),new(ShowTrayIcon:true,TrayMetric:TrayMetric.Gpu));
+            Assert.Equal(TrayMetric.Gpu,store.Load().Presentation.TrayMetric);
+            Assert.Throws<ArgumentException>(()=>store.Save(new(),new(TrayMetric:(TrayMetric)999)));
+        } finally { if(Directory.Exists(folder)) Directory.Delete(folder,true); }
+    }
+}

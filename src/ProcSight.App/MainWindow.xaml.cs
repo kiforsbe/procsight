@@ -37,6 +37,7 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent(); Title = "ProcSight";
+        AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory,"Assets","ProcSight.ico"));
 #if DEBUG
         if(TryStartVisualFixture()) return;
 #endif
@@ -44,7 +45,8 @@ public sealed partial class MainWindow : Window
         AppWindow.Show();
         LoadRuntime();
         ConfigureChrome();
-        Closed += async (_, _) => { lifetime.Cancel(); await coordinator.DisposeAsync(); providerHttp.Dispose(); };
+        ConfigureTray();
+        Closed += async (_, _) => { lifetime.Cancel(); tray?.Dispose(); if(trayLoop is not null) await trayLoop; traySampler.Dispose(); await coordinator.DisposeAsync(); providerHttp.Dispose(); };
         RenderPage();
         _ = CollectAsync();
         _ = ReadAnalysisAsync();

@@ -134,6 +134,11 @@ or invented explanations about ownership.
 
 ## Native UI design maintenance
 
+Tray monitoring is opt-in, system-only and independent of AI. Preserve bounded 30-sample history,
+one-second sampling, English PDH paths, native handle disposal and explicit unavailable/warm-up
+states. Minimize-to-tray requires a registered icon; close/Exit terminate normally. Preserve recovery
+if Explorer cannot re-register. Per-process resource columns must not reuse system-only metrics.
+
 Settings apply valid values immediately, with 400 ms text debounce and focus-loss flush; partial
 drafts cannot replace active configuration. API keys commit only on Enter/focus loss. Restrictive
 changes cancel dispatch before disk writes; failed persistence must not enable broader sharing.

@@ -41,6 +41,38 @@ verify the diagram source and rendering. Avoid diagrams that merely repeat a fil
 
 ## Component boundaries
 
+### System tray and app identity
+
+[MainWindow.Tray](src/ProcSight.App/MainWindow.Tray.cs) owns opt-in visibility, metric selection,
+window restoration and typed menu actions. The [notification adapter](src/ProcSight.Windows/Tray/NotificationIcon.cs)
+owns the window subclass and Shell notification; [registration state](src/ProcSight.Windows/Tray/NotificationRegistration.cs)
+re-adds after TaskbarCreated. No arbitrary command is dispatched from callbacks.
+[TrayMetricSampler](src/ProcSight.Windows/Collection/TrayMetricSampler.cs) reuses CPU/RAM samples,
+reads disk idle/GPU engine PDH counters and computes network adapter deltas off the UI thread at
+most once per second. Percentages and throughput remain distinct; missing/warm-up readings stay
+explicit. Queries, HICON/GDI resources and menu handles are disposed. Graph history is memory-only,
+bounded to 30 samples, independent of process metadata and provider work. Per-process disk/network
+columns remain unavailable; these system metrics do not fill them.
+
+```mermaid
+sequenceDiagram
+    participant Window
+    participant Sampler
+    participant Tray
+    participant Explorer
+    Window->>Sampler: Sample selected metric off thread
+    Sampler-->>Window: Value or unavailable/warm-up
+    Window->>Tray: Publish only if metric still selected
+    Tray->>Explorer: Add/update bounded icon and tooltip
+    Explorer-->>Tray: TaskbarCreated
+    Tray->>Explorer: Re-register exactly one icon
+    alt Registration fails while hidden
+        Tray->>Window: Restore recoverable window
+    end
+    Window->>Tray: Dispose on exit
+    Tray->>Explorer: Remove notification
+```
+
 ### Connection profiles
 
 [ConnectionProfile](src/ProcSight.Core/Models/ConnectionProfile.cs) separates a stable connection ID

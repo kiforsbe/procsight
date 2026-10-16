@@ -22,7 +22,7 @@
   </Grid.Resources>
   <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
   <TitleBar x:Name="AppTitleBar" Title="ProcSight" Height="48">
-   <TitleBar.IconSource><FontIconSource Glyph="&#xE950;" FontFamily="Segoe Fluent Icons" /></TitleBar.IconSource>
+   <TitleBar.IconSource><BitmapIconSource UriSource="ms-appx:///Assets/ProcSight-32.png" ShowAsMonochrome="False" /></TitleBar.IconSource>
    <TitleBar.Content>
     <AutoSuggestBox x:Name="GlobalSearch" Width="360" PlaceholderText="Type a name, publisher, or PID…" TextChanged="SearchChanged">
      <AutoSuggestBox.QueryIcon><SymbolIcon Symbol="Find" /></AutoSuggestBox.QueryIcon>

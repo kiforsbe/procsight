@@ -8,4 +8,5 @@ public sealed record AnalysisPolicy(bool AutomaticEnabled = false, bool Research
     ProviderSettings? LocalModel = null, UsageLimits? Limits = null, long Revision = 0,bool ShareIdentifyingMetadata=false,
     ConnectionProfile[]? Connections=null,bool FallbackEnabled=false,string? ResearchProfileId=null);
 public sealed record PresentationPreferences(string Theme = "System", bool Grouped = true,
-    string Sort = "Name", string Page = "Processes",bool SortDescending=false);
+    string Sort = "Name", string Page = "Processes",bool SortDescending=false,
+    bool ShowTrayIcon=false,TrayMetric TrayMetric=TrayMetric.Cpu,bool MinimizeToTray=false);

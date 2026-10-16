@@ -2,6 +2,12 @@
 
 ## Current state
 
+Run `scripts/generate-icons.ps1` on Windows to regenerate the tracked multi-resolution ICO and PNG
+assets from `Assets/ProcSight.svg` using built-in GDI+. SVG rect/line/circle primitives are supported;
+no network download or image dependency is required. Tray counters use English PDH paths, network
+adapter deltas and existing CPU/memory samples. Do not infer per-process disk/GPU data from these
+system-only tray samples.
+
 Connection profiles separate provider kind from protected credential-slot IDs. Legacy preference
 migration is in `ConnectionSettingsMigration`; it must preserve permissions and keep fallback off.
 Use synthetic credentials in migration tests; never commit exported settings or credential data.

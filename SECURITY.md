@@ -8,6 +8,10 @@ are restricted to loopback addresses. Profiles are bounded to 32; fallback remai
 
 ## Supported versions
 
+Tray monitoring uses system counters only, without provider calls, credentials, process commands
+or persistent sample logs. It owns and releases native icon/menu/query resources. Tray actions
+are a fixed typed set: open, settings, metric selection and exit. They do not modify processes.
+
 ProcSight has no executable release or supported application version yet. The repository
 currently contains an in-progress native application, design documents, and project policy. Supported releases and
 security-update expectations will be listed here when releases exist.

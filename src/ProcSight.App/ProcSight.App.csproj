@@ -1,11 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk"><PropertyGroup>
 <OutputType>WinExe</OutputType><TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+<ApplicationIcon>Assets/ProcSight.ico</ApplicationIcon>
 <TargetPlatformMinVersion>10.0.26100.0</TargetPlatformMinVersion><RuntimeIdentifier>win-x64</RuntimeIdentifier>
 <PlatformTarget>x64</PlatformTarget><UseWinUI>true</UseWinUI><WindowsPackageType>None</WindowsPackageType>
 <EnableMsixTooling>true</EnableMsixTooling><SelfContained>false</SelfContained>
 <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained><ApplicationManifest>app.manifest</ApplicationManifest>
 <WindowsAppSDKBootstrapAutoInitializeOptions_OnNoMatch_ShowUI>true</WindowsAppSDKBootstrapAutoInitializeOptions_OnNoMatch_ShowUI>
 </PropertyGroup><ItemGroup>
+<Content Update="Assets/ProcSight.ico" CopyToOutputDirectory="PreserveNewest" />
+<Content Update="Assets/ProcSight-32.png" CopyToOutputDirectory="PreserveNewest" />
 <ProjectReference Include="../ProcSight.Windows/ProcSight.Windows.csproj" />
 <ProjectReference Include="../ProcSight.Infrastructure/ProcSight.Infrastructure.csproj" />
 <PackageReference Include="Microsoft.WindowsAppSDK.WinUI" /><PackageReference Include="Microsoft.WindowsAppSDK.Runtime" />

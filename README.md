@@ -42,6 +42,9 @@ This is the actual XAML rendering, using synthetic processes and a synthetic ana
 - Settings apply valid changes automatically. Configure independent connections, enable or disable
   them, move them up/down in priority, and explicitly test the selected connection using synthetic
   metadata. Fallback to another enabled connection is optional and off by default; API billing may apply.
+- A native app icon and optional system-tray graph for CPU, memory, disk busy, network throughput
+  or busiest GPU engine. Choose the metric and minimize-to-tray behavior in Settings; closing still
+  exits. Missing counters show unavailable, and tray Exit always exits.
 - An **AI activity** page showing queried processes/services, provider/model, retries, returned
   classifications and explanations, research evidence counts, and failures. The last 200 requests
   stay in memory, with filtering, Pause recording and Clear; raw transport/debug data is omitted.
