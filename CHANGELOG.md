@@ -5,6 +5,12 @@ in this repository; planned product features are documented in the design and ro
 
 ## [Unreleased]
 
+### Planned
+
+- Proposed MSIX Direct/Store packaging design and implementation plan, including explicit signing,
+  dependency deployment, packaged elevation checks and installation lifecycle acceptance. Packaging
+  and Store submission are not implemented or verified yet.
+
 ### Added
 
 - Web search inside ChatGPT-plan/OpenAI analysis requests, with attributable source evidence,

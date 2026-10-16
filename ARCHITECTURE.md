@@ -41,6 +41,14 @@ verify the diagram source and rendering. Avoid diagrams that merely repeat a fil
 
 ## Component boundaries
 
+### Planned MSIX distribution
+
+MSIX packaging is proposed, not implemented. The [packaging design](docs/superpowers/specs/2026-10-17-msix-packaging-design.md)
+defines opt-in Direct/Store profiles, signing, package identity and elevation boundaries; the
+[implementation plan](docs/superpowers/plans/2026-10-17-msix-packaging.md) covers verification and
+installation lifecycle checks. The current executable remains unpackaged. Package trust, Store
+acceptance, packaged elevation and data virtualization have not been established by existing tests.
+
 ### Explicit administrator sessions
 
 [PrivilegeContext](src/ProcSight.Windows/Security/PrivilegeContext.cs) reads the active token;
