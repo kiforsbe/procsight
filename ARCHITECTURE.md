@@ -41,6 +41,25 @@ verify the diagram source and rendering. Avoid diagrams that merely repeat a fil
 
 ## Component boundaries
 
+### Connection profiles
+
+[ConnectionProfile](src/ProcSight.Core/Models/ConnectionProfile.cs) separates a stable connection ID
+from provider kind, with enabled state, priority and a protected credential reference. Preferences
+validate a maximum of 32 profiles under the existing bounded atomic JSON store.
+[Migration](src/ProcSight.Application/Settings/ConnectionSettingsMigration.cs) copies existing API
+credentials to independent protected slots before publishing profiles, preserving analysis/sharing
+permissions and defaulting fallback off. Legacy fields remain for compatible migration; routing/UI
+integration is in progress. Account references are opaque; no secret enters ordinary preferences.
+
+```mermaid
+classDiagram
+    AnalysisPolicy "1" *-- "0..32" ConnectionProfile : configured order
+    ConnectionProfile "1" *-- "1" ProviderSettings : destination and model
+    ProviderSettings ..> ProtectedCredentialStore : opaque credential reference
+    ConnectionSettingsMigration ..> ProtectedCredentialStore : copy before publish
+    ConnectionSettingsMigration ..> AnalysisPolicy : preserve permission flags
+```
+
 ### ChatGPT plan connection
 
 The [session adapter](src/ProcSight.Infrastructure/Authentication/ChatGptSessionService.cs) owns

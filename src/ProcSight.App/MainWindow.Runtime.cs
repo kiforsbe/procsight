@@ -33,7 +33,11 @@ public sealed partial class MainWindow
     private void LoadRuntime()
     {
         preferences=new(Path.Combine(dataFolder,"settings.json"));
-        try { (policy,presentation)=preferences.Load(); }
+        try {
+            (policy,presentation)=preferences.Load();
+            var migrated=ProcSight.Application.Settings.ConnectionSettingsMigration.Migrate(policy,credentials);
+            if(migrated!=policy) { preferences.Save(migrated,presentation); policy=migrated; }
+        }
         catch { runtimeWarning="Settings could not be loaded. Online analysis is disabled until you save valid settings."; policy=new(); }
         knowledge=new(Path.Combine(dataFolder,"knowledge.db"));
         if(Enum.TryParse<ProcessSort>(presentation.Sort,out var savedSort)) sort=savedSort;
@@ -52,10 +56,10 @@ public sealed partial class MainWindow
     private IAnalysisProvider CreateProvider(ProviderSettings settings,bool local) => settings.Id=="chatgpt"&&!local
         ? new ChatGptPlanProvider(settings,ct=>settings.AccountId is { } id?ChatGpt.GetAccessTokenAsync(id,ct):Task.FromResult<string?>(null),providerHttp)
         : settings.Id=="openai"&&!local
-        ? new OpenAiResponsesProvider(settings,()=>credentials.Get(settings.Id),providerHttp) :
-        new CompatibleChatProvider(settings,()=>credentials.Get(settings.Id),providerHttp,local:local);
+        ? new OpenAiResponsesProvider(settings,()=>credentials.Get(settings.CredentialId??settings.Id),providerHttp) :
+        new CompatibleChatProvider(settings,()=>credentials.Get(settings.CredentialId??settings.Id),providerHttp,local:local);
     private IResearchProvider? CreateResearch(ProviderSettings settings)=>settings.Id=="openai"?
-        new OpenAiWebResearchProvider(settings,()=>credentials.Get(settings.Id),providerHttp):null;
+        new OpenAiWebResearchProvider(settings,()=>credentials.Get(settings.CredentialId??settings.Id),providerHttp):null;
     private async Task ReadAnalysisAsync()
     {
         try

@@ -2,6 +2,10 @@
 
 ## Current state
 
+Connection profiles separate provider kind from protected credential-slot IDs. Legacy preference
+migration is in `ConnectionSettingsMigration`; it must preserve permissions and keep fallback off.
+Use synthetic credentials in migration tests; never commit exported settings or credential data.
+
 The [ChatGPT integration design](docs/superpowers/specs/2026-10-14-chatgpt-plan-design.md) and
 [plan](docs/superpowers/plans/2026-10-14-chatgpt-plan.md) document the direct open-source OAuth adapter.
 Authentication owns a temporary IPv4 loopback callback, JWKS validation, protected account/token records,

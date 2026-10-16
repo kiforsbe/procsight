@@ -7,6 +7,9 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Validated independent connection profile storage and legacy credential migration, preserving
+  existing analysis/privacy permissions and keeping provider fallback disabled by default.
+
 - ChatGPT account settings use adaptive account/model selectors, adjacent model refresh,
   and compact account actions instead of a tall stack of full-width controls.
 

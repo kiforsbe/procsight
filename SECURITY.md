@@ -1,5 +1,11 @@
 # Security policy
 
+Connection profiles keep API keys in independent Windows-protected credential slots. Plain settings
+contain only opaque references. Migration copies a legacy key before publishing the new profile;
+failure must not publish a partly configured replacement. Profile endpoints reject embedded
+credentials, query strings and fragments, and require HTTPS except loopback HTTP. Local profiles
+are restricted to loopback addresses. Profiles are bounded to 32; fallback remains off by default.
+
 ## Supported versions
 
 ProcSight has no executable release or supported application version yet. The repository

@@ -15,12 +15,14 @@ public sealed class PreferencesStore(string path) : IPreferencesStore
             var value=JsonSerializer.Deserialize<Values>(file) ?? throw new InvalidDataException("Settings are empty.");
             if(value.Policy is null || value.Presentation is null || !Enum.IsDefined(value.Policy.CommandLineMode) ||
                 value.Policy.Revision is <0 or long.MaxValue) throw new InvalidDataException("Invalid analysis policy.");
+            if(value.Policy.Connections is not null) ConnectionProfiles.Validate(value.Policy.Connections);
             return(value.Policy,value.Presentation);
         }
         catch(JsonException e) { throw new InvalidDataException("Settings invalid; online analysis stays disabled until repaired.",e); }
     }
     public void Save(AnalysisPolicy policy,PresentationPreferences presentation)
     {
+        if(policy.Connections is not null) ConnectionProfiles.Validate(policy.Connections);
         var target=Path.GetFullPath(path); Directory.CreateDirectory(Path.GetDirectoryName(target)!);
         var temporary=target+"."+Guid.NewGuid()+".tmp";
         try
