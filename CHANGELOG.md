@@ -7,6 +7,9 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Enabled connection priority routing with opt-in availability/authentication fallback, independent
+  authentication pauses, and per-attempt provider activity/provenance. Settings integration follows.
+
 - Validated independent connection profile storage and legacy credential migration, preserving
   existing analysis/privacy permissions and keeping provider fallback disabled by default.
 

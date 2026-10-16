@@ -35,7 +35,7 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
     private bool policyEstablished;
     private Task? worker;
     private int outstanding;
-    private bool authPaused;
+    private readonly ConcurrentDictionary<string,byte> authPaused=[];
     public async Task ObserveAsync(MachineSnapshot snapshot,AnalysisPolicy newPolicy,CancellationToken ct)
     {
         if(newPolicy!=policy) await ChangePolicyAsync(newPolicy,ct);
@@ -85,7 +85,11 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
             Publish(entity,AnalysisState.Unknown,local,"Executable identity metadata is unavailable. Automatic analysis cannot authenticate a process from its name alone. Select Analyze for a limited assessment of the available metadata.");
             return;
         }
-        if(local.UnresolvedAxes.Count==0&&!manual || !config.AutomaticEnabled&&!manual || config.Provider is null&&config.LocalModel is null) return;
+        if(local.UnresolvedAxes.Count==0&&!manual || !config.AutomaticEnabled&&!manual) return;
+        if(ConnectionRouter.Resolve(config).Count==0) {
+            if(manual||config.AutomaticEnabled) Publish(entity,AnalysisState.Failed,local,"No enabled connection is configured. Enable a connection in Settings.");
+            return;
+        }
         CancellationToken token; lock(policyLock) token=policyCancellation.Token;
         Interlocked.Increment(ref outstanding);
         if(!queue.Writer.TryWrite(new(entity,config,token,manual)))
@@ -112,25 +116,33 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
         using var linked=CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token,work.PolicyToken);
         var ct=linked.Token; ct.ThrowIfCancellationRequested();
         if(work.Policy!=policy || !current.ContainsKey(work.Entity.Identity)) return;
-        if(authPaused) { Publish(work.Entity,AnalysisState.Failed,Empty(work.Entity),"Provider authentication paused; update settings."); return; }
         var config=work.Policy; var limits=config.Limits ?? new(); var date=DateOnly.FromDateTime(time.GetLocalNow().Date);
         var entity=work.Entity;
         var knowledge=await store.ReadCandidatesAsync(entity,ct); var local=EvaluateLocal(entity,knowledge);
         if(local.UnresolvedAxes.Count==0&&!work.Manual) { Publish(entity,AnalysisState.Local,local); return; }
         if(!work.Manual&&!await ledger.TryReserveAsync(UsageKind.AutomaticJob,date,limits,ct))
         { Publish(entity,AnalysisState.BudgetPaused,local,"Daily analysis job limit reached."); return; }
-        var useLocal=config.LocalModel is not null && (config.CommandLineMode==CommandLineMode.LocalOnly||config.Provider is null);
-        var selected=useLocal?config.LocalModel!:config.Provider!;
+        var route=ConnectionRouter.Resolve(config);
+        ProviderErrorKind? fallbackReason=null;
+        foreach(var connection in config.FallbackEnabled?route:route.Take(1))
+        {
+        if(authPaused.ContainsKey(connection.ProfileId)) {
+            if(config.FallbackEnabled) { fallbackReason=ProviderErrorKind.Auth; continue; }
+            Publish(entity,AnalysisState.Failed,local,"This connection needs sign-in or updated credentials in Settings."); return;
+        }
+        var useLocal=connection.IsLocal;
+        var selected=connection.Provider;
         var provider=providers(selected,useLocal);
         Publish(entity,AnalysisState.Analyzing,local);
-        if(config.ResearchEnabled && !useLocal && research?.Invoke(selected) is { } researchProvider)
+        var researchSettings=ConnectionRouter.Research(config,selected);
+        if(config.ResearchEnabled && !useLocal && researchSettings is not null && research?.Invoke(researchSettings) is { } researchProvider)
         {
             // Reserve the HTTP request and maximum one billable web-tool call before dispatch.
             if(!await ledger.TryReserveAsync(UsageKind.BillableCall,date,limits,ct) || !await ledger.TryReserveAsync(UsageKind.BillableCall,date,limits,ct))
             { Publish(entity,AnalysisState.BudgetPaused,local,"Research call budget reached."); return; }
             var request=projection.BuildResearchRequest(entity,config);
             var researchPayload=new AnalysisPayload(entity.Identity,request.IdentityTerms,[],null,config.Revision,AnalysisDestination.CloudModel);
-            var researchActivity=activity?.Begin(researchPayload,selected,entity.DisplayName,entity.Process?.Key.Pid,
+            var researchActivity=activity?.Begin(researchPayload,researchSettings,entity.DisplayName,entity.Process?.Key.Pid,
                 entity.Service?.Name,AnalysisActivityKind.Research);
             ResearchResult researched;
             try
@@ -149,7 +161,7 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
             if(!useLocal&&!await ledger.TryReserveAsync(UsageKind.BillableCall,date,limits,ct))
             { Publish(entity,AnalysisState.BudgetPaused,local,"Daily provider-call limit reached."); return; }
             var attemptActivity=activity?.Begin(payload,selected,entity.DisplayName,entity.Process?.Key.Pid,entity.Service?.Name,
-                attempt:retry+1);
+                attempt:retry+1,fallbackReason:fallbackReason);
             ProviderResult result;
             try
             {
@@ -161,9 +173,10 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
             catch { activity?.Fail(attemptActivity); throw; }
             if(result.Error is { } error)
             {
-                if(error.Kind==ProviderErrorKind.Auth) authPaused=true;
+                if(error.Kind==ProviderErrorKind.Auth) authPaused[connection.ProfileId]=0;
                 if(retry<2 && error.Kind is ProviderErrorKind.Transient or ProviderErrorKind.RateLimited)
                 { await Task.Delay(error.RetryAfter ?? TimeSpan.FromSeconds(1<<retry),time,ct); continue; }
+                if(config.FallbackEnabled&&ConnectionRouter.CanFallback(error)) { fallbackReason=error.Kind; break; }
                 Publish(entity,AnalysisState.Failed,local,error.Message); return;
             }
             if(result.Proposal is not { } proposal) { Publish(entity,AnalysisState.Unknown,local); return; }
@@ -200,6 +213,8 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
             Publish(entity,local.UnresolvedAxes.Count>0?AnalysisState.Unknown:AnalysisState.Local,local);
             return;
         }
+        }
+        Publish(entity,AnalysisState.Failed,local,"Enabled connections are unavailable. Review AI activity and connection settings.");
     }
     private static LocalAnalysis Empty(ResolvedEntity entity)=>new([],entity.Owner,[],[],Enum.GetValues<AssessmentAxis>().ToHashSet());
     private LocalAnalysis EvaluateLocal(ResolvedEntity entity,KnowledgeEntry knowledge)=>KnownTaskCatalog.Supplement(entity,
@@ -230,7 +245,7 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
             if(policyEstablished && (config.Revision<policy.Revision || config.Revision==policy.Revision && config!=policy)) return Task.CompletedTask;
             if(policyEstablished && config==policy) return Task.CompletedTask;
             policyCancellation.Cancel(); policyCancellation.Dispose(); policyCancellation=new();
-            policy=config; policyEstablished=true; authPaused=false; fingerprints.Clear(); reviewTimes.Clear();
+            policy=config; policyEstablished=true; authPaused.Clear(); fingerprints.Clear(); reviewTimes.Clear();
         }
         return Task.CompletedTask;
     }

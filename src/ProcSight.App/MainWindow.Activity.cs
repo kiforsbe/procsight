@@ -46,7 +46,7 @@ public sealed partial class MainWindow
         {
             var details=new List<string> { entry.SourceName+(entry.ProcessId is { } pid?$" · PID {pid}":""),
                 $"{ActivityWords(entry.Kind.ToString())} · {entry.Status}",$"Provider: {ActivityProvider(entry.ProviderId)} · Model: {entry.Model}",
-                $"Started: {entry.StartedAt.ToLocalTime():G}",$"Duration: {(entry.Elapsed ?? DateTimeOffset.UtcNow-entry.StartedAt).TotalSeconds:0.0} seconds · Attempt {entry.Attempt}",
+                $"Started: {entry.StartedAt.ToLocalTime():G}",$"Duration: {(entry.Elapsed ?? DateTimeOffset.UtcNow-entry.StartedAt).TotalSeconds:0.0} seconds · Attempt {entry.Attempt}"+(entry.FallbackReason is { } reason?$" · Fallback after {ActivityWords(reason.ToString())}":""),
                 $"Destination: {(entry.Destination==ProcSight.Core.Models.AnalysisDestination.LocalModel?"Local model":"Online provider")}",$"Command context sent: {(entry.CommandIncluded?"Yes; full line omitted from activity":"No")}",
                 $"Evidence records sent: {entry.EvidenceCount}","","Submitted metadata categories: "+string.Join(", ",entry.MetadataFields.Select(ActivityField)) };
             if(entry.ServiceIdentity is { } service) details.Insert(1,"Service: "+service);

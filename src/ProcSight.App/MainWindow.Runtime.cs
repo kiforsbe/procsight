@@ -78,7 +78,7 @@ public sealed partial class MainWindow
     {
         var entity=(table?.SelectedItem as ViewModels.ProcessRow)?.Entity ?? entities.FirstOrDefault();
         if(entity is null) { await MessageAsync("No metadata available","Wait for collection or select an item first."); return; }
-        var destination=policy.LocalModel is not null && (policy.CommandLineMode==CommandLineMode.LocalOnly||policy.Provider is null)?
+        var destination=ConnectionRouter.Resolve(policy).FirstOrDefault()?.IsLocal==true?
             AnalysisDestination.LocalModel:AnalysisDestination.CloudModel;
         var payload=new AnalysisProjection().Build(entity,policy,destination);
         await MessageAsync("Analysis payload preview",JsonSerializer.Serialize(payload,new JsonSerializerOptions { WriteIndented=true })+

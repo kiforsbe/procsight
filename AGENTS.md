@@ -29,6 +29,11 @@ assessed names. Preserve useful local window captions and keep explanatory text 
 
 ## Product boundaries
 
+- Connection profiles route only enabled entries in saved priority order, preferring local in
+  LocalOnly mode. Fallback is explicit and off by default, with per-profile authentication pause.
+  Stop on rejected output, policy cancellation and exhausted budgets; rebuild privacy projection
+  for each destination. Provenance/activity use the actual attempted provider, never account IDs.
+
 - Window captions/classes are transient local presentation data, excluded from JSON, provider
   payloads, research, rules, and identity. Verify PID ownership and known lifetimes; cap enumeration
   and text sizes, and use bounded waits for own-window captions. Titles never prove trust or purpose.

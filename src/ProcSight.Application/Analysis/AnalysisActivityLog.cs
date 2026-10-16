@@ -12,7 +12,7 @@ public sealed record AnalysisActivityEntry(Guid Id,AnalysisActivityKind Kind,Ana
     AnalysisDestination Destination,string SourceName,int? ProcessId,string? ServiceIdentity,int Attempt,
     IReadOnlyDictionary<string,string> Metadata,IReadOnlyList<string> MetadataFields,int EvidenceCount,
     bool CommandIncluded,IReadOnlyList<ActivityAssessment> Assessments,int ProposedRuleCount=0,
-    int ReturnedEvidenceCount=0,ProviderErrorKind? ErrorKind=null,ProviderFailureReason? FailureReason=null);
+    int ReturnedEvidenceCount=0,ProviderErrorKind? ErrorKind=null,ProviderFailureReason? FailureReason=null,ProviderErrorKind? FallbackReason=null);
 
 /// <summary>Bounded transient product activity; never retains transport payloads or exception text.</summary>
 public sealed class AnalysisActivityLog(TimeProvider? clock=null)
@@ -27,7 +27,7 @@ public sealed class AnalysisActivityLog(TimeProvider? clock=null)
     public IReadOnlyList<AnalysisActivityEntry> Snapshot() { lock(gate) return Array.AsReadOnly(entries.AsEnumerable().Reverse().ToArray()); }
     public void Clear() { lock(gate) entries.Clear(); Notify(); }
     public Guid? Begin(AnalysisPayload payload,ProviderSettings provider,string sourceName,int? processId=null,
-        string? serviceIdentity=null,AnalysisActivityKind kind=AnalysisActivityKind.Analysis,int attempt=1)
+        string? serviceIdentity=null,AnalysisActivityKind kind=AnalysisActivityKind.Analysis,int attempt=1,ProviderErrorKind? fallbackReason=null)
     {
         try
         {
@@ -44,7 +44,7 @@ public sealed class AnalysisActivityLog(TimeProvider? clock=null)
                 entries.Add(new(id,kind,AnalysisActivityStatus.Running,time.GetUtcNow(),null,null,Safe(provider.Id,128),Safe(provider.Model,128),
                     payload.Destination,Safe(sourceName,256),processId,serviceIdentity is null?null:Safe(serviceIdentity,256),Math.Max(1,attempt),
                     new ReadOnlyDictionary<string,string>(metadata),Array.AsReadOnly(fields),payload.Evidence.Count,payload.CommandLine is not null,
-                    Array.AsReadOnly(Array.Empty<ActivityAssessment>())));
+                    Array.AsReadOnly(Array.Empty<ActivityAssessment>()),FallbackReason:fallbackReason));
                 if(entries.Count>Capacity) entries.RemoveAt(0);
                 return id;
             }

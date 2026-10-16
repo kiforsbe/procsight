@@ -50,6 +50,28 @@ validate a maximum of 32 profiles under the existing bounded atomic JSON store.
 credentials to independent protected slots before publishing profiles, preserving analysis/sharing
 permissions and defaulting fallback off. Legacy fields remain for compatible migration; routing/UI
 integration is in progress. Account references are opaque; no secret enters ordinary preferences.
+[ConnectionRouter](src/ProcSight.Application/Analysis/ConnectionRouter.cs) now resolves enabled
+profiles by priority, with LocalOnly preferring a local model. The coordinator pauses authentication
+per connection and only traverses the rest of the route on opted-in availability/rate/auth fallback.
+Every attempt rebuilds its destination projection and reserves online budget; malformed output,
+refusals, cancellation and valid Unknown results never trigger fallback. Activity records the actual
+provider/model and a typed fallback reason; accepted rule provenance uses the winning connection.
+
+```mermaid
+sequenceDiagram
+    participant Coordinator
+    participant Router
+    participant Projection
+    participant Provider
+    Coordinator->>Router: Resolve enabled priority order
+    loop Selected connection; next only with explicit eligible fallback
+        Coordinator->>Projection: Project for destination and policy revision
+        Coordinator->>Coordinator: Check cancellation and reserve online budget
+        Coordinator->>Provider: Bounded attempt
+        Provider-->>Coordinator: Validated result or typed failure
+        Coordinator->>Coordinator: Record actual activity and provenance
+    end
+```
 
 ```mermaid
 classDiagram
