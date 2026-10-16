@@ -17,10 +17,10 @@ Locked restore and native Release build passed with zero warnings/errors. Test r
 | Project | Passed | Focus |
 | --- | ---: | --- |
 | Core | 67 | Identity/privacy/rules and validated independent connection profiles |
-| Application | 100 | Presentation, immediate settings races and elevated session privacy |
+| Application | 102 | Presentation, immediate settings races, profile removal and elevated session privacy |
 | Infrastructure | 114 | Storage/OAuth/SSE, profile routing/fallback, scoped tests and consent revocation |
 | Windows | 49 | Collection/lifetimes/icons, credential binding, tray metrics/lifecycle and elevation handoff |
-| Total | 330 | No failed or skipped tests |
+| Total | 332 | No failed or skipped tests |
 
 The 2026-10-16 account-settings layout change passed the full locked-restore/Release/test
 script above (zero build warnings/errors). Synthetic actual-XAML captures at 1100px dark
@@ -43,13 +43,22 @@ Actual UAC consent, alternate-account/Administrator Protection isolation, elevat
 bootstrap, live shell tray/menu behavior and Explorer restarts, metric accuracy against Windows
 tools, keyboard/Narrator/high-contrast/scaling checks remain unverified. No running user debug
 session or Explorer process was stopped for verification.
-All 24 Mermaid diagrams in the living architecture and current design parsed and rendered with
+All 25 Mermaid diagrams in the living architecture and current design parsed and rendered with
 Mermaid 11.17.2 in the installed browser; updated administrator/settings diagrams were inspected.
 Relative links in the 11 affected documentation/plan files and whitespace checks passed.
 
 Representative synthetic views: [connections](images/settings-connections-dark.png),
 [narrow settings](images/settings-connections-narrow.png), [administrator session](images/settings-administrator.png)
 and [tray preferences](images/settings-tray.png).
+
+The subsequent connection-layout revision passed all 332 tests, with a warning-free Release build.
+Twelve synthetic wide/narrow light/dark captures cover the compact page and native local/API
+configuration dialogs. UI Automation invokes Configure; fixtures assert that provider fields stay
+out of the main page, Configure/Test/Remove exist, and the dialog follows the app's selected theme.
+Profile-removal tests cover remaining order/configuration, research-reference cleanup and removing
+the last profile. These tests do not revoke or inspect any real account/credential records.
+Dialogs: [API configuration](images/settings-connection-dialog-dark.png) and
+[narrow light configuration](images/settings-connection-dialog-light.png).
 
 Key behaviors covered include same-name owners at different paths, PID reuse, all three
 classification axes, rejected name-only rules, expired referenced evidence, changed-owner

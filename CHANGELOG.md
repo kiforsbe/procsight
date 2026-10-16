@@ -7,6 +7,10 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Restructured connection management into a compact native toolbar, selectable priority list and
+  separate fallback row. Add/Configure opens a per-connection dialog; Remove deletes profiles from
+  routing without signing out shared accounts. Routine success messages no longer occupy settings rows.
+
 - Hardened overlapping settings/key edits, session-consent cancellation of connection tests,
   immediate request-limit reductions, persistent per-connection authentication pauses and tray
   recovery after failed shell updates, following independent code review.

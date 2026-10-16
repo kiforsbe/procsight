@@ -25,6 +25,9 @@ The Debug `--visual-fixture <absolute.png> Dark 1000 settings` option renders ac
 in-memory credentials, without real account reads or network traffic.
 Use `settings-admin` for simulated elevated-session UI or `settings-tray` for tray preferences;
 these fixtures do not elevate, invoke UAC, create a tray icon or read real accounts.
+`settings-connection` and `settings-connection-api` invoke the real Configure action through UI
+Automation and capture the native local/API configuration dialog. The settings fixture asserts that
+provider fields are absent from the main page and that Configure/Test/Remove actions exist.
 Use `activity` or `activity-details` as the fixture's final argument to render the AI activity page
 with synthetic requests/results and an optional selected result. The coordinator's optional
 `AnalysisActivityLog` records actual research/provider attempts; keep it isolated from analysis failures.

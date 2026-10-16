@@ -163,6 +163,7 @@ public sealed partial class MainWindow
                         settingsPanel.Children.OfType<Microsoft.UI.Xaml.Controls.Expander>().First().IsExpanded=true;
                     await Task.Delay(250); WindowRoot.UpdateLayout();
                     Microsoft.UI.Xaml.Controls.Button? FindSettingsButton(DependencyObject root,string label) {
+                        if(root is Microsoft.UI.Xaml.Controls.CommandBar bar&&bar.PrimaryCommands.OfType<Microsoft.UI.Xaml.Controls.AppBarButton>().FirstOrDefault(b=>b.Label==label) is { } action) return action;
                         if(root is Microsoft.UI.Xaml.Controls.Button button&&button.Content?.ToString()==label) return button;
                         for(var index=0;index<VisualTreeHelper.GetChildrenCount(root);index++)
                             if(FindSettingsButton(VisualTreeHelper.GetChild(root,index),label) is { } found) return found;
@@ -172,6 +173,31 @@ public sealed partial class MainWindow
                         throw new InvalidOperationException("Settings still require Save.");
                     if(FindSettingsButton(PageContent,"Test connection") is null)
                         throw new InvalidOperationException("Selected-connection test action missing.");
+                    if(FindSettingsButton(PageContent,"Configure") is null||FindSettingsButton(PageContent,"Remove") is null)
+                        throw new InvalidOperationException("Connection configuration/removal actions missing.");
+                    bool HasInlineConfiguration(DependencyObject root) {
+                        if(root is Microsoft.UI.Xaml.Controls.TextBox box&&box.Header?.ToString() is "API base URL" or "Model") return true;
+                        for(var index=0;index<VisualTreeHelper.GetChildrenCount(root);index++) if(HasInlineConfiguration(VisualTreeHelper.GetChild(root,index))) return true;
+                        return false;
+                    }
+                    if(HasInlineConfiguration(PageContent)) throw new InvalidOperationException("Provider fields remain inline in the connection list.");
+                    if(args[5] is "settings-connection" or "settings-connection-api") {
+                        if(args[5]=="settings-connection-api") {
+                            Microsoft.UI.Xaml.Controls.ListView? FindConnections(DependencyObject root) {
+                                if(root is Microsoft.UI.Xaml.Controls.ListView found) return found;
+                                for(var index=0;index<VisualTreeHelper.GetChildrenCount(root);index++) if(FindConnections(VisualTreeHelper.GetChild(root,index)) is { } nested) return nested;
+                                return null;
+                            }
+                            FindConnections(PageContent)!.SelectedIndex=2;
+                        }
+                        var configure=(Microsoft.UI.Xaml.Controls.AppBarButton)FindSettingsButton(PageContent,"Configure")!;
+                        var peer=new Microsoft.UI.Xaml.Automation.Peers.AppBarButtonAutomationPeer(configure);
+                        ((Microsoft.UI.Xaml.Automation.Provider.IInvokeProvider)peer.GetPattern(Microsoft.UI.Xaml.Automation.Peers.PatternInterface.Invoke)).Invoke();
+                        await Task.Delay(400); WindowRoot.UpdateLayout();
+                        if(connectionConfigurationDialog is null) throw new InvalidOperationException("Configure did not open the native dialog.");
+                        if(connectionConfigurationDialog.ActualTheme!=WindowRoot.ActualTheme) throw new InvalidOperationException("Connection dialog does not follow the selected app theme.");
+                        if(!HasInlineConfiguration(connectionConfigurationDialog)) throw new InvalidOperationException("Configuration dialog is missing provider fields.");
+                    }
                     if(args[5] is "settings-admin" or "settings-tray"&&PageContent.Children.FirstOrDefault() is Microsoft.UI.Xaml.Controls.ScrollViewer settingsScroll&&settingsScroll.Content is Microsoft.UI.Xaml.Controls.StackPanel sections) {
                         foreach(var expander in sections.Children.OfType<Microsoft.UI.Xaml.Controls.Expander>()) expander.IsExpanded=false;
                         var chosen=sections.Children.OfType<Microsoft.UI.Xaml.Controls.Expander>().ElementAt(args[5]=="settings-tray"?0:5);
@@ -321,7 +347,7 @@ public sealed partial class MainWindow
                     if(rows.Count(r=>r.Icon is not null)!=2||rows.Single(r=>r.Entity.Service!.Name=="SyntheticFallback").Icon is not null) throw new InvalidOperationException("Service icon/fallback selection failed.");
                     WindowRoot.UpdateLayout();
                 }
-                var bitmap=new RenderTargetBitmap(); await bitmap.RenderAsync(WindowRoot);
+                var bitmap=new RenderTargetBitmap(); await bitmap.RenderAsync(connectionConfigurationDialog is not null?connectionConfigurationDialog:WindowRoot);
                 var pixels=await bitmap.GetPixelsAsync();
                 Directory.CreateDirectory(Path.GetDirectoryName(output)!);
                 var folder=await StorageFolder.GetFolderFromPathAsync(Path.GetDirectoryName(output)!);

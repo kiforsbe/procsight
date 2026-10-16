@@ -58,7 +58,7 @@ public sealed partial class MainWindow
         var show=new ToggleSwitch { Header="Show system tray icon",IsOn=presentation.ShowTrayIcon };
         var metric=new ComboBox { Header="System load to display",ItemsSource=new[]{"CPU","Memory","Disk busy","Network throughput","Busiest GPU engine"},SelectedIndex=(int)presentation.TrayMetric };
         var minimize=new ToggleSwitch { Header="Hide the window in the tray when minimized",IsOn=presentation.MinimizeToTray };
-        var feedback=new TextBlock { Text="Closing the window exits ProcSight. Tray Exit always exits. Missing counters are shown as unavailable.",TextWrapping=TextWrapping.Wrap };
+        var feedback=SettingsFeedback();
         async Task Apply() {
             presentation=presentation with { ShowTrayIcon=show.IsOn,TrayMetric=(TrayMetric)metric.SelectedIndex,MinimizeToTray=minimize.IsOn };
             ConfigureTray();

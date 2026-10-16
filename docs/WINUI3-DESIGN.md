@@ -111,3 +111,10 @@ Settings apply immediately: native toggles/selections apply directly, valid text
 API keys commit only on Enter/focus loss, never per keystroke. Use the compact selectable connection
 list for enabling, ordering and explicit testing; Test connection targets the selected row, not a
 hidden global provider. No Save button or stale “then save” guidance belongs on the settings page.
+
+The connection page uses one native CommandBar for Add, Configure, Test, priority and Remove actions,
+with native overflow at narrow widths. Provider fields belong in a focused per-connection ContentDialog,
+not below the list. Add offers provider choices in a menu and opens that dialog; unfinished new profiles
+are discarded when closed. Valid changes remain immediate, and Close flushes pending valid edits/key
+commits before dismissal. Keep fallback as a separate compact row. Routine success feedback is silent;
+collapse empty feedback entirely and reserve visible messages for validation, errors and explicit tests.

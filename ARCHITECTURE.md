@@ -145,6 +145,33 @@ and clear only on changed credentials/account configuration or explicit reauthor
 Protected credential envelopes bind provider kind and endpoint; plain settings cannot redirect a
 key reference to a new destination or an unrelated protected credential namespace.
 
+The connection settings page is a compact native toolbar/list with a separate fallback row.
+Add/Configure hosts the existing editor in a per-profile ContentDialog; selection alone does not
+create an editor. Closing defers dismissal until pending valid edits and key commits finish.
+Unfinished new profiles are discarded; existing invalid drafts retain their last valid configuration.
+[ConnectionProfileActions](src/ProcSight.Application/Settings/ConnectionProfileActions.cs) removes
+a profile, compacts remaining priority indices and clears a matching research reference. Normal
+policy application immediately revokes routing eligibility; shared account/credential storage is
+left intact. Routine successful preference writes produce no persistent status row.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant List as Connection list
+    participant Dialog as Native configuration dialog
+    participant Policy as Immediate settings controller
+    User->>List: Select and Configure
+    List->>Dialog: Open selected profile
+    User->>Dialog: Edit provider settings
+    Dialog->>Policy: Apply valid edits immediately
+    User->>Dialog: Close
+    Dialog->>Policy: Flush pending valid edits and key commits
+    Dialog-->>List: Restore selection and focus
+    User->>List: Remove and confirm
+    List->>Policy: Remove profile and research reference
+    Policy->>Policy: Cancel obsolete work and persist
+```
+
 ```mermaid
 stateDiagram-v2
     [*] --> Valid

@@ -6,24 +6,31 @@ namespace ProcSight.App;
 public sealed partial class MainWindow
 {
     private CancellationTokenSource? connectionTestCancellation;
+    private ContentDialog? connectionConfigurationDialog;
     private void CancelConnectionTests() { connectionTestCancellation?.Cancel(); }
     private FrameworkElement BuildConnectionSettings()
     {
         var profiles=(policy.Connections??ConnectionRouter.Resolve(policy).ToArray()).ToList();
         var panel=new StackPanel { Spacing=12 };
-        var feedback=new TextBlock { Text="Enable connections and order them by priority. Local rules are always checked first.",TextWrapping=TextWrapping.Wrap };
+        var feedback=SettingsFeedback();
         var list=new ListView { SelectionMode=ListViewSelectionMode.Single,MaxHeight=240,HorizontalContentAlignment=HorizontalAlignment.Stretch };
-        var editor=new StackPanel { Spacing=12 }; var commands=new StackPanel { Orientation=Orientation.Horizontal,Spacing=8 };
-        var up=new Button { Content="Move up" }; var down=new Button { Content="Move down" }; var test=new Button { Content="Test connection" };
-        commands.Children.Add(up); commands.Children.Add(down); commands.Children.Add(test);
-        var kind=new ComboBox { ItemsSource=new[]{"ChatGPT plan","OpenAI API","Compatible API","Local model"},SelectedIndex=0,MinWidth=180 };
-        var add=new Button { Content="Add connection" }; var addRow=new StackPanel { Orientation=Orientation.Horizontal,Spacing=8 };
-        addRow.Children.Add(kind); addRow.Children.Add(add);
-        var fallback=new ToggleSwitch { Header="Try the next enabled connection if unavailable",IsOn=policy.FallbackEnabled };
-        panel.Children.Add(feedback); panel.Children.Add(list); panel.Children.Add(commands); panel.Children.Add(addRow); panel.Children.Add(fallback);
-        panel.Children.Add(new TextBlock { Text="Fallback is optional and may use separately billed API access. Disabled connections are never used automatically. Tests send synthetic metadata only.",TextWrapping=TextWrapping.Wrap,FontSize=12 });
-        panel.Children.Add(editor);
-        string? selectedId=profiles.FirstOrDefault()?.ProfileId; bool rebuilding=false; bool validEditor=true; Func<Task>? flush=null;
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(list,"AI connections in priority order");
+        var editor=new StackPanel { Spacing=16 };
+        var commands=new CommandBar { DefaultLabelPosition=CommandBarDefaultLabelPosition.Right,HorizontalAlignment=HorizontalAlignment.Stretch };
+        var configure=new AppBarButton { Label="Configure",Icon=new SymbolIcon(Symbol.Setting) };
+        var add=new AppBarButton { Label="Add",Icon=new SymbolIcon(Symbol.Add) };
+        var test=new AppBarButton { Label="Test connection",Icon=new SymbolIcon(Symbol.Play) };
+        var up=new AppBarButton { Label="Move up",Icon=new FontIcon { Glyph="\uE70E" } };
+        var down=new AppBarButton { Label="Move down",Icon=new FontIcon { Glyph="\uE70D" } };
+        var remove=new AppBarButton { Label="Remove",Icon=new SymbolIcon(Symbol.Delete) };
+        commands.PrimaryCommands.Add(add); commands.PrimaryCommands.Add(configure); commands.PrimaryCommands.Add(test);
+        commands.PrimaryCommands.Add(up); commands.PrimaryCommands.Add(down); commands.PrimaryCommands.Add(remove);
+        var kinds=new MenuFlyout(); add.Flyout=kinds;
+        var fallback=new ToggleSwitch { IsOn=policy.FallbackEnabled };
+        panel.Children.Add(commands); panel.Children.Add(list);
+        panel.Children.Add(SettingsCard("\uE8AB","Automatic fallback","Try the next enabled connection if unavailable. API billing may apply.",fallback));
+        panel.Children.Add(feedback);
+        string? selectedId=profiles.FirstOrDefault()?.ProfileId; bool rebuilding=false; bool validEditor=true; Func<Task>? flush=null; Func<string>? editorFeedback=null;
         var labels=new Dictionary<string,TextBlock>();
         async Task Commit() {
             try {
@@ -41,13 +48,20 @@ public sealed partial class MainWindow
                 var enabled=new CheckBox { IsChecked=profile.Enabled,VerticalAlignment=VerticalAlignment.Center,MinWidth=0,Width=24 };
                 Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(enabled,"Enable "+profile.Label);
                 enabled.Click+=async(_,_)=> { var i=profiles.FindIndex(p=>p.ProfileId==profile.ProfileId); profiles[i]=profiles[i] with { Enabled=enabled.IsChecked==true }; await Commit(); };
-                var title=new TextBlock { Text=profile.Label,TextTrimming=TextTrimming.CharacterEllipsis,VerticalAlignment=VerticalAlignment.Center };
+                var title=new TextBlock { Text=string.IsNullOrWhiteSpace(profile.Provider.Model)?profile.Label+"Not configured":profile.Label,TextTrimming=TextTrimming.CharacterEllipsis,VerticalAlignment=VerticalAlignment.Center };
                 labels[profile.ProfileId]=title;
                 Grid.SetColumn(title,1); row.Children.Add(enabled); row.Children.Add(title);
                 var item=new ListViewItem { Content=row,Tag=profile.ProfileId,HorizontalContentAlignment=HorizontalAlignment.Stretch }; list.Items.Add(item);
                 if(profile.ProfileId==selectedId) list.SelectedItem=item;
             }
-            rebuilding=false; up.IsEnabled=list.SelectedIndex>0; down.IsEnabled=list.SelectedIndex>=0&&list.SelectedIndex<profiles.Count-1;
+            rebuilding=false; UpdateActions();
+        }
+        void UpdateActions() {
+            var selected=profiles.FirstOrDefault(p=>p.ProfileId==selectedId);
+            configure.IsEnabled=remove.IsEnabled=selected is not null;
+            test.IsEnabled=selected is not null&&!string.IsNullOrWhiteSpace(selected.Provider.Model);
+            var index=profiles.FindIndex(p=>p.ProfileId==selectedId);
+            up.IsEnabled=index>0; down.IsEnabled=index>=0&&index<profiles.Count-1;
         }
         void Edit() {
             flush=null; editor.Children.Clear(); validEditor=true;
@@ -56,9 +70,12 @@ public sealed partial class MainWindow
             var model=new TextBox { Header="Model",Text=profile.Provider.Model };
             var endpoint=new TextBox { Header="API base URL",Text=profile.Provider.Endpoint.ToString(),IsReadOnly=profile.Provider.Id=="chatgpt" };
             var strict=new CheckBox { Content="Supports schema-constrained JSON",IsChecked=profile.Provider.StructuredOutput };
-            var key=new PasswordBox { Header="API key",PlaceholderText="Enter to replace the protected key; Enter or leave this field to apply" };
+            var key=new PasswordBox { Header="API key",PlaceholderText="Enter a replacement key" };
+            ToolTipService.SetToolTip(key,"Stored securely in Windows. Press Enter or leave this field to apply.");
             var warning=new TextBlock { TextWrapping=TextWrapping.Wrap };
+            editorFeedback=()=>warning.Text;
             var timer=new DispatcherTimer { Interval=TimeSpan.FromMilliseconds(400) }; var closed=false; var editing=false; var keyCommitting=false; long editVersion=0;
+            Task? pendingKey=null;
             async Task ApplyDraft() {
                 timer.Stop(); if(editing) return;
                 try {
@@ -80,8 +97,9 @@ public sealed partial class MainWindow
             timer.Tick+=async(_,_)=>await ApplyDraft();
             model.TextChanged+=(_,_)=>Schedule(); endpoint.TextChanged+=(_,_)=>Schedule();
             model.LostFocus+=async(_,_)=>await ApplyDraft(); endpoint.LostFocus+=async(_,_)=>await ApplyDraft();
-            strict.Click+=async(_,_)=>await ApplyDraft(); flush=ApplyDraft;
-            async Task ApplyKey() {
+            strict.Click+=async(_,_)=>await ApplyDraft();
+            Task ApplyKey()=>pendingKey is { IsCompleted:false }?pendingKey:pendingKey=ApplyKeyCore();
+            async Task ApplyKeyCore() {
                 if(key.Password.Length==0||keyCommitting||!Uri.TryCreate(endpoint.Text.Trim(),UriKind.Absolute,out var authorizedEndpoint)) return;
                 keyCommitting=true; var secret=key.Password; key.Password=""; var generation=editVersion;
                 var authorized=profile with { Provider=profile.Provider with { Endpoint=authorizedEndpoint } };
@@ -96,6 +114,7 @@ public sealed partial class MainWindow
                 } catch { if(!closed) warning.Text="The key could not be stored in Windows-protected credentials."; }
                 finally { keyCommitting=false; }
             }
+            flush=async()=> { await ApplyDraft(); await ApplyKey(); };
             key.LostFocus+=async(_,_)=>await ApplyKey(); key.KeyDown+=async(_,e)=> { if(e.Key==global::Windows.System.VirtualKey.Enter) { e.Handled=true; await ApplyKey(); } };
             if(profile.Provider.Id=="chatgpt") {
                 editing=true;
@@ -109,11 +128,46 @@ public sealed partial class MainWindow
             }
             var removeKey=new Button { Content="Remove this connection’s API key",IsEnabled=profile.Provider.Id is "openai" or "compatible" };
             removeKey.Click+=(_,_)=> { try { if(profile.Provider.CredentialId is { } id) credentials.Remove(id); warning.Text="Protected key removed."; } catch { warning.Text="Key removal failed."; } };
-            editor.Children.Add(removeKey); editor.Children.Add(warning);
+            if(profile.Provider.Id is "openai" or "compatible") editor.Children.Add(removeKey);
+            editor.Children.Add(warning);
             warning.Unloaded+=OnUnloaded;
             void OnUnloaded(object sender,RoutedEventArgs e) { warning.Unloaded-=OnUnloaded; closed=true; if(timer.IsEnabled) _=ApplyDraft(); timer.Stop(); }
         }
-        list.SelectionChanged+=async(_,_)=> { if(rebuilding) return; var id=(list.SelectedItem as ListViewItem)?.Tag as string; if(flush is not null) await flush(); selectedId=id; Edit(); up.IsEnabled=list.SelectedIndex>0; down.IsEnabled=list.SelectedIndex>=0&&list.SelectedIndex<profiles.Count-1; };
+        list.SelectionChanged+=(_,_)=> { if(rebuilding) return; selectedId=(list.SelectedItem as ListViewItem)?.Tag as string; UpdateActions(); };
+        async Task OpenConfigurationAsync() {
+            if(connectionConfigurationDialog is not null||selectedId is null) return;
+            Edit();
+            var dialog=new ContentDialog {
+                Title="Configure connection",CloseButtonText="Close",XamlRoot=PageContent.XamlRoot,RequestedTheme=WindowRoot.ActualTheme,
+                Content=new ScrollViewer { Content=editor,Width=Math.Clamp(WindowRoot.ActualWidth-160,260,560),MaxHeight=Math.Max(200,WindowRoot.ActualHeight-240),
+                    HorizontalScrollMode=ScrollMode.Disabled,HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled }
+            };
+            connectionConfigurationDialog=dialog;
+            dialog.Closing+=async(_,args)=> {
+                var deferral=args.GetDeferral();
+                try { if(flush is not null) await flush(); }
+                finally { deferral.Complete(); }
+            };
+            try { await dialog.ShowAsync(); }
+            catch(OperationCanceledException) { }
+            catch { feedback.Text="The connection configuration could not be opened."; }
+            finally {
+                connectionConfigurationDialog=null;
+                var id=selectedId;
+                var remainingFeedback=editorFeedback?.Invoke(); editorFeedback=null;
+                editor.Children.Clear(); flush=null;
+                if(id is not null&&policy.Connections?.Any(p=>p.ProfileId==id)!=true) {
+                    profiles.RemoveAll(p=>p.ProfileId==id); selectedId=profiles.FirstOrDefault()?.ProfileId;
+                }
+                if(!string.IsNullOrWhiteSpace(remainingFeedback)) feedback.Text=remainingFeedback;
+                else if(!validEditor) feedback.Text="Incomplete edits were not applied. The last valid configuration remains active.";
+                validEditor=true;
+                RefreshList();
+                (configure.IsEnabled?configure:add).Focus(FocusState.Programmatic);
+            }
+        }
+        configure.Click+=async(_,_)=>await OpenConfigurationAsync();
+        list.DoubleTapped+=async(_,_)=>await OpenConfigurationAsync();
         async Task Move(int delta) {
             if(flush is not null) await flush(); if(!validEditor) return;
             var i=profiles.FindIndex(p=>p.ProfileId==selectedId); var j=i+delta; if(i<0||j<0||j>=profiles.Count) return;
@@ -122,11 +176,29 @@ public sealed partial class MainWindow
         }
         up.Click+=async(_,_)=>await Move(-1); down.Click+=async(_,_)=>await Move(1);
         fallback.Toggled+=async(_,_)=> { feedback.Text=SettingsResultText(await ApplySettingsAsync(policy with { FallbackEnabled=fallback.IsOn })); };
-        add.Click+=(_,_)=> {
-            if(profiles.Count>=32) { feedback.Text="At most 32 connections are supported."; return; }
-            var providerKind=kind.SelectedIndex switch { 0=>"chatgpt",1=>"openai",2=>"compatible",_=>"local" };
-            var profile=new ConnectionProfile(Guid.NewGuid().ToString("N"),new(providerKind,new(providerKind=="local"?"http://127.0.0.1:1234/v1":"https://api.openai.com/v1"),""),false,profiles.Count);
-            profiles.Add(profile); selectedId=profile.ProfileId; RefreshList(); Edit();
+        foreach(var (label,providerKind) in new[]{("ChatGPT account","chatgpt"),("OpenAI API","openai"),("Compatible API","compatible"),("Local model","local")}) {
+            var item=new MenuFlyoutItem { Text=label };
+            item.Click+=async(_,_)=> {
+                if(profiles.Count>=32) { feedback.Text="At most 32 connections are supported."; return; }
+                var profile=new ConnectionProfile(Guid.NewGuid().ToString("N"),new(providerKind,new(providerKind=="local"?"http://127.0.0.1:1234/v1":"https://api.openai.com/v1"),""),false,profiles.Count);
+                profiles.Add(profile); selectedId=profile.ProfileId; RefreshList(); await OpenConfigurationAsync();
+            };
+            kinds.Items.Add(item);
+        }
+        remove.Click+=async(_,_)=> {
+            var profile=profiles.FirstOrDefault(p=>p.ProfileId==selectedId); if(profile is null) return;
+            var dialog=new ContentDialog { Title="Remove connection?",Content=$"Remove {profile.Label} from the priority list? Shared ChatGPT accounts remain signed in.",
+                PrimaryButtonText="Remove",CloseButtonText="Cancel",DefaultButton=ContentDialogButton.Close,XamlRoot=PageContent.XamlRoot,RequestedTheme=WindowRoot.ActualTheme };
+            if(await dialog.ShowAsync()!=ContentDialogResult.Primary) return;
+            var index=profiles.FindIndex(p=>p.ProfileId==profile.ProfileId);
+            var next=ProcSight.Application.Settings.ConnectionProfileActions.Remove(policy,profile.ProfileId);
+            try {
+                var result=await ApplySettingsAsync(next);
+                profiles.RemoveAll(p=>p.ProfileId==profile.ProfileId);
+                for(var i=0;i<profiles.Count;i++) profiles[i]=profiles[i] with { Priority=i };
+                selectedId=profiles.ElementAtOrDefault(Math.Min(index,profiles.Count-1))?.ProfileId;
+                feedback.Text=SettingsResultText(result); RefreshList();
+            } catch { feedback.Text="The connection could not be removed. Check settings storage access."; }
         };
         test.Click+=async(_,_)=> {
             if(flush is not null) await flush(); if(!validEditor) { feedback.Text="Complete the selected configuration before testing."; return; }
@@ -140,7 +212,7 @@ public sealed partial class MainWindow
             catch { feedback.Text="Connection test unavailable. Check configuration and credential access."; }
             finally { if(ReferenceEquals(connectionTestCancellation,testing)) connectionTestCancellation=null; test.IsEnabled=true; }
         };
-        RefreshList(); Edit();
+        RefreshList();
         var expander=SettingsExpander("\uE774","Connections and priority","Configure, enable, order and test AI connections",panel);
         expander.IsExpanded=true; return expander;
     }

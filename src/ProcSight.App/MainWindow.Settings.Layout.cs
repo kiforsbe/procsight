@@ -4,6 +4,13 @@ using Microsoft.UI.Xaml.Media;
 namespace ProcSight.App;
 public sealed partial class MainWindow
 {
+    private static TextBlock SettingsFeedback()
+    {
+        var text=new TextBlock { TextWrapping=TextWrapping.Wrap,Visibility=Visibility.Collapsed };
+        text.RegisterPropertyChangedCallback(TextBlock.TextProperty,(_,_)=>text.Visibility=
+            string.IsNullOrWhiteSpace(text.Text)?Visibility.Collapsed:Visibility.Visible);
+        return text;
+    }
     private static void SettingsSection(StackPanel panel,string title)=>panel.Children.Add(new TextBlock {
         Text=title,FontWeight=Microsoft.UI.Text.FontWeights.SemiBold,Margin=new Thickness(0,18,0,4) });
     private static Grid SettingsHeader(string glyph,string title,string description)

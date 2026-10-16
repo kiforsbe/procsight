@@ -13,7 +13,7 @@ public sealed partial class MainWindow
         return settingsController.ApplyAsync(next,presentation,lifetime.Token);
     }
     private static string SettingsResultText(SettingsApplyResult result)=>result.Failure switch {
-        SettingsFailure.None=>"Changes applied automatically.",
+        SettingsFailure.None=>"",
         SettingsFailure.Superseded=>"",
         SettingsFailure.Invalid=>"Complete the highlighted configuration. The last valid settings remain active.",
         _=>"Changes could not be saved. Privacy restrictions remain active for this session. Check storage access."
@@ -22,7 +22,7 @@ public sealed partial class MainWindow
     {
         var panel=new StackPanel { Spacing=8,MaxWidth=1000,HorizontalAlignment=HorizontalAlignment.Stretch,Margin=new Thickness(24,16,24,24) };
         panel.Children.Add(new TextBlock { Text="Settings",FontSize=24,FontWeight=Microsoft.UI.Text.FontWeights.SemiBold,Margin=new Thickness(0,0,0,12) });
-        var feedback=new TextBlock { Text="Changes apply automatically.",TextWrapping=TextWrapping.Wrap };
+        var feedback=SettingsFeedback();
         async Task Apply(AnalysisPolicy next) { try { var result=await ApplySettingsAsync(next); if(result.Failure!=SettingsFailure.Superseded) feedback.Text=SettingsResultText(result); } catch { feedback.Text="Settings are unavailable. Check local storage access."; } }
         SettingsSection(panel,"Appearance");
         var theme=new ComboBox { ItemsSource=new[]{"System","Light","Dark"},SelectedItem=presentation.Theme,MinWidth=170 };

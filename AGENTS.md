@@ -140,6 +140,12 @@ or invented explanations about ownership.
 
 ## Native UI design maintenance
 
+Connection management uses a compact native toolbar/list plus separate fallback row. Add/Configure
+opens a focused per-profile ContentDialog; provider fields must not leak back into the main page.
+Close flushes pending valid edits and protected-key commits using a closing deferral. Removing a
+profile clears its research reference and routing membership without signing out shared accounts.
+Suppress routine settings success text and collapse empty feedback; preserve errors and explicit tests.
+
 Tray monitoring is opt-in, system-only and independent of AI. Preserve bounded 30-sample history,
 one-second sampling, English PDH paths, native handle disposal and explicit unavailable/warm-up
 states. Minimize-to-tray requires a registered icon; close/Exit terminate normally. Preserve recovery
