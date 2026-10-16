@@ -5,6 +5,20 @@ using Xunit;
 namespace ProcSight.Infrastructure.Tests;
 public sealed class ConnectionTesterTests
 {
+    private sealed class HeldLedger : ProcSight.Application.Budget.IUsageLedger
+    {
+        public TaskCompletionSource Started=new(TaskCreationOptions.RunContinuationsAsynchronously),Release=new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public async Task<bool> TryReserveAsync(UsageKind kind,DateOnly day,UsageLimits limits,CancellationToken ct) { Started.SetResult(); await Release.Task; return true; }
+        public Task<(int,int)> GetUsageAsync(DateOnly day,CancellationToken ct)=>Task.FromResult((0,0));
+    }
+    [Fact] public async Task RevokedPolicyAfterBudgetWaitPreventsDispatch()
+    {
+        var ledger=new HeldLedger(); var provider=new CountingProvider(); var policy=new AnalysisPolicy();
+        var profile=new ConnectionProfile("test",new("openai",new("https://api.openai.com/v1"),"test"),true,0);
+        var test=new ConnectionTester((_,_)=>provider,ledger,new(),()=>policy).TestAsync(profile,policy,default);
+        await ledger.Started.Task; policy=policy with { Revision=1,ExternalAnalysisAllowed=false }; ledger.Release.SetResult();
+        var result=await test; Assert.Equal(0,provider.Calls); Assert.Equal(ProviderErrorKind.Cancelled,result.Error!.Kind);
+    }
     [Fact] public async Task ExplicitTestUsesSelectedDisabledProfileAndOnlySyntheticMetadata()
     {
         var folder=Path.Combine(Path.GetTempPath(),Guid.NewGuid().ToString());

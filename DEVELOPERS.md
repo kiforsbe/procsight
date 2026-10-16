@@ -10,6 +10,8 @@ system-only tray samples.
 
 Connection profiles separate provider kind from protected credential-slot IDs. Legacy preference
 migration is in `ConnectionSettingsMigration`; it must preserve permissions and keep fallback off.
+Profile key slots hold a protected JSON envelope binding provider kind and endpoint to the secret.
+Do not accept raw/unbound profile key records or arbitrary credential namespace references.
 Use synthetic credentials in migration tests; never commit exported settings or credential data.
 
 The [ChatGPT integration design](docs/superpowers/specs/2026-10-14-chatgpt-plan-design.md) and
@@ -21,6 +23,8 @@ Tests use synthetic signed tokens, fake HTTP, in-memory protected storage, and r
 Never inspect or copy another application's credentials to validate this integration.
 The Debug `--visual-fixture <absolute.png> Dark 1000 settings` option renders actual Settings using
 in-memory credentials, without real account reads or network traffic.
+Use `settings-admin` for simulated elevated-session UI or `settings-tray` for tray preferences;
+these fixtures do not elevate, invoke UAC, create a tray icon or read real accounts.
 Use `activity` or `activity-details` as the fixture's final argument to render the AI activity page
 with synthetic requests/results and an optional selected result. The coordinator's optional
 `AnalysisActivityLog` records actual research/provider attempts; keep it isolated from analysis failures.

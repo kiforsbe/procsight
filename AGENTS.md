@@ -150,6 +150,12 @@ drafts cannot replace active configuration. API keys commit only on Enter/focus 
 changes cancel dispatch before disk writes; failed persistence must not enable broader sharing.
 Tests target the selected connection with synthetic metadata and never implicitly invoke fallback.
 
+Preserve cumulative Desired versus Current applied policy during concurrent settings edits, and use
+one controller across session-consent changes. Limit reductions revoke work before persistence.
+Credential edits must retain immutable destination authorization across awaits; a new profile with
+no bound key must not borrow legacy keys. Policy/session changes cancel tests and guard post-budget
+dispatch/acceptance. Preserve auth pauses across unrelated changes; explicit reauthorization may retry.
+
 Read and apply [the Windows 11 / WinUI 3 design guide](docs/WINUI3-DESIGN.md) before changing UI.
 Keep its project conventions current with shared UI changes. Use actual native controls and theme
 resources, compact selectable lists, adaptive details, structured evidence, and contextual feedback.

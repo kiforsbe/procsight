@@ -6,15 +6,16 @@ using ProcSight.Windows.Security;
 namespace ProcSight.App;
 public sealed partial class MainWindow
 {
-    private readonly bool elevated=PrivilegeContext.IsElevated;
+    private bool elevated=PrivilegeContext.IsElevated;
     private SessionConsent sessionConsent=new();
     private AnalysisPolicy? cachedSaved,cachedEffective;
     private SessionConsent? cachedConsent;
     private AnalysisPolicy EffectivePolicy {
         get {
-            if(!elevated) return policy;
-            if(!ReferenceEquals(cachedSaved,policy)||cachedConsent!=sessionConsent) {
-                cachedSaved=policy; cachedConsent=sessionConsent; cachedEffective=SessionPolicy.Effective(policy,true,sessionConsent);
+            var applied=settingsController?.Current??savedPolicy;
+            if(!elevated) return applied;
+            if(!ReferenceEquals(cachedSaved,applied)||cachedConsent!=sessionConsent) {
+                cachedSaved=applied; cachedConsent=sessionConsent; cachedEffective=SessionPolicy.Effective(applied,true,sessionConsent);
             }
             return cachedEffective!;
         }
@@ -48,8 +49,9 @@ public sealed partial class MainWindow
             var disclosure=new TextBlock { Text="These permissions reset on restart and do not change your normal saved settings. Newly readable metadata may belong to another user. Online analysis, tests and research require session consent; command/path sharing also requires the normal sharing settings.",TextWrapping=TextWrapping.Wrap };
             async Task Consent() {
                 sessionConsent=new(external.IsOn,commands.IsChecked==true,identifying.IsChecked==true);
-                policy=policy with { Revision=policy.Revision+1 }; settingsController=null;
-                await coordinator.ChangePolicyAsync(EffectivePolicy,lifetime.Token);
+                CancelConnectionTests();
+                if(settingsController is not null) await settingsController.ReapplyAsync(lifetime.Token);
+                else { policy=policy with { Revision=policy.Revision+1 }; await coordinator.ChangePolicyAsync(EffectivePolicy,lifetime.Token); }
                 feedback.Text="Administrator-session permissions updated. Already transmitted requests cannot be recalled.";
             }
             external.Toggled+=async(_,_)=>await Consent(); commands.Click+=async(_,_)=>await Consent(); identifying.Click+=async(_,_)=>await Consent();

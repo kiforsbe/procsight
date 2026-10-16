@@ -18,7 +18,8 @@ namespace ProcSight.App;
 public sealed partial class MainWindow
 {
     private readonly string dataFolder=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"ProcSight");
-    private AnalysisPolicy policy=new();
+    private AnalysisPolicy savedPolicy=new();
+    private AnalysisPolicy policy { get=>settingsController?.Desired??savedPolicy; set=>savedPolicy=value; }
     private PresentationPreferences presentation=new();
     private PreferencesStore preferences=null!;
     private readonly CredentialStore credentials=new();
@@ -56,10 +57,10 @@ public sealed partial class MainWindow
     private IAnalysisProvider CreateProvider(ProviderSettings settings,bool local) => settings.Id=="chatgpt"&&!local
         ? new ChatGptPlanProvider(settings,ct=>settings.AccountId is { } id?ChatGpt.GetAccessTokenAsync(id,ct):Task.FromResult<string?>(null),providerHttp)
         : settings.Id=="openai"&&!local
-        ? new OpenAiResponsesProvider(settings,()=>credentials.Get(settings.CredentialId??settings.Id),providerHttp) :
-        new CompatibleChatProvider(settings,()=>credentials.Get(settings.CredentialId??settings.Id),providerHttp,local:local);
+        ? new OpenAiResponsesProvider(settings,()=>ProcSight.Application.Settings.ConnectionCredentials.Read(settings,policy.Connections is not null,credentials),providerHttp) :
+        new CompatibleChatProvider(settings,()=>ProcSight.Application.Settings.ConnectionCredentials.Read(settings,policy.Connections is not null,credentials),providerHttp,local:local);
     private IResearchProvider? CreateResearch(ProviderSettings settings)=>settings.Id=="openai"?
-        new OpenAiWebResearchProvider(settings,()=>credentials.Get(settings.CredentialId??settings.Id),providerHttp):null;
+        new OpenAiWebResearchProvider(settings,()=>ProcSight.Application.Settings.ConnectionCredentials.Read(settings,policy.Connections is not null,credentials),providerHttp):null;
     private async Task ReadAnalysisAsync()
     {
         try

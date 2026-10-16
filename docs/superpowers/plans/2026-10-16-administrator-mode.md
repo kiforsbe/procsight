@@ -10,6 +10,11 @@
 
 **Spec:** [Approved design and security assessment](../specs/2026-10-16-connections-tray-elevation-design.md).
 
+**Execution record (2026-10-16):** Implemented inline and independently reviewed, with synthetic
+handoff/cancellation and elevated-policy tests. Simulated administrator UI is captured in both
+themes/widths. Live UAC, alternate-account and elevated runtime bootstrap remain unverified.
+See [verification](../../verification.md). The checklist below preserves the original plan.
+
 ## Global Constraints
 
 - Normal launch stays unelevated; never elevate automatically after denied metadata access.

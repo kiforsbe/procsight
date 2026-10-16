@@ -9,7 +9,7 @@ public sealed partial class MainWindow
     private ImmediateSettingsController? settingsController;
     private Task<SettingsApplyResult> ApplySettingsAsync(AnalysisPolicy next)
     {
-        settingsController??=new(preferences,async (value,ct)=> { policy=value; await coordinator.ChangePolicyAsync(EffectivePolicy,ct); },policy,presentation);
+        settingsController??=new(preferences,async (value,ct)=> { savedPolicy=value; CancelConnectionTests(); await coordinator.ChangePolicyAsync(EffectivePolicy,ct); },policy,presentation);
         return settingsController.ApplyAsync(next,presentation,lifetime.Token);
     }
     private static string SettingsResultText(SettingsApplyResult result)=>result.Failure switch {

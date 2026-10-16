@@ -6,6 +6,18 @@ using Xunit;
 namespace ProcSight.Infrastructure.Tests;
 public sealed class ConnectionRoutingTests
 {
+    [Fact] public async Task UnrelatedPolicyChangesDoNotResetAuthenticationPause()
+    {
+        var folder=Path.Combine(Path.GetTempPath(),Guid.NewGuid().ToString());
+        try {
+            var provider=new CountingProvider { Kind=ProviderErrorKind.Auth }; var store=new SqliteKnowledgeStore(Path.Combine(folder,"knowledge.db"));
+            await using var coordinator=new AnalysisCoordinator(store,store,(_,_)=>provider);
+            var policy=new AnalysisPolicy(true,Connections:[P("one")]); var snapshot=Samples.Snapshot(Samples.Process());
+            await coordinator.ObserveAsync(snapshot,policy,default); await coordinator.WaitForIdleAsync(default);
+            await coordinator.ObserveAsync(snapshot,policy with { Revision=1 },default); await coordinator.WaitForIdleAsync(default);
+            Assert.Equal(1,provider.Calls);
+        } finally { Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools(); if(Directory.Exists(folder)) Directory.Delete(folder,true); }
+    }
     private static ConnectionProfile P(string id,int priority=0,bool enabled=true,string kind="openai")=>new(id,new(kind,new(kind=="local"?"http://127.0.0.1:1234/v1":"https://api.openai.com/v1"),id),enabled,priority);
     [Fact] public void RoutingHonorsEnabledOrderAndLocalPreference()
     {

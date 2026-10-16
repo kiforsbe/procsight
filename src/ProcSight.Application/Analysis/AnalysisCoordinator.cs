@@ -35,7 +35,7 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
     private bool policyEstablished;
     private Task? worker;
     private int outstanding;
-    private readonly ConcurrentDictionary<string,byte> authPaused=[];
+    private readonly ConcurrentDictionary<string,ProviderSettings> authPaused=[];
     public async Task ObserveAsync(MachineSnapshot snapshot,AnalysisPolicy newPolicy,CancellationToken ct)
     {
         if(newPolicy!=policy) await ChangePolicyAsync(newPolicy,ct);
@@ -173,7 +173,7 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
             catch { activity?.Fail(attemptActivity); throw; }
             if(result.Error is { } error)
             {
-                if(error.Kind==ProviderErrorKind.Auth) authPaused[connection.ProfileId]=0;
+                if(error.Kind==ProviderErrorKind.Auth) authPaused[connection.ProfileId]=selected;
                 if(retry<2 && error.Kind is ProviderErrorKind.Transient or ProviderErrorKind.RateLimited)
                 { await Task.Delay(error.RetryAfter ?? TimeSpan.FromSeconds(1<<retry),time,ct); continue; }
                 if(config.FallbackEnabled&&ConnectionRouter.CanFallback(error)) { fallbackReason=error.Kind; break; }
@@ -245,11 +245,14 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
             if(policyEstablished && (config.Revision<policy.Revision || config.Revision==policy.Revision && config!=policy)) return Task.CompletedTask;
             if(policyEstablished && config==policy) return Task.CompletedTask;
             policyCancellation.Cancel(); policyCancellation.Dispose(); policyCancellation=new();
-            policy=config; policyEstablished=true; authPaused.Clear(); fingerprints.Clear(); reviewTimes.Clear();
+            var configured=config.Connections??ConnectionRouter.Resolve(config).ToArray();
+            foreach(var (id,settings) in authPaused) if(!configured.Any(p=>p.ProfileId==id&&p.Provider==settings)) authPaused.TryRemove(id,out _);
+            policy=config; policyEstablished=true; fingerprints.Clear(); reviewTimes.Clear();
         }
         return Task.CompletedTask;
     }
     public void InvalidateKnowledge() { fingerprints.Clear(); reviewTimes.Clear(); }
+    public void RetryConnection(string profileId) { authPaused.TryRemove(profileId,out _); fingerprints.Clear(); }
     public async IAsyncEnumerable<AnalysisUpdate> Updates([EnumeratorCancellation] CancellationToken ct)
     { await foreach(var update in updates.Reader.ReadAllAsync(ct)) yield return update; }
     public async ValueTask DisposeAsync()

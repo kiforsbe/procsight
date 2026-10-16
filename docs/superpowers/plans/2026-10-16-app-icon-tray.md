@@ -10,6 +10,11 @@
 
 **Spec:** [Approved design](../specs/2026-10-16-connections-tray-elevation-design.md).
 
+**Execution record (2026-10-16):** Implemented inline and independently reviewed. Native icon/metric
+and registration tests pass; light/dark wide/narrow Settings captures exist. Actual shell/DPI/menu,
+Explorer restart and metric accuracy remain desktop acceptance checks. See [verification](../../verification.md).
+The checklist below preserves the original plan.
+
 ## Global Constraints
 
 - Default metric is CPU; tray visibility and minimize-to-tray are explicit preferences.

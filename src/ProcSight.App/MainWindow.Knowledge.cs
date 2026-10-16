@@ -144,8 +144,8 @@ public sealed partial class MainWindow
             await knowledgeMaintenance.WaitAsync(lifetime.Token);
             try
             {
-                policy=policy with { Revision=policy.Revision+1 }; settingsController=null;
-                await coordinator.ChangePolicyAsync(EffectivePolicy,lifetime.Token);
+                if(settingsController is not null) await settingsController.ReapplyAsync(lifetime.Token);
+                else { policy=policy with { Revision=policy.Revision+1 }; await coordinator.ChangePolicyAsync(EffectivePolicy,lifetime.Token); }
                 await coordinator.WaitForIdleAsync(lifetime.Token);
                 await Task.Run(()=>knowledge.ClearAsync(scope,lifetime.Token),lifetime.Token);
                 analysis.Clear(); coordinator.InvalidateKnowledge(); RenderPage();

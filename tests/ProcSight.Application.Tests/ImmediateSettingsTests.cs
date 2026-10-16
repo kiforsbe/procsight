@@ -4,6 +4,33 @@ using Xunit;
 namespace ProcSight.Application.Tests;
 public sealed class ImmediateSettingsTests
 {
+    [Fact] public async Task PendingIndependentEditsMergeThroughDesiredSnapshot()
+    {
+        var store=new BlockingStore(); var live=new AnalysisPolicy();
+        var controller=new ImmediateSettingsController(store,(p,_)=> { live=p; return Task.CompletedTask; },live,new());
+        var first=controller.ApplyAsync(controller.Desired with { AutomaticEnabled=true },new(),default);
+        await store.Started.Task;
+        var second=controller.ApplyAsync(controller.Desired with { ShareIdentifyingMetadata=true },new(),default);
+        store.Release.SetResult(); await Task.WhenAll(first,second);
+        Assert.True(live.AutomaticEnabled); Assert.True(live.ShareIdentifyingMetadata);
+    }
+    [Fact] public async Task SessionReapplyCannotRestoreOlderRevisionAndLimitReductionsSurviveFailure()
+    {
+        var store=new BlockingStore(); var live=new AnalysisPolicy();
+        var controller=new ImmediateSettingsController(store,(p,_)=> { live=p; return Task.CompletedTask; },live,new());
+        var first=controller.ApplyAsync(live with { AutomaticEnabled=true },new(),default);
+        await store.Started.Task; await controller.ReapplyAsync(default); var revision=live.Revision;
+        store.Release.SetResult(); await first; Assert.True(live.Revision>revision);
+        var fail=new Store { Fail=true }; controller=new(fail,(p,_)=> { live=p; return Task.CompletedTask; },live,new());
+        await controller.ApplyAsync(live with { Limits=new(0,0) },new(),default);
+        Assert.Equal(0,live.Limits!.BillableCalls);
+    }
+    private sealed class BlockingStore : IPreferencesStore
+    {
+        public TaskCompletionSource Started=new(TaskCreationOptions.RunContinuationsAsynchronously),Release=new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public (AnalysisPolicy,PresentationPreferences) Load()=>(new(),new());
+        public void Save(AnalysisPolicy p,PresentationPreferences v) { Started.TrySetResult(); Release.Task.GetAwaiter().GetResult(); }
+    }
     [Fact] public async Task InvalidProfileCannotReplaceLastValidConfiguration()
     {
         var store=new Store(); var live=new AnalysisPolicy();

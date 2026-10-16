@@ -6,6 +6,14 @@ failure must not publish a partly configured replacement. Profile endpoints reje
 credentials, query strings and fragments, and require HTTPS except loopback HTTP. Local profiles
 are restricted to loopback addresses. Profiles are bounded to 32; fallback remains off by default.
 
+New profiles cannot borrow a legacy API key when no profile credential is bound. Key commits retain
+the explicitly authorized endpoint/profile across asynchronous persistence and discard stale edits.
+Protected key records also bind provider kind and endpoint, so editing a plain preference reference
+cannot redirect a stored key to another destination or select an unrelated credential namespace.
+Desired settings are separate from applied settings; permission and budget reductions revoke work
+before disk writes. Synthetic connection tests cancel on policy/session changes and recheck revision
+after asynchronous budget reservation and before accepting a response.
+
 ## Supported versions
 
 Tray monitoring uses system counters only, without provider calls, credentials, process commands

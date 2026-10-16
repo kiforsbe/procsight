@@ -18,6 +18,7 @@ public sealed partial class MainWindow
         if(args.Length is <3 or >6 || args[1]!="--visual-fixture") return false;
         var output=Path.GetFullPath(args[2]);
         if(args.Length>5&&args[5].StartsWith("settings",StringComparison.Ordinal)) {
+            elevated=args[5]=="settings-admin";
             chatGpt=new(new FixtureCredentials()); page="Settings";
             policy=new(Connections:[
                 new("fixture-local",new("local",new("http://127.0.0.1:1234/v1"),"Local example model"),true,0),
@@ -26,6 +27,7 @@ public sealed partial class MainWindow
         }
         presentation=new(Theme:args.Length>3&&args[3]=="Light"?"Light":"Dark",Grouped:args.Length>5&&args[5]=="groups"); sort=ProcSight.Application.Presentation.ProcessSort.Name;
         ConfigureChrome(); WindowRoot.Background=new SolidColorBrush(presentation.Theme=="Light"?Microsoft.UI.Colors.White:global::Windows.UI.Color.FromArgb(255,32,32,32));
+        if(elevated) AppTitleBar.Title="ProcSight (Administrator)";
         if(args.Length>4&&int.TryParse(args[4],out var width)&&width is >=600 and <=1600)
         { var scale=GetDpiForWindow(WinRT.Interop.WindowNative.GetWindowHandle(this))/96.0; AppWindow.Resize(new((int)(width*scale),(int)(780*scale))); }
         var now=DateTimeOffset.UtcNow;
@@ -170,6 +172,12 @@ public sealed partial class MainWindow
                         throw new InvalidOperationException("Settings still require Save.");
                     if(FindSettingsButton(PageContent,"Test connection") is null)
                         throw new InvalidOperationException("Selected-connection test action missing.");
+                    if(args[5] is "settings-admin" or "settings-tray"&&PageContent.Children.FirstOrDefault() is Microsoft.UI.Xaml.Controls.ScrollViewer settingsScroll&&settingsScroll.Content is Microsoft.UI.Xaml.Controls.StackPanel sections) {
+                        foreach(var expander in sections.Children.OfType<Microsoft.UI.Xaml.Controls.Expander>()) expander.IsExpanded=false;
+                        var chosen=sections.Children.OfType<Microsoft.UI.Xaml.Controls.Expander>().ElementAt(args[5]=="settings-tray"?0:5);
+                        chosen.IsExpanded=true; await Task.Delay(350); WindowRoot.UpdateLayout();
+                        if(args[5]=="settings-admin") settingsScroll.ChangeView(null,settingsScroll.ScrollableHeight,null,true);
+                    }
                 }
                 if(args.Length>5&&args[5].StartsWith("activity",StringComparison.Ordinal)) {
                     Navigation.SelectedItem=Navigation.MenuItems.OfType<Microsoft.UI.Xaml.Controls.NavigationViewItem>().First(i=>i.Tag?.ToString()=="AI activity");

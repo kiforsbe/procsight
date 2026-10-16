@@ -8,6 +8,7 @@ public sealed class ImmediateSettingsController(IPreferencesStore store,Func<Ana
     private readonly SemaphoreSlim commits=new(1,1);
     private long generation,revision=initial.Revision;
     public AnalysisPolicy Current { get; private set; }=initial;
+    public AnalysisPolicy Desired { get; private set; }=initial;
     private AnalysisPolicy persisted=initial;
     private PresentationPreferences savedPresentation=presentation;
     public async Task<SettingsApplyResult> ApplyAsync(AnalysisPolicy candidate,PresentationPreferences view,CancellationToken ct)
@@ -15,6 +16,7 @@ public sealed class ImmediateSettingsController(IPreferencesStore store,Func<Ana
         var version=Interlocked.Increment(ref generation);
         try { if(candidate.Connections is not null) ConnectionProfiles.Validate(candidate.Connections); }
         catch(ArgumentException) { return new(false,false,Current.Revision,SettingsFailure.Invalid); }
+        Desired=candidate;
         // Revoke permissions before waiting for disk or an older commit. Never enable in this overlay.
         var restrictive=Current with {
             AutomaticEnabled=Current.AutomaticEnabled&&candidate.AutomaticEnabled,
@@ -22,6 +24,8 @@ public sealed class ImmediateSettingsController(IPreferencesStore store,Func<Ana
             ShareIdentifyingMetadata=Current.ShareIdentifyingMetadata&&candidate.ShareIdentifyingMetadata,
             CommandLineMode=candidate.CommandLineMode==CommandLineMode.OnlineFull?Current.CommandLineMode:candidate.CommandLineMode,
             FallbackEnabled=Current.FallbackEnabled&&candidate.FallbackEnabled,
+            Limits=Current.Limits is null&&candidate.Limits is null?null:new(Math.Min((Current.Limits??new()).AutomaticJobs,(candidate.Limits??new()).AutomaticJobs),
+                Math.Min((Current.Limits??new()).BillableCalls,(candidate.Limits??new()).BillableCalls)),
             Connections=Current.Connections?.Select(p=>p with { Enabled=p.Enabled&&candidate.Connections?.Any(c=>c.ProfileId==p.ProfileId&&c.Enabled)==true }).ToArray()
         };
         if(!Equivalent(Current,restrictive)) {
@@ -38,11 +42,16 @@ public sealed class ImmediateSettingsController(IPreferencesStore store,Func<Ana
             catch { return new(false,false,Current.Revision,SettingsFailure.Storage); }
             persisted=next; savedPresentation=view;
             if(version!=Volatile.Read(ref generation)) return new(false,true,Current.Revision,SettingsFailure.Superseded);
-            Current=next; await change(next,ct);
+            if(next.Revision<Volatile.Read(ref revision)) next=next with { Revision=Interlocked.Increment(ref revision) };
+            Current=next; Desired=next; await change(next,ct);
             return new(true,true,next.Revision,SettingsFailure.None);
         } finally { commits.Release(); }
     }
     public Task FlushAsync(CancellationToken ct)=>FlushCoreAsync(ct);
+    public async Task ReapplyAsync(CancellationToken ct) {
+        Current=Current with { Revision=Interlocked.Increment(ref revision) };
+        Desired=Desired with { Revision=Current.Revision }; await change(Current,ct);
+    }
     private async Task FlushCoreAsync(CancellationToken ct) { await commits.WaitAsync(ct); commits.Release(); }
     private static bool Equivalent(AnalysisPolicy a,AnalysisPolicy b)=>a with { Revision=0,Connections=null }==b with { Revision=0,Connections=null }&&
         (a.Connections??[]).SequenceEqual(b.Connections??[]);

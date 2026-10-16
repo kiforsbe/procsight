@@ -16,11 +16,11 @@ Locked restore and native Release build passed with zero warnings/errors. Test r
 
 | Project | Passed | Focus |
 | --- | ---: | --- |
-| Core | 62 | Identity/privacy/rules and persisted opaque ChatGPT profile binding |
-| Application | 92 | Ordering/captions/activity and concise app/host naming despite old AI prose |
-| Infrastructure | 103 | Storage, OAuth/SSE/activity, safe failure reasons and empty-completion text preservation |
-| Windows | 33 | Native reads/icons/signatures and caption ownership/lifetime/timeout checks |
-| Total | 290 | No failed or skipped tests |
+| Core | 67 | Identity/privacy/rules and validated independent connection profiles |
+| Application | 100 | Presentation, immediate settings races and elevated session privacy |
+| Infrastructure | 114 | Storage/OAuth/SSE, profile routing/fallback, scoped tests and consent revocation |
+| Windows | 49 | Collection/lifetimes/icons, credential binding, tray metrics/lifecycle and elevation handoff |
+| Total | 330 | No failed or skipped tests |
 
 The 2026-10-16 account-settings layout change passed the full locked-restore/Release/test
 script above (zero build warnings/errors). Synthetic actual-XAML captures at 1100px dark
@@ -28,8 +28,28 @@ and 600px light showed adaptive account/model selectors and grouped account acti
 overflow. The Debug fixture used a scratch output because a running debug app locked the
 normal apphost; the debug session was preserved. These captures used no real account data
 or network requests. Keyboard, Narrator, high contrast and additional scaling remain unverified.
-Immediate settings, profile priority, tray monitoring and administrator mode are planning
-work in the dated 2026-10-16 plans, not implemented or verified behavior.
+Immediate settings, profile priority, app icon/tray monitoring and administrator mode are implemented.
+Their synthetic tests cover order/disable/fallback, independent auth pauses, cumulative rapid edits,
+storage-failure permission/budget reductions, destination-bound key commits, post-budget consent
+revocation, tray registration/recovery and native HICON generation/disposal, UAC failure/readiness
+handoff and elevated privacy defaults. A fresh independent reviewer found seven material issues;
+targeted regressions and the full 330-test suite passed after fixes. New profiles also cannot borrow
+legacy API keys. No real provider test or account data was used for this acceptance pass.
+
+Native synthetic Settings/administrator/tray-settings captures were produced at 1100/600 widths in
+both light/dark themes, using in-memory fake account records without collection or network calls.
+The administrator fixture simulates UI/privacy mode; it does not elevate the fixture process.
+Actual UAC consent, alternate-account/Administrator Protection isolation, elevated WinAppRuntime
+bootstrap, live shell tray/menu behavior and Explorer restarts, metric accuracy against Windows
+tools, keyboard/Narrator/high-contrast/scaling checks remain unverified. No running user debug
+session or Explorer process was stopped for verification.
+All 24 Mermaid diagrams in the living architecture and current design parsed and rendered with
+Mermaid 11.17.2 in the installed browser; updated administrator/settings diagrams were inspected.
+Relative links in the 11 affected documentation/plan files and whitespace checks passed.
+
+Representative synthetic views: [connections](images/settings-connections-dark.png),
+[narrow settings](images/settings-connections-narrow.png), [administrator session](images/settings-administrator.png)
+and [tray preferences](images/settings-tray.png).
 
 Key behaviors covered include same-name owners at different paths, PID reuse, all three
 classification axes, rejected name-only rules, expired referenced evidence, changed-owner

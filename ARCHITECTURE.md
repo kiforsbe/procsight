@@ -69,8 +69,8 @@ sequenceDiagram
         Normal->>Normal: Remain usable
     else Startup succeeds
         Shell->>Admin: Start in chosen Windows context
-        Admin->>Admin: Load current-context settings and credentials
-        Admin->>Admin: Apply restrictive session overlay and mark ready
+        Admin->>Admin: Load current-context records
+        Admin->>Admin: Apply session policy and mark ready
         Normal->>Admin: Confirm window PID using retained process handle
         Normal->>Normal: Close after confirmation
         User->>Admin: Optional fresh sharing consent
@@ -134,14 +134,25 @@ explicit Enter/focus loss; a changed endpoint drops the prior credential binding
 [ConnectionTester](src/ProcSight.Application/Analysis/ConnectionTester.cs) invokes exactly the selected
 profile with synthetic metadata and budget/activity accounting, independent of enabled/fallback routing.
 
+The controller maintains cumulative `Desired` settings separately from `Current` applied settings;
+later independent edits include pending changes without exposing them to collection before save.
+Session consent re-applies through the same controller with a newer revision. Sharing revocations
+and reduced request limits take effect before storage, including on failure. Active tests are linked
+to policy/session cancellation and recheck the current revision after budget waits and responses.
+Credential commits capture the authorized profile/destination before awaits and reject stale edits;
+new profiles cannot borrow legacy provider keys. Auth pauses survive unrelated setting/view changes
+and clear only on changed credentials/account configuration or explicit reauthorization/retry.
+Protected credential envelopes bind provider kind and endpoint; plain settings cannot redirect a
+key reference to a new destination or an unrelated protected credential namespace.
+
 ```mermaid
 stateDiagram-v2
     [*] --> Valid
     Valid --> Draft: edit text
-    Draft --> Draft: incomplete / inline validation
-    Draft --> Persisting: valid / debounce or focus loss
-    Valid --> Persisting: toggle or selection
-    Persisting --> Valid: saved / publish newest policy
+    Draft --> Draft: Incomplete
+    Draft --> Persisting: Valid edit
+    Valid --> Persisting: Change option
+    Persisting --> Valid: Apply saved policy
     Persisting --> Unsaved: storage failure
     Unsaved --> Persisting: retry edit
     note right of Persisting
@@ -158,7 +169,7 @@ sequenceDiagram
     participant Projection
     participant Provider
     Coordinator->>Router: Resolve enabled priority order
-    loop Selected connection; next only with explicit eligible fallback
+    loop Selected connection with next allowed only by explicit eligible fallback
         Coordinator->>Projection: Project for destination and policy revision
         Coordinator->>Coordinator: Check cancellation and reserve online budget
         Coordinator->>Provider: Bounded attempt

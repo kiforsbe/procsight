@@ -6,7 +6,7 @@ public sealed partial class MainWindow
 {
     private string? settingsChatGptAccountId;
     private string? settingsChatGptModel;
-    private FrameworkElement BuildChatGptSettings(ComboBox provider,TextBox model,Action signedOut,ProcSight.Core.Models.ProviderSettings? configured=null)
+    private FrameworkElement BuildChatGptSettings(ComboBox provider,TextBox model,Action signedOut,ProcSight.Core.Models.ProviderSettings? configured=null,Action? reauthorized=null)
     {
         var accounts=new ComboBox { Header="Saved ChatGPT accounts",DisplayMemberPath="Label",HorizontalAlignment=HorizontalAlignment.Stretch };
         var models=new ComboBox { Header="Models available to this account",DisplayMemberPath="DisplayName",HorizontalAlignment=HorizontalAlignment.Stretch };
@@ -59,7 +59,7 @@ public sealed partial class MainWindow
                 if(unloaded) return;
                 updating=true; accounts.ItemsSource=ChatGpt.Accounts; accounts.SelectedItem=ChatGpt.Accounts.FirstOrDefault(a=>a.Id==ChatGpt.ActiveAccountId);
                 settingsChatGptAccountId=(accounts.SelectedItem as ChatGptAccount)?.Id; updating=false;
-                provider.SelectedIndex=2; await LoadModelsAsync();
+                reauthorized?.Invoke(); provider.SelectedIndex=2; await LoadModelsAsync();
             } catch(OperationCanceledException) { feedback.Text="Sign-in cancelled. Existing provider settings are unchanged."; }
             catch { feedback.Text="ChatGPT sign-in could not be completed. Check browser consent and network access, then try again."; }
             finally { signingIn.Dispose(); signingIn=null; connect.IsEnabled=true; signOut.IsEnabled=true; accounts.IsEnabled=true; cancel.Visibility=Visibility.Collapsed; }

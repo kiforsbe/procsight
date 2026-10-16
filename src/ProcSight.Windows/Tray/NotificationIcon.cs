@@ -37,6 +37,7 @@ public sealed class NotificationIcon : IDisposable
         this.window=window; callback=Message; recreated=RegisterWindowMessageW("TaskbarCreated");
         if(!SetWindowSubclass(window,callback,new(0x5053),UIntPtr.Zero)) throw new InvalidOperationException("Tray callbacks unavailable.");
         registration=new(Shell);
+        registration.Unavailable+=()=>Unavailable?.Invoke();
     }
     private bool Shell(uint action) {
         var tip=sample.Tooltip; var data=new NotifyData { Size=(uint)Marshal.SizeOf<NotifyData>(),Window=window,Id=1,Flags=1|2|4|0x80,Callback=0x8001,

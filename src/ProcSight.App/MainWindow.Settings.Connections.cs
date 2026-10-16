@@ -5,6 +5,8 @@ using ProcSight.Core.Models;
 namespace ProcSight.App;
 public sealed partial class MainWindow
 {
+    private CancellationTokenSource? connectionTestCancellation;
+    private void CancelConnectionTests() { connectionTestCancellation?.Cancel(); }
     private FrameworkElement BuildConnectionSettings()
     {
         var profiles=(policy.Connections??ConnectionRouter.Resolve(policy).ToArray()).ToList();
@@ -56,7 +58,7 @@ public sealed partial class MainWindow
             var strict=new CheckBox { Content="Supports schema-constrained JSON",IsChecked=profile.Provider.StructuredOutput };
             var key=new PasswordBox { Header="API key",PlaceholderText="Enter to replace the protected key; Enter or leave this field to apply" };
             var warning=new TextBlock { TextWrapping=TextWrapping.Wrap };
-            var timer=new DispatcherTimer { Interval=TimeSpan.FromMilliseconds(400) }; var closed=false; var editing=false;
+            var timer=new DispatcherTimer { Interval=TimeSpan.FromMilliseconds(400) }; var closed=false; var editing=false; var keyCommitting=false; long editVersion=0;
             async Task ApplyDraft() {
                 timer.Stop(); if(editing) return;
                 try {
@@ -74,25 +76,31 @@ public sealed partial class MainWindow
                 } catch(ArgumentException e) { validEditor=false; if(!closed) warning.Text=e.Message+" Last valid configuration remains active."; }
                 catch { validEditor=false; if(!closed) warning.Text="Connection configuration could not be applied."; }
             }
-            void Schedule() { validEditor=false; timer.Stop(); timer.Start(); }
+            void Schedule() { ++editVersion; validEditor=false; timer.Stop(); timer.Start(); }
             timer.Tick+=async(_,_)=>await ApplyDraft();
             model.TextChanged+=(_,_)=>Schedule(); endpoint.TextChanged+=(_,_)=>Schedule();
             model.LostFocus+=async(_,_)=>await ApplyDraft(); endpoint.LostFocus+=async(_,_)=>await ApplyDraft();
             strict.Click+=async(_,_)=>await ApplyDraft(); flush=ApplyDraft;
             async Task ApplyKey() {
-                if(key.Password.Length==0) return;
-                await ApplyDraft(); if(!validEditor) return;
-                try { var credentialId="connection-"+Guid.NewGuid().ToString("N");
-                    credentials.Set(credentialId,key.Password); key.Password="";
-                    var i=profiles.FindIndex(p=>p.ProfileId==profile.ProfileId);
-                    profile=profile with { Provider=profile.Provider with { CredentialId=credentialId } }; profiles[i]=profile; await Commit();
-                } catch { warning.Text="The key could not be stored in Windows-protected credentials."; }
+                if(key.Password.Length==0||keyCommitting||!Uri.TryCreate(endpoint.Text.Trim(),UriKind.Absolute,out var authorizedEndpoint)) return;
+                keyCommitting=true; var secret=key.Password; key.Password=""; var generation=editVersion;
+                var authorized=profile with { Provider=profile.Provider with { Endpoint=authorizedEndpoint } };
+                try {
+                    await ApplyDraft(); if(!validEditor) { warning.Text="Complete configuration and re-enter the key."; return; }
+                    ConnectionProfile? Current()=>!closed&&generation==editVersion&&selectedId==authorized.ProfileId?profiles.FirstOrDefault(p=>p.ProfileId==authorized.ProfileId):null;
+                    var applied=await ProcSight.Application.Settings.ConnectionCredentials.StoreAsync(authorized,secret,Current,credentials,async bound=> {
+                        var i=profiles.FindIndex(p=>p.ProfileId==bound.ProfileId); if(i<0) return;
+                        profiles[i]=bound; profile=bound; await Commit();
+                    },lifetime.Token);
+                    if(!applied&&!closed) warning.Text="The destination changed while the key was being stored. Re-enter the key for the current connection.";
+                } catch { if(!closed) warning.Text="The key could not be stored in Windows-protected credentials."; }
+                finally { keyCommitting=false; }
             }
             key.LostFocus+=async(_,_)=>await ApplyKey(); key.KeyDown+=async(_,e)=> { if(e.Key==global::Windows.System.VirtualKey.Enter) { e.Handled=true; await ApplyKey(); } };
             if(profile.Provider.Id=="chatgpt") {
                 editing=true;
                 var dummy=new ComboBox { SelectedIndex=-1 }; dummy.Items.Add("API"); dummy.Items.Add("Compatible"); dummy.Items.Add("ChatGPT"); dummy.SelectedIndex=2;
-                editor.Children.Add(BuildChatGptSettings(dummy,model,()=> { profiles.Clear(); profiles.AddRange(policy.Connections??[]); RefreshList(); },profile.Provider)); editing=false;
+                editor.Children.Add(BuildChatGptSettings(dummy,model,()=> { profiles.Clear(); profiles.AddRange(policy.Connections??[]); RefreshList(); },profile.Provider,()=>coordinator.RetryConnection(profile.ProfileId))); editing=false;
             } else { editor.Children.Add(endpoint); editor.Children.Add(model); editor.Children.Add(strict); if(!profile.IsLocal) editor.Children.Add(key); }
             if(profile.Provider.Id=="openai") {
                 var research=new CheckBox { Content="Use this connection for explicitly enabled online research",IsChecked=policy.ResearchProfileId==profile.ProfileId };
@@ -124,11 +132,13 @@ public sealed partial class MainWindow
             if(flush is not null) await flush(); if(!validEditor) { feedback.Text="Complete the selected configuration before testing."; return; }
             var profile=profiles.FirstOrDefault(p=>p.ProfileId==selectedId); if(profile is null) return;
             test.IsEnabled=false;
-            try { var result=await new ConnectionTester(CreateProvider,usage,aiActivity).TestAsync(profile,EffectivePolicy,lifetime.Token);
+            using var testing=CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token); connectionTestCancellation=testing;
+            try { var result=await new ConnectionTester(CreateProvider,usage,aiActivity,()=>EffectivePolicy).TestAsync(profile,EffectivePolicy,testing.Token);
+                if(result.Error is null) coordinator.RetryConnection(profile.ProfileId);
                 feedback.Text=result.Error?.Message??"Connection returned a validated response. No real process metadata was sent."; }
             catch(OperationCanceledException) { feedback.Text="Connection test cancelled."; }
             catch { feedback.Text="Connection test unavailable. Check configuration and credential access."; }
-            finally { test.IsEnabled=true; }
+            finally { if(ReferenceEquals(connectionTestCancellation,testing)) connectionTestCancellation=null; test.IsEnabled=true; }
         };
         RefreshList(); Edit();
         var expander=SettingsExpander("\uE774","Connections and priority","Configure, enable, order and test AI connections",panel);

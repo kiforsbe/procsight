@@ -12,7 +12,7 @@ public static class ConnectionSettingsMigration
             if(settings.Id is "openai" or "compatible")
             {
                 var key="connection-"+id;
-                if(credentials.Get(settings.CredentialId??settings.Id) is { } secret) credentials.Set(key,secret);
+                if(ConnectionCredentials.Read(settings,false,credentials) is { } secret) credentials.Set(key,ConnectionCredentials.Encode(settings,secret));
                 next=settings with { CredentialId=key };
             }
             profiles.Add(new(id,next,true,profiles.Count));

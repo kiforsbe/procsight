@@ -26,7 +26,8 @@ public static class ConnectionProfiles
                 throw new ArgumentException("Local models require a loopback endpoint.");
             if(p.Id=="chatgpt" && (string.IsNullOrWhiteSpace(p.AccountId)||p.AccountId.Length>256 || u.AbsoluteUri.TrimEnd('/')!="https://api.openai.com/v1"))
                 throw new ArgumentException("Connect a ChatGPT account and choose its model.");
-            if(p.CredentialId is not null && !ValidId(p.CredentialId)) throw new ArgumentException("Invalid credential reference.");
+            if(p.CredentialId is { } credential && (!credential.StartsWith("connection-",StringComparison.Ordinal)||credential.Length!=43||
+                !Guid.TryParseExact(credential[11..],"N",out _))) throw new ArgumentException("Invalid credential reference.");
         }
     }
     private static bool ValidId(string? id)=>id is { Length:>0 and <=128 } && id.All(c=>char.IsAsciiLetterOrDigit(c)||c is '-' or '_');

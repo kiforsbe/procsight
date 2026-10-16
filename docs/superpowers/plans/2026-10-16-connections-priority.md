@@ -10,6 +10,10 @@
 
 **Spec:** [Approved design](../specs/2026-10-16-connections-tray-elevation-design.md), including the immediate-settings amendment.
 
+**Execution record (2026-10-16):** Implemented inline and independently reviewed. Review findings
+were fixed with targeted regressions; the full 330-test suite passed. See [verification](../../verification.md)
+for actual checks and remaining desktop acceptance. The checklist below preserves the original plan.
+
 ## Global Constraints
 
 - Fallback defaults off; disabled profiles never participate automatically.
