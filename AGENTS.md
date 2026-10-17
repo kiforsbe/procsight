@@ -54,6 +54,12 @@ assessed names. Preserve useful local window captions and keep explanatory text 
   just a generic CLI/Worker category; old unscoped rules must fail validation.
 - First release: understand and investigate processes/services, without modifying them.
 - Local evidence and reusable rules precede automatic provider analysis.
+- If valid known-purpose analysis proposes no rules, retain an evidence-backed exact-hash rule
+  with the coordinator's local ownership/service and applicable invocation scope. Never replace a
+  rejected proposal or derive identity from Unknown-only output. Unknown axes stay on the entry;
+  do not put unsupported Unknown assessments into the synthesized rule. Restoring legacy entry-level
+  labels requires supported selected assessment content and active dependencies, not collection
+  reference equality after deserialization.
 - Keep purpose, security, and optionality separate; unknown and unavailable are valid.
 - Verify rule evidence and scope. Names and metadata company strings do not prove identity
   or trust; preserve PID/start-time and ownership context boundaries.

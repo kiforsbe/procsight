@@ -131,6 +131,9 @@ constitute an independent security audit or verified behavior of a remote/local 
   text, and provides no export/file logging. Pause prevents new entries; Clear removes current history.
 - Evidence and scope validation before generated rules become active; external/model
   text cannot execute commands or grant local capabilities.
+  When a provider proposes no rules, known-purpose assessments may produce a coordinator-scoped
+  exact-hash rule with submitted evidence. It passes the same validator and local ownership/service
+  and invocation-scope gates. Rejected proposals and Unknown-only results never trigger this fallback.
 - Known limitations, missing data, stale findings, and conflicting evidence remain visible.
 
 Automatic AI and research are disabled by default. Requests are bounded and daily limits

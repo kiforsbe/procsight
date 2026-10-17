@@ -6,6 +6,29 @@ were used for automated verification.
 
 ## Local checks
 
+### 2026-10-17 analysis identity and rule reuse across restart
+
+Synthetic SQLite tests reproduced a successful wire response with no proposed rules leaving no
+reusable identity after launch arguments changed, and a legacy entry-level name lost because separately
+deserialized assessment collections compared by reference. The fixed path creates an exact-hash rule
+for supported known-purpose results without proposed rules and restores supported legacy names by
+assessment content. No global migration or write to the real knowledge database was performed.
+
+Eight integration cases cover fresh-store/coordinator restart, changed PID and unshared arguments,
+matching private command scope with a reloaded key, changed binary/path isolation, rejected proposals,
+Unknown-only and partially known output, and legacy names with disabled dependencies/user correction.
+The partial-known regression first reproduced an independently reviewed rejection caused by unsupported
+Unknown axes; only known assessments now enter the synthesized rule. Unknown axes remain unresolved.
+These use fake providers and synthetic data, with no live API calls. Current-user unpackaged database
+inspection was read-only and aggregate-only; it did not establish which database/profile held the
+user's earlier sessions.
+
+Final locked Release verification passed 393 .NET tests (74 Core, 122 Application, 139 Infrastructure,
+58 Windows) and 70 script checks, with zero build warnings/errors. Independent review identified the
+partial-Unknown edge case before completion and confirmed its correction. All 30 architecture diagrams
+rendered, 161 relative links in the affected root/verification documents resolved, and whitespace checks
+passed. No native UI layout changes were made or desktop/provider acceptance claimed.
+
 ### 2026-10-17 measured UI and local rules performance
 
 [PERFORMANCE.md](PERFORMANCE.md) records the broad synthetic baseline, implementation changes,

@@ -701,6 +701,38 @@ requests; atomic `settings.json` stores operational and presentation choices und
 creation is transactional; a newer schema is rejected without downgrading it. Knowledge
 maintenance pauses observation and drains queued work before explicit recovery/reset.
 
+[ExactAnalysisRule](src/ProcSight.Application/Analysis/ExactAnalysisRule.cs) covers a valid provider
+result with no proposed rules: a known purpose plus submitted hash proof produces an exact-hash
+rule from the privacy-projected known assessments. Unknown axes remain on the entry and unresolved;
+they do not invalidate the known-purpose rule through missing evidence. The coordinator appends the
+same local path/ownership/service and applicable private invocation scope, stamps trusted provenance
+and runs full validation before storing it. Existing rejected proposals are never replaced. This
+does not generalize across changed hashes, local scope boundaries or analyzed command contexts.
+
+Older entry-level identity labels require active rule dependencies and a supported selected known
+assessment. Local evaluation compares assessment fields, evidence IDs and origin sets by content
+after SQLite reconstructs their collections; it does not confuse new collection references with
+different findings. Contributions still track the owning rule's assessment instances. No schema or
+bulk knowledge migration is needed; older rule-free entries with changed identities need fresh analysis.
+
+```mermaid
+sequenceDiagram
+    participant Provider as Analysis provider
+    participant Coordinator
+    participant Exact as ExactAnalysisRule
+    participant Validator as Scope and evidence validation
+    participant Store as Local SQLite
+    participant Next as Later session
+    Provider-->>Coordinator: Projected assessments and identity, no rules
+    Coordinator->>Exact: Known purpose and submitted hash proof
+    Exact-->>Coordinator: Exact-hash rule for known assessments
+    Coordinator->>Validator: Add local scope, provenance and invocation scope when required
+    Validator-->>Coordinator: Accept or retain rejection
+    Coordinator->>Store: Save entry, rules and evidence atomically
+    Next->>Store: Read candidate rules and evidence
+    Store-->>Next: Persisted identity within matching validated scope
+```
+
 Toolhelp and nonthrowing native process queries enumerate protected processes without using
 exception-based access probes. Resource intervals and unavailable facts remain explicit.
 Service configuration uses WMI with a ten-second cache; available command lines are always collected locally through WMI.

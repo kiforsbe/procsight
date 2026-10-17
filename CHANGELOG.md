@@ -147,6 +147,11 @@ in this repository; planned product features are documented in the design and ro
 
 ### Fixed
 
+- Valid analysis with a known purpose and hash evidence now saves an exact-binary rule even when
+  the provider proposes none, allowing names/classifications to survive restart and changed launch
+  arguments where command context was not analyzed. Unknown axes remain unknown; rejected proposals
+  are not rescued. Older entry-level identity labels also survive SQLite collection deserialization.
+
 - UI performance: shared column transforms avoid relayout during drag, large explicit sorts batch
   native list updates while retaining selected lifetimes, and metadata-aware row caches reduce
   repeated command/name processing. Stable tree projection indexes verified children once. Cached

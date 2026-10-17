@@ -191,7 +191,7 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
             ct.ThrowIfCancellationRequested(); if(work.Policy!=policy) return;
             if(inlineResearch) researchOutcome=result.ResearchEvidence is { Count:>0 }?ResearchOutcome.SourcesFound:ResearchOutcome.NoSources;
             var evaluatedPayload=payload with { Evidence=[..payload.Evidence,..inlineResearch?result.ResearchEvidence??[]:[]] };
-            var projected=OutputPrivacyFilter.Project(proposal,evaluatedPayload);
+            var projected=ExactAnalysisRule.Ensure(OutputPrivacyFilter.Project(proposal,evaluatedPayload),evaluatedPayload,time.GetUtcNow());
             var providerId=MetadataSanitizer.Normalize(selected.Id);
             var model=MetadataSanitizer.Normalize(selected.Model);
             var provenance=new RuleProvenance(providerId[..Math.Min(providerId.Length,128)],model[..Math.Min(model.Length,256)],

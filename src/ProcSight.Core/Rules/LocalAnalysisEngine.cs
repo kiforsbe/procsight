@@ -48,7 +48,13 @@ public sealed class LocalAnalysisEngine
             }
         }
         var labelRule=matches.OrderByDescending(r=>r.Specificity).FirstOrDefault(r=>r.IdentityLabel is not null);
-        var cachedLabel=knowledge.Identity==entity.Identity && knowledge.Assessments.Any(assessments.Contains) &&
+        // SQLite reconstructs the evidence/origin collections separately for entries and rules.
+        // Record equality compares those collection references, losing older entry-only names.
+        bool SameAssessment(Assessment cached,Assessment selected)=>cached.Axis==selected.Axis&&cached.Value==selected.Value&&
+            cached.Reason==selected.Reason&&cached.Confidence==selected.Confidence&&cached.ExpiresAt==selected.ExpiresAt&&
+            cached.EvidenceIds.SequenceEqual(selected.EvidenceIds)&&cached.Origins.SetEquals(selected.Origins);
+        var cachedLabel=knowledge.Identity==entity.Identity && knowledge.Assessments.Any(cached=>cached.Value!="Unknown"&&
+            cached.EvidenceIds.Count>0&&outputs.Any(a=>ReferenceEquals(a,cached))&&assessments.Any(selected=>SameAssessment(cached,selected))) &&
             dependencies.All(id=>matches.Any(r=>r.Id==id))?knowledge.IdentityLabel:null;
         // Structural equality can also match a correction or cached copy. Only the selected
         // assessment instance owned by a rule establishes that rule's contribution.

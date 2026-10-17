@@ -2,6 +2,12 @@
 
 ## Current state
 
+SQLite restart regressions in `AnalysisIdentityPersistenceTests` cover rule-free provider responses,
+metadata-only reuse across changed invocation/PID, private command scopes, partial Unknown axes,
+changed binaries/paths, rejected proposals and older entry-only identity labels. Existing rule-free
+entries are not globally migrated: Analyze again to generate an exact rule when their identity no
+longer matches. Supported older entry-level names are restored for their original validated scope.
+
 For local UI profiling, run `./scripts/measure-ui.ps1 -Label comparison`. It builds an optimized
 Debug fixture app (retaining SDK bootstrap constants) and reports synthetic 500/1000-row projection,
 updates, sorting, search, details, resizing, grouping, column motion and bundled-rule browsing.

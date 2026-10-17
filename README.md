@@ -54,6 +54,8 @@ This is the actual XAML rendering, using synthetic processes and a synthetic ana
   outcomes when the evidence is insufficient.
 - Local rules and cached knowledge first, with automatic AI analysis for unresolved
   cases. Validated rules are reused for matching processes, reducing repeated API calls.
+  Known-purpose results with hash evidence get an exact-binary rule even if the provider proposes
+  none; saved names and classifications can then match across restarts within their validated scope.
 - User-configured OpenAI or compatible API endpoints, optional loopback local models,
   and separately enabled online research with source links.
 - ChatGPT-plan and OpenAI analysis can search within the same request when research is enabled.
