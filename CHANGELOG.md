@@ -14,6 +14,9 @@ in this repository; planned product features are documented in the design and ro
 - Package inspection recognizes WinUI's exact bundled map-control HTML asset while continuing to
   reject arbitrary HTML and private configuration files.
 
+- Packaging/release verification explicitly requires PowerShell 7+, rejecting Windows PowerShell
+  before edits, builds or release commits rather than failing partway through preparation.
+
 - Package-aware administrator restart gating and separate package-family data/credential namespaces,
   preventing implicit reuse of unpackaged settings or OAuth sessions. Unknown package inspection
   disables restart/credential access; ordinary unpackaged behavior is preserved.

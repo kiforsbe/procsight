@@ -1,3 +1,4 @@
+#requires -Version 7.0
 param([ValidateSet('Debug','Release')][string]$Configuration = 'Release')
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path $PSScriptRoot -Parent

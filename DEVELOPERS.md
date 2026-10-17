@@ -9,6 +9,9 @@ manually bump individual product version fields or infer Store readiness from th
 
 ## Local release preparation
 
+Packaging, verification and release scripts require **PowerShell 7+ (`pwsh`)**. Run the commands
+below inside pwsh; Windows PowerShell 5.1 is rejected before any script actions occur.
+
 Start from a clean branch, with populated Unreleased notes and configured Git author/committer.
 Use stable SemVer `MAJOR.MINOR.PATCH` and annotated `vMAJOR.MINOR.PATCH` tags. Components are capped
 at 65534 for assembly compatibility; prereleases are currently rejected. Store requires major >=1.

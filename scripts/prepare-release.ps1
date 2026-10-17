@@ -1,3 +1,4 @@
+#requires -Version 7.0
 [CmdletBinding(DefaultParameterSetName='Version')]
 param(
  [Parameter(Mandatory,ParameterSetName='Version')][Parameter(Mandatory,ParameterSetName='Resume')][string]$Version,

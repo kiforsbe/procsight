@@ -1,3 +1,4 @@
+#requires -Version 7.0
 param()
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'packaging/Common.ps1')

@@ -1,3 +1,4 @@
+#requires -Version 7.0
 [CmdletBinding()]
 param([ValidateSet('Direct','Store')][string]$Profile='Direct',[string]$IdentityFile,[string]$CertificateThumbprint,
  [ValidateSet('Disabled','Approved')][string]$ElevationMode,[string]$FeedUri,[string]$PackageUri,[string]$TimestampUri)

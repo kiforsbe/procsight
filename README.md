@@ -9,7 +9,7 @@ knowledge, provider adapters, optional research, and the investigation interface
 implemented. Automated checks use synthetic metadata and fake providers. Targeted live inference
 smoke checks passed; full provider acceptance and desktop accessibility/scaling remain unverified.
 
-On Windows 11 with .NET SDK 10.0.301 and Windows App Runtime 2.2 installed:
+On Windows 11 with .NET SDK 10.0.301, Windows App Runtime 2.2 and PowerShell 7+ (`pwsh`) installed:
 
 ```powershell
 ./scripts/build.ps1
@@ -29,6 +29,11 @@ inspected, self-contained **unsigned development package** under artifacts/packa
 install the app or change certificate trust. See [packaging instructions](DEVELOPERS.md#msix-packaging).
 Store preparation requires your reserved package identity, a version >= 1.0.0 and an explicit elevation
 choice. Installation/upgrade certification remains unverified; no Store release has been published.
+
+Local [release preparation](DEVELOPERS.md#local-release-preparation) synchronizes product versions
+and changelog, verifies and commits release files, builds packages from that commit, then creates an
+annotated `vMAJOR.MINOR.PATCH` tag. Preview it with
+`./scripts/prepare-release.ps1 -Bump Patch -Profile Direct -DryRun`. Publication remains manual.
 
 ![Native WinUI process tree with synthetic role data](docs/images/tree-groups.png)
 
