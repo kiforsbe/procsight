@@ -1370,6 +1370,10 @@ classDiagram
 
 The [row view model](src/ProcSight.App/ViewModels/ProcessRow.cs) keeps transient display caches
 across resource-only samples, invalidating them for changed identity, metadata or analysis. No cached
+executable/service metadata comparison depends on issue-list object identity: compare scalar fields
+and issue contents, treating null/empty lists alike. This preserves presentation caches across repeated
+denial reports while changed reasons still refresh availability. Cosmetic icon keys are rechecked
+only when actual metadata changes. No cached
 command/path/caption values enter persistence, provider projection or logs. Disk/Network/GPU labels
 compare complete member lifetimes and observations, including availability/reason, before reuse;
 CPU-only changes do not reformat them. Rate aggregation avoids intermediate arrays. Projection indexes verified

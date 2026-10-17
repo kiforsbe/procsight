@@ -1,5 +1,16 @@
 # Development verification
 
+## Equivalent unavailable metadata cache regression — 2026-10-17
+
+The native row fixture first reproduced an unchanged invocation-name cache being invalidated by
+fresh equivalent executable issue arrays. Field/content comparisons now preserve the cached name;
+a different safe reason refreshes Availability. The native row contract fixture passes. This fixes
+unnecessary presentation work. Debug/Release builds passed with zero warnings/errors; independent
+review found no actionable omissions and passed eight synthetic icon-source tests. This change
+does not explain or resolve the user's full-app 411 MB screenshot.
+No live ProcSight instance was available for attachment when investigated; full elevated CPU/memory
+profiling remains pending the requested running instance. No authentication or provider calls ran.
+
 ## Forward-only WMI enumeration — 2026-10-17
 
 Ten-sample before/experiment/production measurements used the same selected process/command

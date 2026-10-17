@@ -160,6 +160,8 @@ invalidate grid geometry for size/span/time-mode changes, and enforce the 60-sam
 boundary. Projection may reuse rows and per-build labels, never lifetime keys or names across stale metadata.
 WMI inventory queries use forward-only 64-item batches. Consume each collection once; never request
 Count, reset its enumerator or cache the native collection. Preserve timeouts and per-item disposal.
+Row presentation compares executable/service metadata and issue lists by content. Fresh equivalent
+issue arrays, including null versus empty, must not invalidate caches; changed reasons still must.
 
 Use `rg` for searches. Inspect the current Git state and preserve unrelated user changes.
 Verify documentation links and run `git diff --check` for documentation changes. Once code

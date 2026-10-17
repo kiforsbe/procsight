@@ -138,16 +138,32 @@ public sealed partial class ProcessRow : INotifyPropertyChanged
     {
         if(ReferenceEquals(left,right)) return true;
         if(left.Identity!=right.Identity||left.DisplayName!=right.DisplayName||left.Owner!=right.Owner||
-            left.Facts.GetValueOrDefault("commandRole")!=right.Facts.GetValueOrDefault("commandRole")||left.Service!=right.Service) return false;
+            left.Facts.GetValueOrDefault("commandRole")!=right.Facts.GetValueOrDefault("commandRole")||!SameService(left.Service,right.Service)) return false;
         var a=left.Process; var b=right.Process;
         if(a is null||b is null) return a is null&&b is null;
-        return a.Key==b.Key&&a.ParentPid==b.ParentPid&&a.Executable==b.Executable&&a.CommandLine?.Raw==b.CommandLine?.Raw&&
+        return a.Key==b.Key&&a.ParentPid==b.ParentPid&&SameExecutable(a.Executable,b.Executable)&&a.CommandLine?.Raw==b.CommandLine?.Raw&&
             SameItems(a.ServiceNames,b.ServiceNames)&&SameItems(a.Windows,b.Windows)&&SameItems(a.MetadataIssues,b.MetadataIssues);
+    }
+    private static bool SameExecutable(ExecutableMetadata? a,ExecutableMetadata? b) {
+        if(ReferenceEquals(a,b)) return true;
+        if(a is null||b is null) return false;
+        return a.Name==b.Name&&a.FullPath==b.FullPath&&a.ContentHash==b.ContentHash&&a.Version==b.Version&&
+            a.Product==b.Product&&a.Company==b.Company&&a.Signature==b.Signature&&a.VerifiedSigner==b.VerifiedSigner&&
+            a.FileIdentity==b.FileIdentity&&a.PackageIdentity==b.PackageIdentity&&a.Description==b.Description&&
+            a.OriginalName==b.OriginalName&&SameItems(a.MetadataIssues,b.MetadataIssues);
+    }
+    private static bool SameService(ServiceSnapshot? a,ServiceSnapshot? b) {
+        if(ReferenceEquals(a,b)) return true;
+        if(a is null||b is null) return false;
+        return a.Name==b.Name&&a.DisplayName==b.DisplayName&&a.State==b.State&&a.StartMode==b.StartMode&&
+            a.HostPid==b.HostPid&&a.BinaryPath==b.BinaryPath&&a.AccessState==b.AccessState&&
+            SameExecutable(a.Implementation,b.Implementation)&&SameExecutable(a.HostExecutable,b.HostExecutable)&&SameItems(a.MetadataIssues,b.MetadataIssues);
     }
     private static bool SameItems<T>(IReadOnlyList<T>? left,IReadOnlyList<T>? right)
     {
         if(ReferenceEquals(left,right)) return true;
-        if(left is null||right is null||left.Count!=right.Count) return false;
+        if((left?.Count??0)!=(right?.Count??0)) return false;
+        if(left is null||right is null) return true;
         for(var i=0;i<left.Count;i++) if(!EqualityComparer<T>.Default.Equals(left[i],right[i])) return false;
         return true;
     }
@@ -160,7 +176,7 @@ public sealed partial class ProcessRow : INotifyPropertyChanged
         var metadataChanged=Entity is null||!SameMetadata(Entity,projection.Entity);
         if(Projection is null||!SameResourceReadings(Projection,projection))
             diskText=networkText=diskDetails=networkDetails=gpuText=gpuDetails=null;
-        if(Entity is not null&&ProcessIconSource.Select(Entity)!=ProcessIconSource.Select(projection.Entity)&&
+        if(metadataChanged&&Entity is not null&&
             !StringComparer.OrdinalIgnoreCase.Equals(ProcessIconSource.Key(Entity),ProcessIconSource.Key(projection.Entity)))
         { Icon=null; Changed(nameof(Icon)); Changed(nameof(FallbackIconVisibility)); }
         if(Entity is not null&&Entity.Identity!=projection.Entity.Identity) analysis=null;

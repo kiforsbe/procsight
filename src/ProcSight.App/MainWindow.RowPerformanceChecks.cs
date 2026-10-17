@@ -39,6 +39,16 @@ public sealed partial class MainWindow
         Check(row.Started!=now.ToString("O")&&row.StartedDetails==now.ToString("O"),"Started display did not separate friendly text from its full tooltip.");
         var changed=new List<string>(); row.PropertyChanged+=(_,e)=>changed.Add(e.PropertyName!);
         var originalName=row.Name; var originalOwner=row.Owner; var originalCommand=row.CommandLine;
+        var restricted=process with { Executable=process.Executable with { MetadataIssues=[new("Signature",MetadataUnavailableReason.AccessDenied)] } };
+        var restrictedRow=new ProcessRow(); restrictedRow.Update(Project(Resolve(restricted)));
+        var restrictedName=restrictedRow.Name;
+        Check(restrictedName.Contains("alpha.py"),"Restricted fixture needs a computed invocation name.");
+        restrictedRow.Update(Project(Resolve(restricted with { Executable=restricted.Executable with {
+            MetadataIssues=[new("Signature",MetadataUnavailableReason.AccessDenied)] } })));
+        Check(ReferenceEquals(restrictedName,restrictedRow.Name),"Equivalent unavailable metadata invalidated the display cache.");
+        restrictedRow.Update(Project(Resolve(restricted with { Executable=restricted.Executable with {
+            MetadataIssues=[new("Signature",MetadataUnavailableReason.ReadFailed)] } })));
+        Check(restrictedRow.Availability.Contains("ReadFailed"),"Changed unavailability reason did not invalidate the display cache.");
         row.Update(Project(Resolve(process with { Resources=process.Resources with { CpuPercent=Observation<double>.Available(2) } })));
         Check(row.Name==originalName&&row.Owner==originalOwner&&row.CommandLine==originalCommand,"Resource refresh changed local metadata.");
         Check(changed.Order().SequenceEqual(new[]{"Cpu","CpuBrush"}),"Resource refresh notified unrelated cells.");
