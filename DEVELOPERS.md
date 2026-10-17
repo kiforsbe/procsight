@@ -2,6 +2,10 @@
 
 ## Current state
 
+`PerformanceTimeAxisTests` cover linear/logarithmic elapsed-time mapping, endpoints, monotonicity
+and invalid times. The native `performance-log-time` fixture toggles the saved presentation mode,
+checks logarithmic tick labels and verifies that the existing subsystem list stays attached.
+
 The native `row-performance-checks` fixture also verifies the default 5% CPU/Memory tint, a disabled
 floor and transparent unavailable readings, alongside notification and metadata-cache checks.
 

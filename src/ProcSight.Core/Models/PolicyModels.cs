@@ -23,4 +23,4 @@ public sealed record PresentationPreferences(string Theme = "System", bool Group
     string Sort = "Name", string Page = "Processes",bool SortDescending=false,
     bool ShowTrayIcon=false,TrayMetric TrayMetric=TrayMetric.Cpu,bool MinimizeToTray=false,
     TableColumnPreference[]? ProcessColumns=null,TableColumnPreference[]? ServiceColumns=null,
-    ResourceShadingOptions? ResourceShading=null,bool AutomaticProcessSorting=false);
+    ResourceShadingOptions? ResourceShading=null,bool AutomaticProcessSorting=false,bool PerformanceLogTimeAxis=false);

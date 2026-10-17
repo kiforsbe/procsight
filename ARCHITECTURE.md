@@ -275,6 +275,14 @@ list entrance transitions during navigation. Missing samples break
 graph lines; accessible text and theme resources accompany every chart. Neither sampling path
 uses AI, persistent history or provider payloads.
 
+[PerformanceTimeAxis](src/ProcSight.Application/Presentation/PerformanceTimeAxis.cs) maps horizontal
+positions from actual elapsed sample ages. Linear is the default; saved logarithmic mode uses
+`x = 1 - log(1 + age) / log(1 + span)` to expand recent history while retaining a finite Now.
+The displayed span is at least 60 seconds and grows to include delayed samples. Each detail chart
+reuses six tick labels; miniature charts use the same time transform without labels. Value scaling,
+observation gaps and the 60-sample history limit remain unchanged. The native toggle updates chart
+geometry in place, retaining subsystem navigation and selection.
+
 UML sequence view of the local-only monitoring boundary:
 
 ```mermaid

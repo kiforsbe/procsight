@@ -186,6 +186,10 @@ or invented explanations about ownership.
 
 ## Native UI design maintenance
 
+Performance logarithmic time mode changes horizontal elapsed-time spacing only, not the value
+axis. Keep linear as the default, retain actual sample timestamps and missing-data gaps, reuse
+bounded tick controls and redraw charts without rebuilding the navigation shell.
+
 The shared resource shading floor defaults to 5%; valid zero readings may retain it, but missing
 values, disabled shading modes and high contrast remain transparent. Keep the floor configurable.
 Started table text uses friendly local calendar/time formatting; full ISO timestamps remain in

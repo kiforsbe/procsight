@@ -1,5 +1,18 @@
 # Development verification
 
+## Performance logarithmic time axis — 2026-10-17
+
+Debug and Release builds passed with zero warnings/errors. Selected Release suites passed Core
+74, Application 135, Windows 67 and Infrastructure 113 (389 total); Infrastructure excludes
+`FullyQualifiedName!~ChatGptAuth`. Tests cover log/linear positions, endpoints, recent-history
+expansion, invalid times and preference round-trip/backward compatibility. Native dark 1200px
+and light 660px logarithmic fixtures passed labelled ticks, both toggle directions and sidebar
+identity retention; ordinary navigation and narrow Overview also passed. Both log captures were
+visually inspected. No authentication, credentials, provider or live inventory access occurred.
+Desktop accessibility, scaling and live driver acceptance remain separate checks.
+Independent time-axis review found no actionable defects; its two filtered synthetic mapping
+tests also passed. Local documentation links and whitespace checks passed.
+
 ## Minimum shading and friendly start times — 2026-10-17
 
 The native floor check first reproduced the old unconditional tint. It now checks the configurable

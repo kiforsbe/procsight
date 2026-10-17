@@ -69,6 +69,9 @@ Process-list Disk and Network columns show measured read/write and send/receive 
 kernel-event collection requires the explicit **Restart as administrator** action; ordinary mode
 shows an unavailable reason instead. Warm-up and missing readings are distinct from measured zero.
 Elevated live attribution and full desktop accessibility acceptance remain pending.
+Enable **Logarithmic time axis** on Performance to expand recent history and compress older
+samples. The toggle applies to all Performance charts and is saved; linear time is the default.
+Detail charts label elapsed time, and the value axis keeps its existing scale.
 The process page also offers **Restart as administrator** when disk/network monitoring needs it.
 GPU utilization uses per-process Windows engine counters in ordinary mode where the driver supports
 them. New layouts include GPU; for an existing layout, enable **Choose columns → GPU**. Application

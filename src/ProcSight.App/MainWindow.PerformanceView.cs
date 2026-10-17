@@ -15,7 +15,13 @@ public sealed partial class MainWindow
     }
     private void RenderPerformance() {
         var root=new Grid(); root.RowDefinitions.Add(new() { Height=GridLength.Auto }); root.RowDefinitions.Add(new());
-        root.Children.Add(new TextBlock { Text="Performance",FontSize=20,FontWeight=Microsoft.UI.Text.FontWeights.SemiBold,Margin=new Thickness(24,18,24,18) });
+        var toolbar=new Grid { Margin=new Thickness(24,12,24,12),ColumnSpacing=16 };
+        toolbar.ColumnDefinitions.Add(new()); toolbar.ColumnDefinitions.Add(new() { Width=GridLength.Auto });
+        toolbar.Children.Add(new TextBlock { Text="Performance",FontSize=20,FontWeight=Microsoft.UI.Text.FontWeights.SemiBold,VerticalAlignment=VerticalAlignment.Center });
+        var logTime=new ToggleSwitch { Name="PerformanceLogTimeAxis",Header="Logarithmic time axis",IsOn=presentation.PerformanceLogTimeAxis };
+        ToolTipService.SetToolTip(logTime,"Give recent samples more horizontal space. The value axis stays unchanged.");
+        logTime.Toggled+=(_,_)=> { presentation=presentation with { PerformanceLogTimeAxis=logTime.IsOn }; SavePresentation(); updatePerformanceView?.Invoke(); };
+        Grid.SetColumn(logTime,1); toolbar.Children.Add(logTime); root.Children.Add(toolbar);
         var layout=new Grid { ColumnSpacing=0,Name="PerformanceLayout" };
         layout.ColumnDefinitions.Add(new() { Width=new GridLength(190) }); layout.ColumnDefinitions.Add(new());
         Grid.SetRow(layout,1); root.Children.Add(layout); PageContent.Children.Add(root);
@@ -38,7 +44,7 @@ public sealed partial class MainWindow
             if(mini is not null) {
                 var graph=mini;
                 updates.Add(()=> { var point=performanceHistory.LastOrDefault(); reading.Text=MetricValue(point?.Metric(section),section);
-                    graph.Update(performanceHistory.Select(p=>p.Metric(section)).ToArray(),section!=PerformanceSubsystem.Network);
+                    UpdateResourceChart(graph,section);
                     Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(item,SubsystemName(section)+": "+reading.Text); });
             }
         }
@@ -79,7 +85,7 @@ public sealed partial class MainWindow
                 tile.Click+=(_,_)=>SelectPerformance(section); tiles.Children.Add(tile);
                 contentUpdates.Add(()=> { var point=performanceHistory.LastOrDefault(); var metric=point?.Metric(section);
                     reading.Text=MetricValue(metric,section); description.Text=OverviewDetail(point,section);
-                    chart.Update(performanceHistory.Select(p=>p.Metric(section)).ToArray(),section!=PerformanceSubsystem.Network);
+                    UpdateResourceChart(chart,section);
                     ToolTipService.SetToolTip(tile,metric?.State==ObservationState.Unavailable?metric.Reason:MetricDescription(section));
                     Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(tile,SubsystemName(section)+": "+reading.Text+". Open details."); });
             }
@@ -88,10 +94,10 @@ public sealed partial class MainWindow
             var caption=new TextBlock { Text=MetricDescription(section),Opacity=.75,TextWrapping=TextWrapping.Wrap };
             main.Children.Add(caption);
             var reading=new TextBlock { FontSize=32 }; main.Children.Add(reading);
-            var graph=new ResourceChart(section) { Height=260 }; main.Children.Add(graph);
+            var graph=new ResourceChart(section,showTimeLabels:true) { Height=260 }; main.Children.Add(graph);
             var graphAxis=new Grid(); graphAxis.ColumnDefinitions.Add(new()); graphAxis.ColumnDefinitions.Add(new() { Width=GridLength.Auto });
             var scale=new TextBlock { FontSize=12,Opacity=.7 }; graphAxis.Children.Add(scale);
-            var end=new TextBlock { Text="Now",FontSize=12,Opacity=.7 }; Grid.SetColumn(end,1); graphAxis.Children.Add(end); main.Children.Add(graphAxis);
+            main.Children.Add(graphAxis);
             var readings=new Grid { ColumnSpacing=28,RowSpacing=16,Name="PerformanceDetailReadings" };
             for(var column=0;column<3;column++) readings.ColumnDefinitions.Add(new());
             main.Children.Add(readings);
@@ -109,10 +115,11 @@ public sealed partial class MainWindow
             }
             var note=new TextBlock { FontSize=12,Opacity=.7,TextWrapping=TextWrapping.Wrap }; main.Children.Add(note);
             contentUpdates.Add(()=> { var point=performanceHistory.LastOrDefault(); var metric=point?.Metric(section);
-                reading.Text=MetricValue(metric,section); graph.Update(performanceHistory.Select(p=>p.Metric(section)).ToArray(),section!=PerformanceSubsystem.Network);
+                reading.Text=MetricValue(metric,section); UpdateResourceChart(graph,section);
                 caption.Text=section==PerformanceSubsystem.Cpu&&point?.CpuName is { Length:>0 } name?name:MetricDescription(section);
                 var fields=DetailReadings(point,section); for(var index=0;index<values.Count;index++) values[index].Text=fields[index];
-                scale.Text=section==PerformanceSubsystem.Network?"Last 60 samples · Mbps · automatic scale":"Last 60 samples · 0–100%";
+                scale.Text=(presentation.PerformanceLogTimeAxis?"Logarithmic time":"Linear time")+
+                    (section==PerformanceSubsystem.Network?" · Mbps · automatic scale":" · 0–100%");
                 note.Text=metric?.State==ObservationState.Unavailable?metric.Reason??"Counter unavailable":section switch {
                     PerformanceSubsystem.Disks=>"Physical disk activity includes cached-write effects. Process disk attribution is measured separately.",
                     PerformanceSubsystem.Network=>"Totals include active non-loopback adapters. Virtual and VPN adapters may report overlapping traffic.",

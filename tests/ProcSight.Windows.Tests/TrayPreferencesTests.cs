@@ -11,9 +11,10 @@ public sealed class TrayPreferencesTests
             Assert.False(new PresentationPreferences().AutomaticProcessSorting);
             Assert.Equal(ResourceShadingMode.RecentChanges,new ResourceShadingOptions().Disk);
             var options=new ResourceShadingOptions(ResourceShadingMode.TopConsumers,ResourceShadingMode.Off,ResourceShadingMode.RecentSpikes,10,75);
-            store.Save(new(),new(ResourceShading:options,AutomaticProcessSorting:true));
+            store.Save(new(),new(ResourceShading:options,AutomaticProcessSorting:true,PerformanceLogTimeAxis:true));
             var restored=store.Load().Presentation;
             Assert.Equal(options,restored.ResourceShading); Assert.True(restored.AutomaticProcessSorting);
+            Assert.True(restored.PerformanceLogTimeAxis);
             Assert.Equal(5,restored.ResourceShading!.MinimumOpacityPercent);
             Assert.Throws<ArgumentException>(()=>store.Save(new(),new(ResourceShading:options with { MinimumOpacityPercent=16 })));
             Assert.Throws<ArgumentException>(()=>store.Save(new(),new(ResourceShading:options with { FadeSeconds=0 })));
@@ -21,6 +22,7 @@ public sealed class TrayPreferencesTests
             File.WriteAllText(Path.Combine(folder,"settings.json"),"""{"Policy":{},"Presentation":{"Theme":"Dark"}}""");
             restored=store.Load().Presentation;
             Assert.Null(restored.ResourceShading); Assert.False(restored.AutomaticProcessSorting);
+            Assert.False(restored.PerformanceLogTimeAxis);
         } finally { if(Directory.Exists(folder)) Directory.Delete(folder,true); }
     }
     [Fact] public void DefaultsAreExplicitAndMetricRoundTrips()

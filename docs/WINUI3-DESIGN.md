@@ -23,6 +23,10 @@ state. Missing/warming observations have explicit text and break graph segments;
 an idle zero or hardware identity. Graphs show the latest 60 samples without growing visual trees.
 
 This is the user-selected ProcSight layout; synthetic light/dark captures validate geometry.
+The native Performance header offers a saved Logarithmic time axis toggle, off by default.
+It expands recent elapsed time with log(1+age), preserving Now without a logarithm-of-zero error.
+Use actual sample timestamps, labelled time ticks in details and unchanged vertical value scales;
+overview and mini charts share the selected time mode. Toggling redraws existing charts in place.
 Keyboard, Narrator, high contrast and scaling acceptance remain separate checks.
 
 ## Native controls and hierarchy

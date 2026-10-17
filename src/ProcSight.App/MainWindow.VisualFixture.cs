@@ -293,7 +293,7 @@ public sealed partial class MainWindow
                     performanceSubsystem=args[5] switch {
                         "performance-cpu"=>PerformanceSubsystem.Cpu,"performance-memory"=>PerformanceSubsystem.Memory,
                         "performance-disks"=>PerformanceSubsystem.Disks,"performance-network"=>PerformanceSubsystem.Network,
-                        "performance-gpu"=>PerformanceSubsystem.Gpu,_=>PerformanceSubsystem.Overview };
+                        "performance-gpu"=>PerformanceSubsystem.Gpu,"performance-log-time"=>PerformanceSubsystem.Network,_=>PerformanceSubsystem.Overview };
                     for(var index=0;index<(args[5]=="performance-empty"?0:60);index++) {
                         double Value(double baseline)=>Math.Clamp(baseline+Math.Sin(index*.3)*12,0,100);
                         var missing=Observation<double>.Missing("Synthetic unavailable counter");
@@ -333,6 +333,21 @@ public sealed partial class MainWindow
                         originalPicker!.SelectedIndex=0; await Task.Delay(40);
                         if(originalSidebar.SelectedIndex!=0||performanceSubsystem!=PerformanceSubsystem.Overview)
                             throw new InvalidOperationException("Compact navigation did not synchronize the persistent sidebar.");
+                    }
+                    if(args[5]=="performance-log-time") {
+                        var originalSidebar=sections!;
+                        var toggle=FindPerformance<Microsoft.UI.Xaml.Controls.ToggleSwitch>(PageContent,t=>t.Name=="PerformanceLogTimeAxis")
+                            ??throw new InvalidOperationException("Missing logarithmic time-axis control.");
+                        if(toggle.IsOn) throw new InvalidOperationException("Linear time should be the default.");
+                        toggle.IsOn=true; await Task.Delay(100); WindowRoot.UpdateLayout();
+                        if(!presentation.PerformanceLogTimeAxis||!ReferenceEquals(originalSidebar,FindPerformance<Microsoft.UI.Xaml.Controls.ListView>(PageContent,v=>v.Name=="PerformanceSubsystems")))
+                            throw new InvalidOperationException("Time-axis setting failed or recreated the sidebar.");
+                        var labels=FixtureControls<Microsoft.UI.Xaml.Controls.TextBlock>(PageContent).Select(t=>t.Text).ToArray();
+                        if(!labels.Contains("1s")||!labels.Contains("3s")||!labels.Any(t=>t.StartsWith("Logarithmic time",StringComparison.Ordinal)))
+                            throw new InvalidOperationException("Logarithmic time labels are missing.");
+                        toggle.IsOn=false; await Task.Delay(40);
+                        if(presentation.PerformanceLogTimeAxis) throw new InvalidOperationException("Linear time could not be restored.");
+                        toggle.IsOn=true; await Task.Delay(60);
                     }
                 }
                 if(args.Length>5&&args[5].StartsWith("activity",StringComparison.Ordinal)) {

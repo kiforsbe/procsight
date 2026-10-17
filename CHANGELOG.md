@@ -7,6 +7,8 @@ plans, implementation details and validation records belong in the project docum
 
 ### Added
 
+- Optional logarithmic time axis on Performance charts, with labelled elapsed-time ticks.
+
 - Friendly Started-column dates with full timestamps preserved in tooltips and export.
 
 - Configurable Disk/Network/GPU shading for recent changes, activity, spikes and top consumers.
