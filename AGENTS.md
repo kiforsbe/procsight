@@ -139,6 +139,13 @@ The user explicitly excluded CI/CD flows. Do not add workflow files or deploymen
 automation unless later requested. Repository preparation does not authorize publishing,
 creating a remote repository, pushing, or selecting an unknown security-reporting address.
 
+Planned release tooling must use one authoritative product version, synchronize all live version
+fields and changelog, and create matching annotated vMAJOR.MINOR.PATCH tags only after validation
+and package creation from the release commit. Use stable SemVer with Windows version X.Y.Z.0;
+do not independently bump manifests, alter dependency pins or rewrite historical examples. Keep local
+release preparation separate from remote pushing/publication. Implementing/testing release scripts
+does not authorize creating a real product release/tag; use synthetic temporary repositories.
+
 Use the repository's standard [AGPL v3.0 license](LICENSE); preserve third-party notices.
 Do not change the license or add a contributor agreement without a user request.
 

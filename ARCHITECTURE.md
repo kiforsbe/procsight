@@ -49,6 +49,27 @@ defines opt-in Direct/Store profiles, signing, package identity and elevation bo
 installation lifecycle checks. The current executable remains unpackaged. Package trust, Store
 acceptance, packaged elevation and data virtualization have not been established by existing tests.
 
+The proposed local release workflow derives all live product/assembly/package/feed versions from
+Version.props, prepares the dated changelog, verifies source consistency, commits release files and
+builds artifacts from that commit before creating its annotated SemVer tag. Dependency versions and
+historical documentation remain separate. No release script or actual product tag exists from this
+design work; remote publication is a separate operation.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Preflight: Explicit version or bump
+    Preflight --> PlannedEdits: Clean branch and valid release inputs
+    PlannedEdits --> VerifiedEdits: Sync versions and changelog, pass checks
+    PlannedEdits --> Unchanged: Precommit failure restores owned files
+    VerifiedEdits --> PreparedCommit: Commit explicit release inventory
+    PreparedCommit --> ValidatedArtifacts: Build and inspect exact commit
+    PreparedCommit --> AwaitingResume: Artifact failure, no tag
+    AwaitingResume --> PreparedCommit: Resume same version and commit
+    ValidatedArtifacts --> Tagged: Create new annotated vX.Y.Z tag
+    Tagged --> [*]: Local preparation complete
+    Unchanged --> [*]
+```
+
 ### Explicit administrator sessions
 
 [PrivilegeContext](src/ProcSight.Windows/Security/PrivilegeContext.cs) reads the active token;

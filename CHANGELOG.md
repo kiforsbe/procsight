@@ -7,6 +7,10 @@ in this repository; planned product features are documented in the design and ro
 
 ### Planned
 
+- Central SemVer release preparation: synchronize product/assembly/package/feed versions and dated
+  changelog, build artifacts from the release commit and create its annotated vMAJOR.MINOR.PATCH tag.
+  Dry-run, failure recovery and resume are planned; remote publication remains separate.
+
 - Proposed MSIX Direct/Store packaging design and implementation plan, including explicit signing,
   dependency deployment, packaged elevation checks and installation lifecycle acceptance. Packaging
   and Store submission are not implemented or verified yet.

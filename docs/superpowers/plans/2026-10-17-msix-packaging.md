@@ -16,6 +16,8 @@
 - Explicit `ProcSightPackaging=true`; Direct bundles .NET/Windows App SDK, Store bundles .NET and declares Windows App SDK framework dependencies.
 - Development identity `ProcSight.Development`, publisher `CN=ProcSight Development`, initial version `0.1.0.0`.
 - Store identity must be supplied; Store version's fourth component must be zero.
+- Stable SemVer product versions use annotated vMAJOR.MINOR.PATCH tags and derive Windows versions as MAJOR.MINOR.PATCH.0; Store major must be >= 1.
+- Version.props is authoritative; release preparation synchronizes every live version field/changelog without changing dependency pins or historical examples.
 - Normal activation remains asInvoker; Store `ElevationMode` is explicitly Disabled or Approved.
 - No CI/CD, publication, trust import, user-data migration, installer custom actions or automatic installation.
 - Do not package real settings/knowledge/credentials, test fixtures or diagnostics; retain AGPL/notices.
@@ -35,7 +37,11 @@
 - `packaging/Direct.pubxml`, `packaging/Store.pubxml`: explicit packaging profiles.
 - `packaging/store-identity.example.json`: public identity schema example; production/example validation rejects placeholders.
 - `scripts/packaging/Common.ps1`: `Get-ProcSightPackageInputs`, `Get-ProcSightSdkTool`, `Assert-ProcSightPackageContents`; pure validation and bounded SDK discovery.
-- `scripts/package.ps1`: `-Profile Direct|Store -Version <four-part> [-IdentityFile <path>] [-CertificateThumbprint <thumbprint>] [-ElevationMode Disabled|Approved] [-FeedUri <https>] [-PackageUri <https>]`; output under artifacts/packages only.
+- `Version.props`: authoritative product VersionPrefix and derived assembly/file/package version properties, imported by Directory.Build.props.
+- `scripts/release/Common.ps1`: Get-ProcSightReleaseVersion, Get-ProcSightVersionTargets and Assert-ProcSightVersionConsistency; explicit live product-version inventory and derived values.
+- `scripts/prepare-release.ps1`: `(-Bump Major|Minor|Patch | -Version <semver> | -Resume -Version <semver>) -Profile Direct|Store [-DryRun] [-ReleaseDate yyyy-MM-dd]` plus explicit profile/signing arguments; update/verify/commit/build/tag locally.
+- `scripts/test-release.ps1`: synthetic temporary repositories and stubbed build/signing calls; no real release tags, remote operations or certificates.
+- `scripts/package.ps1`: `-Profile Direct|Store [-IdentityFile <path>] [-CertificateThumbprint <thumbprint>] [-ElevationMode Disabled|Approved] [-FeedUri <https>] [-PackageUri <https>]`; derive version from Version.props, output under artifacts/packages only. No independent release-version override.
 - `scripts/new-package-certificate.ps1`: explicit development certificate creation/public export; no trust installation.
 - `scripts/test-packaging.ps1`: temporary synthetic fixtures and assertions; no real certificate/account changes.
 - `src/ProcSight.Windows/Security/PackageContext.cs`: package identity/capability inspection with restrictive failure behavior.
@@ -47,15 +53,26 @@ bool AllowsElevation)`. `CanRestartElevated` is true only for a successfully ide
 or a successfully inspected package declaring allowElevation. Package observation is injectable in
 tests; production reads the current package's installed manifest, never a user-selected manifest.
 
+### Task 0: Central product version and synchronization
+
+**Consumes:** existing app.manifest version 0.1.0.0 and build defaults. **Produces:** Version.props,
+explicit live-version inventory, shared validation and synthetic script tests for later release tasks.
+
+- [ ] Write failing `scripts/test-release.ps1` cases for stable SemVer parsing/bumping, v-tag derivation, initial explicit release, component overflow, leading zeroes, unsupported prerelease/build suffixes and Store major zero.
+- [ ] Add Version.props with VersionPrefix 0.1.0, import it in Directory.Build.props and derive AssemblyVersion/FileVersion/ProcSightPackageVersion as prefix plus .0. InformationalVersion includes the actual source commit; packages must never embed a pre-release-commit SHA.
+- [ ] Implement Get-ProcSightVersionTargets as the inventory of live checked-in version fields: Version.props, app.manifest and the package manifest once added. Add future live README badges/download references only if they exist. Get-ProcSightReleaseVersion validates/computes values; Assert-ProcSightVersionConsistency compares evaluated MSBuild properties and manifest identities.
+- [ ] Add failing drift tests for each target and tests proving historical docs, dependency pins and sample version strings remain unchanged. Implement scoped XML updates without broad replacement; use synthetic manifest fixtures until Task 1 adds the real package manifest.
+- [ ] Run script tests plus normal Release verification, update developer/version maintenance guidance and commit without a release bump/tag.
+
 ### Task 1: Opt-in package builds and branding
 
-**Consumes:** existing pinned application project, SVG and native asInvoker manifest.
+**Consumes:** Task 0 central version, existing pinned application project, SVG and native asInvoker manifest.
 **Produces:** Direct and Store package outputs with explicit identity/version/dependency declarations.
 
 - [ ] Add synthetic checks to `scripts/test-packaging.ps1` asserting normal build defaults to WindowsPackageType None, explicit profiles select correct runtime modes, minimum OS 26100/x64 and no unexpected capabilities; verify failure before implementation.
-- [ ] Add manifest and conditional project/profile configuration. Generate StoreLogo (50), Square44x44Logo and Square150x150Logo from existing SVG, including scale variants needed for package validation; do not put >256px frames into the ICO.
+- [ ] Add manifest and conditional project/profile configuration deriving version from Task 0; add the manifest to its synchronization inventory and reject drift. Generate StoreLogo (50), Square44x44Logo and Square150x150Logo from existing SVG, including scale variants needed for package validation; do not put >256px frames into the ICO.
 - [ ] Include LICENSE and existing notices in the package. Keep normal scripts/build.ps1 and F5 commands unchanged.
-- [ ] Run normal Release build and profile builds using temporary development identity; inspect output with SDK MakeAppx unpack to verify app executable, logo assets, version, architecture and runtime dependency strategy.
+- [ ] Run normal Release and Direct builds using the development identity; inspect output with SDK MakeAppx unpack to verify executable, assets, version, architecture and dependencies. Exercise Store inputs/dependency configuration with synthetic tests; build an actual Store artifact only when a reserved identity and valid Store release version are supplied, otherwise record that external prerequisite explicitly.
 - [ ] Update developer packaging prerequisites and commit this deliverable.
 
 ### Task 2: Input validation, artifact inspection and optional feed
@@ -99,6 +116,19 @@ tests; production reads the current package's installed manifest, never a user-s
 - [ ] Run locked Release verification, packaging script tests, package/signature inspection, documentation link checks, Mermaid rendering and git diff --check.
 - [ ] Update README, DEVELOPERS, ARCHITECTURE, SECURITY, AGENTS, CHANGELOG, docs/verification.md and ignores in the same commits as behavior. Mark implementation versus live verification precisely.
 - [ ] Obtain independent code review, address material findings and leave artifacts local. No remote publication or installer launch against the user's active setup.
+
+### Task 6: Local release preparation, changelog and annotated tags
+
+**Consumes:** Task 0 version helpers, Task 2 packaging command, Task 3 signing and verified profiles.
+**Produces:** scripts/prepare-release.ps1, resumable release preparation and matching local annotated tag.
+
+- [ ] Add failing temporary-repository tests for dirty checkout/index, detached HEAD, missing Git identity, duplicate/mismatched tag, no Unreleased notes, lower/equal subsequent version and -DryRun with zero mutations.
+- [ ] Implement preflight and in-memory edit preparation. Move Unreleased content verbatim to the chosen version/date, retain fresh Unreleased, synchronize all inventory fields and prepare versioned release notes under ignored artifacts.
+- [ ] Add failing tests for each pre-commit validation failure restoring only owned files and not moving HEAD. Run version consistency and scripts/verify.ps1 before committing the explicit release inventory.
+- [ ] Create the local `chore: release vX.Y.Z` commit, then invoke inspected/signed packaging from that exact clean commit. Verify informational commit ID, MSIX/bundle/feed identities, filenames, release notes and checksum manifest agree. Only then create annotated tag vX.Y.Z at that commit.
+- [ ] Add failure-injection tests: package/signing failure leaves a prepared commit without a tag; -Resume uses the same version/commit; successful rerun is idempotent; existing tags never move. Refuse unrelated changes during resume and report recovery without destructive history edits.
+- [ ] Assert no command executes git push/fetch, gh release, remote upload, Store submission or CI/CD configuration. Run the whole workflow against temporary repositories with fake packaging, not this product branch's real release history.
+- [ ] Update README/DEVELOPERS/AGENTS/ARCHITECTURE/SECURITY/CHANGELOG and verification notes with commands, version inventory, lifecycle and limitations. Independently review the workflow and commit tooling only; do not create an actual product release/tag during implementation.
 
 ## Execution handoff
 
