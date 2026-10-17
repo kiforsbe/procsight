@@ -25,6 +25,8 @@ scrollable. Use theme resources for series colors, including high-contrast resou
 values and native accessible names alongside graphs. Color alone cannot identify a subsystem or
 state. Missing/warming observations have explicit text and break graph segments; never fabricate
 an idle zero or hardware identity. Graphs show the latest 60 samples without growing visual trees.
+Reuse native trace geometry and point collections during sampling; rebuild static grids only when
+dimensions or the elapsed-time scale changes. Gap/restoration behavior must survive reuse.
 
 This is the user-selected ProcSight layout; synthetic light/dark captures validate geometry.
 The native Performance header offers a saved Logarithmic time axis toggle, off by default.

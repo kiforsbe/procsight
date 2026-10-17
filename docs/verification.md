@@ -1,5 +1,19 @@
 # Development verification
 
+## Chart geometry and projection reuse — 2026-10-17
+
+The native reuse fixture first failed because both geometry objects were replaced each tick; it now
+passes identity retention, gaps/restoration, log/resize invalidation, oversized/empty histories and
+invalid numeric observations. The 1,000-row allocation fixture measured 2.47 MB before and 1.30 MB
+after; its budget preserves headroom while requiring a substantial reduction. Release suites passed
+Core 74, Application 138, Windows 69 and Infrastructure 116 (397 total), with
+`FullyQualifiedName!~ChatGptAuth`. Release and optimized Debug builds passed with zero warnings/errors.
+The full UI harness and light/narrow chart, Overview, navigation and Network fixtures passed; a dark
+native chart capture was visually inspected. Independent review found no actionable defects and
+passed seven targeted projection/sort checks. See [measurements](PERFORMANCE.md) for remaining timing
+tails. No saved accounts, authentication or providers were used. Sustained live frame-rate, scaling,
+Narrator and high-contrast acceptance remain separate.
+
 ## Sampling, memory, local rules and shutdown — 2026-10-17
 
 The short-path allocation regression failed before pooling, then passed with synthetic long-path

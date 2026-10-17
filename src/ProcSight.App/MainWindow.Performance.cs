@@ -57,6 +57,9 @@ public sealed partial class MainWindow
         private DateTimeOffset[] times=[];
         private readonly Canvas? axisLabels;
         private readonly List<TextBlock> tickLabels=[];
+        private readonly PathGeometry traceGeometry=new();
+        private readonly List<(PathFigure Figure,PolyLineSegment Line)> traceRuns=[];
+        private (double Width,double Height,double Span,bool Logarithmic)? gridLayout;
         public ResourceChart(PerformanceSubsystem subsystem=PerformanceSubsystem.Cpu,bool showTimeLabels=false) {
             var brush="Performance"+(subsystem==PerformanceSubsystem.Overview?"Cpu":subsystem.ToString())+"Brush";
             canvas=(Canvas)Microsoft.UI.Xaml.Markup.XamlReader.Load("""
@@ -66,6 +69,7 @@ public sealed partial class MainWindow
                 </Canvas>
                 """.Replace("CHART_BRUSH",brush,StringComparison.Ordinal));
             grid=(Microsoft.UI.Xaml.Shapes.Path)canvas.Children[0]; trace=(Microsoft.UI.Xaml.Shapes.Path)canvas.Children[1];
+            trace.Data=traceGeometry;
             Children.Add(canvas); canvas.SizeChanged+=(_,_)=>Draw();
             if(showTimeLabels) {
                 RowDefinitions.Add(new()); RowDefinitions.Add(new() { Height=GridLength.Auto });
@@ -74,12 +78,17 @@ public sealed partial class MainWindow
             }
         }
         public void Update(Observation<double>[] values,bool percent,bool logTime,DateTimeOffset[] timestamps) {
-            samples=values; percentage=percent; logarithmic=logTime; times=timestamps; Draw();
+            // Bound reusable native geometry even if a future caller supplies a longer history.
+            samples=values.Length<=60?values:values[^60..]; percentage=percent; logarithmic=logTime;
+            times=timestamps.Length!=values.Length?[]:timestamps.Length<=60?timestamps:timestamps[^60..]; Draw();
         }
         private void Draw() {
             var width=canvas.ActualWidth; var height=canvas.ActualHeight; if(width<=0||height<=0) return;
-            var gridGeometry=new PathGeometry();
             var span=times.Length>1?Math.Max(60,Math.Ceiling((times[^1]-times[0]).TotalSeconds/10)*10):60;
+            var layout=(width,height,span,logarithmic);
+            if(gridLayout!=layout) {
+            gridLayout=layout;
+            var gridGeometry=new PathGeometry();
             for(var line=0;line<=4;line++) {
                 var figure=new PathFigure { StartPoint=new(0,height*line/4),IsClosed=false };
                 figure.Segments.Add(new LineSegment { Point=new(width,height*line/4) }); gridGeometry.Figures.Add(figure);
@@ -98,18 +107,38 @@ public sealed partial class MainWindow
                 }
             }
             grid.Data=gridGeometry;
-            var maximum=percentage?100:Math.Max(1,samples.Where(s=>s.State==ObservationState.Available).Select(s=>s.Value??0).DefaultIfEmpty(0).Max());
-            var geometry=new PathGeometry(); PathFigure? segment=null;
+            }
+            double maximum=percentage?100:1;
+            if(!percentage) foreach(var sample in samples)
+                if(sample.State==ObservationState.Available&&sample.Value is { } value&&double.IsFinite(value)) maximum=Math.Max(maximum,value);
+            var runIndex=-1; var pointCount=0; PathFigure? segment=null; PolyLineSegment? lineSegment=null;
+            void FinishRun() {
+                if(lineSegment is not null) while(lineSegment.Points.Count>pointCount) lineSegment.Points.RemoveAt(lineSegment.Points.Count-1);
+                segment=null; lineSegment=null;
+            }
             for(var index=0;index<samples.Length;index++) {
-                if(samples[index].State!=ObservationState.Available||samples[index].Value is not { } value||!double.IsFinite(value)) { segment=null; continue; }
+                if(samples[index].State!=ObservationState.Available||samples[index].Value is not { } value||!double.IsFinite(value)) { FinishRun(); continue; }
                 var age=times.Length==samples.Length?(times[^1]-times[index]).TotalSeconds:samples.Length-1-index;
                 var x=PerformanceTimeAxis.Position(age,span,logarithmic);
-                if(!double.IsFinite(x)) { segment=null; continue; }
+                if(!double.IsFinite(x)) { FinishRun(); continue; }
                 var point=new global::Windows.Foundation.Point(width*x,height*(1-Math.Clamp(value/maximum,0,1)));
-                if(segment is null) { segment=new PathFigure { StartPoint=point,IsClosed=false }; geometry.Figures.Add(segment); }
-                else segment.Segments.Add(new LineSegment { Point=point });
+                if(segment is null) {
+                    runIndex++; pointCount=0;
+                    if(traceRuns.Count<=runIndex) {
+                        var figure=new PathFigure { IsClosed=false }; var polyline=new PolyLineSegment(); figure.Segments.Add(polyline);
+                        traceRuns.Add((figure,polyline));
+                    }
+                    (segment,lineSegment)=traceRuns[runIndex];
+                    if(!segment.StartPoint.Equals(point)) segment.StartPoint=point;
+                    if(traceGeometry.Figures.Count<=runIndex) traceGeometry.Figures.Add(segment);
+                } else {
+                    if(lineSegment!.Points.Count<=pointCount) lineSegment.Points.Add(point);
+                    else if(!lineSegment.Points[pointCount].Equals(point)) lineSegment.Points[pointCount]=point;
+                    pointCount++;
+                }
             }
-            trace.Data=geometry;
+            FinishRun();
+            while(traceGeometry.Figures.Count>runIndex+1) traceGeometry.Figures.RemoveAt(traceGeometry.Figures.Count-1);
         }
     }
     private void UpdateResourceChart(ResourceChart chart,PerformanceSubsystem section)=>chart.Update(

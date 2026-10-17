@@ -93,6 +93,7 @@ the selected sort column while retaining process selection and using incremental
 
 Closing hides the window promptly and finishes monitoring cleanup in the background before exit.
 Local sampling uses reusable path buffers; rule evaluation reads shared candidate data once per batch.
+Performance charts reuse bounded native geometry between ticks; see [local measurements](docs/PERFORMANCE.md).
 
 Local MSIX packaging is available with `./scripts/package.ps1 -Profile Direct`. It produces an
 inspected, self-contained **unsigned development package** under artifacts/packages; it does not

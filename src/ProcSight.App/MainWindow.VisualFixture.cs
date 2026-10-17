@@ -126,6 +126,7 @@ public sealed partial class MainWindow
                 }
                 if(args.Length>5&&args[5]=="ui-performance") await CheckUiPerformanceAsync(output);
                 if(args.Length>5&&args[5]=="ui-memory") await CheckMemoryPerformanceAsync(output);
+                if(args.Length>5&&args[5] is "chart-performance" or "chart-reuse") await CheckChartPerformanceAsync(output,args[5]=="chart-reuse");
                 if(args.Length>5&&args[5]=="local-sampling") await CheckLocalSamplingAsync(output);
                 if(args.Length>5&&args[5]=="ui-performance-rules") await CheckUiPerformanceAsync(output,true);
                 if(args.Length>5&&args[5]=="process-io") {

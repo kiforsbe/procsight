@@ -33,11 +33,22 @@ public static class ProcessListProjection
         ProcessListRow Row(ResolvedEntity e,List<ResolvedEntity>? members=null,string? group=null)
         {
             members ??=[e];
+            long memory=0; double cpu=0; var completeMemory=true; var completeCpu=true;
+            foreach(var member in members) {
+                var resources=member.Process?.Resources;
+                if(resources?.WorkingSetBytes.Value is { } bytes) memory=checked(memory+bytes); else completeMemory=false;
+                if(resources?.CpuPercent.Value is { } percent) cpu+=percent; else completeCpu=false;
+            }
             return new(group is null?RowKey(e):group,e,group is not null,members,
-                group is null?null:e.Owner,members.Sum(m=>m.Process?.Resources.WorkingSetBytes.Value??0),
-                members.All(m=>m.Process?.Resources.WorkingSetBytes.Value is not null),
-                members.Sum(m=>m.Process?.Resources.CpuPercent.Value??0),
-                members.All(m=>m.Process?.Resources.CpuPercent.Value is not null));
+                group is null?null:e.Owner,memory,completeMemory,cpu,completeCpu);
+        }
+        Dictionary<string,string>? displayNames=null;
+        string Display(ProcessListRow row) {
+            if(row.GroupName is not null) return row.GroupName;
+            displayNames??=new(StringComparer.Ordinal);
+            if(!displayNames.TryGetValue(row.Key,out var name)) displayNames[row.Key]=name=
+                ProcessRoleLabels.DisplayName(row.Entity,findings.GetValueOrDefault(row.Entity.Identity)?.Result.IdentityLabel);
+            return name;
         }
         var prior=(options.PreviousOrder ?? []).Select((key,index)=>(key,index)).ToDictionary(p=>p.key,p=>p.index);
         List<ProcessListRow> Sort(IEnumerable<ProcessListRow> rows) {
@@ -53,7 +64,6 @@ public static class ProcessListProjection
             return existing;
         }
         List<ProcessListRow> SortNew(IEnumerable<ProcessListRow> rows) {
-            string Display(ProcessListRow row)=>row.GroupName ?? ProcessRoleLabels.DisplayName(row.Entity,findings.GetValueOrDefault(row.Entity.Identity)?.Result.IdentityLabel);
             string Assessment(ProcessListRow row) {
                 var finding=findings.GetValueOrDefault(row.Entity.Identity);
                 return finding?.Result.Assessments.FirstOrDefault(a=>a.Value is "Suspicious" or "KnownThreat" or "PotentiallyUnwanted" or "PossibleLeftover")?.Value ??
@@ -114,21 +124,23 @@ public static class ProcessListProjection
         // Verify each lifetime relationship once rather than scan the full inventory at each node.
         var childrenByParent=visible.Where(HasParent).ToLookup(e=>e.Process!.ParentPid!.Value);
         var seen=new HashSet<int>(); var tree=new List<ProcessListRow>();
-        void Add(ResolvedEntity entity,int depth)
+        void Add(ProcessListRow row,int depth)
         {
+            var entity=row.Entity;
             if(!seen.Add(entity.Process!.Key.Pid)) return;
-            var children=Sort(childrenByParent[entity.Process.Key.Pid].Select(e=>Row(e)));
-            var expanded=options.CollapsedTree?.Contains(RowKey(entity))!=true;
-            tree.Add(Row(entity) with { Depth=depth,HasChildren=children.Count>0,Expanded=expanded });
+            IReadOnlyList<ProcessListRow> children=childrenByParent.Contains(entity.Process.Key.Pid)?
+                Sort(childrenByParent[entity.Process.Key.Pid].Select(e=>Row(e))):Array.Empty<ProcessListRow>();
+            var expanded=options.CollapsedTree?.Contains(row.Key)!=true;
+            tree.Add(row with { Depth=depth,HasChildren=children.Count>0,Expanded=expanded });
             foreach(var child in children)
-                if(expanded) Add(child.Entity,Math.Min(depth+1,12)); else Hide(child.Entity);
+                if(expanded) Add(child,Math.Min(depth+1,12)); else Hide(child.Entity);
         }
         void Hide(ResolvedEntity entity) {
             if(!seen.Add(entity.Process!.Key.Pid)) return;
             foreach(var child in childrenByParent[entity.Process.Key.Pid]) Hide(child);
         }
-        foreach(var root in Sort(visible.Where(e=>!HasParent(e)).Select(e=>Row(e)))) Add(root.Entity,0);
-        foreach(var rest in visible.Where(e=>!seen.Contains(e.Process!.Key.Pid))) Add(rest,0);
+        foreach(var root in Sort(visible.Where(e=>!HasParent(e)).Select(e=>Row(e)))) Add(root,0);
+        foreach(var rest in visible.Where(e=>!seen.Contains(e.Process!.Key.Pid))) Add(Row(rest),0);
         return new(tree);
     }
     public static string RowKey(ResolvedEntity entity)=>entity.Process is not { } p?entity.Identity.Value:

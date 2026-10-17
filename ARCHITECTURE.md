@@ -287,6 +287,12 @@ list entrance transitions during navigation. Missing samples break
 graph lines; accessible text and theme resources accompany every chart. Neither sampling path
 uses AI, persistent history or provider payloads.
 
+ResourceChart keeps its trace PathGeometry and reuses native PathFigure/PolyLineSegment point
+collections between samples. Missing/invalid observations split runs, restored values reconnect them,
+and unused figures/points are detached. Each chart enforces 60 samples, bounding reusable native
+objects independently of caller history. Static grid geometry is rebuilt only for changed dimensions,
+elapsed span or time mode. Theme brush bindings remain native and unchanged.
+
 [PerformanceTimeAxis](src/ProcSight.Application/Presentation/PerformanceTimeAxis.cs) maps horizontal
 positions from actual elapsed sample ages. Linear is the default; saved logarithmic mode uses
 `x = 1 - log(1 + age) / log(1 + span)` to expand recent history while retaining a finite Now.
@@ -1364,7 +1370,10 @@ across resource-only samples, invalidating them for changed identity, metadata o
 command/path/caption values enter persistence, provider projection or logs. Disk/Network/GPU labels
 compare complete member lifetimes and observations, including availability/reason, before reuse;
 CPU-only changes do not reformat them. Rate aggregation avoids intermediate arrays. Projection indexes verified
-parent links once and retains existing sibling order without reevaluating sort labels on ordinary ticks.
+parent links once, aggregates each row in one pass and passes sorted rows directly into tree traversal
+instead of constructing them again. Sort labels are cached only within one build, preserving changed
+local metadata/analysis on the next projection. Empty child lists do not need sorting. It retains existing
+sibling order without reevaluating sort labels on ordinary ticks.
 [LiveRowCollection](src/ProcSight.App/ViewModels/LiveRowCollection.cs) batches large explicit sorts/filters
 into one native list reset, reusing row objects and restoring selected lifetimes. Resource-only updates
 remain incremental and do not reset the list. Detail/rule text reuses app-owned native styles rather

@@ -74,6 +74,10 @@ accounts or provider configuration. `shutdown-check` sends the native close mess
 deliberately blocked and checks dispatcher survival and single execution. GC collections occur only
 in profiling fixtures to distinguish retention from churn, never in the production sampling loop.
 
+`chart-performance` measures 200 synthetic native chart updates. `chart-reuse` additionally verifies
+trace/grid identity retention, missing-data gaps and restoration, log/resize invalidation, oversized
+history bounds and clearing empty history. Numeric reports use `.chart.json` beside the ignored capture.
+
 Table UI fixtures `columns`, `columns-services`, `row-menu`, `column-chooser` and `inventory-export`
 exercise dynamic native templates, shared row/header widths, optional-column sorting, selection,
 menus and native configuration dialogs. Column checks also cover invisible centered resize targets,

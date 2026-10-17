@@ -1,5 +1,26 @@
 # Local UI and rules performance
 
+## Native chart and projection reuse — 2026-10-17
+
+A new 200-update native chart fixture measured the previous 60-point trace at 1.25 ms mean and
+60,962 bytes allocated per update. Reusing PathGeometry, PathFigure and PolyLineSegment point
+collections reduced that to 0.068 ms and 3,073 bytes, with unchanged size/time-mode grid geometry
+retained. This is about 95% lower per-chart update cost in the synthetic run, not a frame-rate guarantee.
+Every chart accepts at most 60 points. Gaps detach runs, restored observations reconnect them,
+and empty history clears figures. Reuse is local to each native chart, with no saved history.
+
+Stable 1,000-row projection initially allocated 2,469,576 bytes in the regression fixture. Tree
+traversal rebuilt already-constructed rows and aggregation scanned members four times. A single
+aggregation pass, row reuse, skipped empty child sorts and per-build display labels reduced this to
+1,295,944 bytes. The broader UI harness measured table refresh allocations falling from about
+5.88 MB to 4.09 MB and explicit-sort allocations from 8.33 MB to 6.06 MB per operation. Refresh
+and sort p95 timings still exceeded a frame budget in this run; allocation reductions do not establish
+that every interaction is now fluid. No stale cross-build name cache or lifetime-key changes are used.
+
+Reports: `artifacts/ui-performance/baseline-chart-performance.png.chart.json`,
+`reused-chart.png.chart.json`, and `second-projection-chart-*.performance.json`. Native gap/log/resize
+checks and the full UI harness pass. AI and authentication are excluded from profiling.
+
 ## Sampling, memory and shutdown follow-up — 2026-10-17
 
 This pass excludes AI transport/authentication. Measurements cover live system/GPU counters, WMI

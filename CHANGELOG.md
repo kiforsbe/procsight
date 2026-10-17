@@ -116,6 +116,8 @@ plans, implementation details and validation records belong in the project docum
 
 ### Changed
 
+- Reuse bounded native chart geometry and process projection rows to reduce UI allocation churn.
+
 - Command lines are always available locally when Windows permits; online commands and identifying
   metadata remain excluded by default, with separate sharing controls.
 - Command-derived rules retain keyed invocation scopes instead of raw arguments, preventing reuse

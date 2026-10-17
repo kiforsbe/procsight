@@ -155,6 +155,9 @@ batch and guard evaluation/fingerprint stamps against knowledge invalidation and
 Native close, tray Exit and elevation handoff share asynchronous cleanup: hide promptly, retain the
 dispatcher until worker cleanup finishes, stop only the owned ETW session using its original source,
 and never hold monitor state locks during blocking native stop. No forced exit or production GC loop.
+Performance charts reuse bounded trace figures/point collections across ticks; retain gap semantics,
+invalidate grid geometry for size/span/time-mode changes, and enforce the 60-sample limit at the chart
+boundary. Projection may reuse rows and per-build labels, never lifetime keys or names across stale metadata.
 
 Use `rg` for searches. Inspect the current Git state and preserve unrelated user changes.
 Verify documentation links and run `git diff --check` for documentation changes. Once code
