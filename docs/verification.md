@@ -6,6 +6,36 @@ were used for automated verification.
 
 ## Local checks
 
+### 2026-10-17 native columns, context actions and local export
+
+Locked Release verification passed 378 .NET tests (70 Core, 119 Application, 131 Infrastructure,
+58 Windows) and 70 script checks, with zero build warnings/errors. Ten new application tests cover
+layout invariants, stable drag previews across unequal widths, selection/group lifetime deduplication,
+CSV/TSV quoting/formula protection, JSON null/text fidelity and excluded context in export names.
+
+Native `columns`, `columns-services`, `row-menu`, `column-chooser` and `inventory-export` fixtures
+passed at 1200/700 effective pixels in Dark/Light themes (20 captures). Final chooser/export captures
+also assert the actual dialog theme matches the app. Geometry checks cover resizing, horizontal
+scrolling, multiselection refresh, stable saved layouts, optional sorting, native menu invocation,
+chevron behavior and rejection of a replacement selected lifetime. Reorder retains the row template
+and header controls; repeated Disk/Network moves produced no BindingFailed events or captured managed
+first-chance exceptions in synthetic checks. The user's original debugger messages were not supplied,
+so their exact cause was not independently established.
+
+Real pointer input first reproduced the nonworking native drag-start path, then verified PID and
+Disk/Network reordering and edge resizing after replacing it. The later Task Manager recording was
+reviewed as an interaction reference: live preview, drag feedback, resize cursor and stable cells are
+documented in WINUI3-DESIGN.md. The live-preview refinement has stable-slot and in-place-control
+regressions; a fresh real-pointer check of that final refinement and Escape cancellation remains manual.
+The recording and extracted frames are not tracked and supply no product inventory/rules.
+
+Independent review identified mutable correction/copy targets and a narrow-versus-wide preview
+oscillation; those were fixed and reviewed again. Architecture diagrams (29) parsed/rendered,
+relative links (156) resolved and whitespace checks passed. End-to-end Save picker/file writing,
+especially administrator mode, remains a manual acceptance check: unattended fixtures exercise the
+export dialog and serializers without opening a picker or changing the real clipboard. Narrator,
+high contrast and text scaling were not revalidated. No provider/credential access or uploads occurred.
+
 ### 2026-10-17 detail expansion while browsing
 
 Native Debug fixtures first reproduced selection resetting expanded process/service details and
@@ -32,10 +62,10 @@ Locked restore and native Release build passed with zero warnings/errors. Test r
 | Project | Passed | Focus |
 | --- | ---: | --- |
 | Core | 70 | Identity/privacy/rules, research projection and independent connection profiles |
-| Application | 109 | Presentation, rejection/research diagnostics, routing and immediate settings |
+| Application | 119 | Presentation, local export/columns, rejection/research diagnostics, routing and immediate settings |
 | Infrastructure | 131 | Storage/OAuth/SSE, inline search/citation validation and scoped rule decisions |
 | Windows | 58 | Collection/lifetimes/icons, credential binding, tray metrics/lifecycle, package context and elevation handoff |
-| Total | 368 | No failed or skipped tests |
+| Total | 378 | No failed or skipped tests |
 
 ### 2026-10-17 MSIX and local release tooling
 

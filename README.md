@@ -41,6 +41,14 @@ This is the actual XAML rendering, using synthetic processes and a synthetic ana
 
 - A familiar Task Manager-style process table with meaningful application grouping,
   resource measurements, search, and a raw process-tree view.
+- Resize columns by dragging header edges; drag optional headers to reorder them, or use
+  **Choose columns** in the toolbar/header menu. Name remains visible and first. Process/service
+  layouts are saved separately. Optional columns include native executable name, local command line,
+  path, parent PID, verified publisher, signature, start time and window titles.
+- Ctrl/Shift selects multiple rows. Right-click offers applicable investigation, copy and export
+  commands. **Export** writes selected entries, filtered entries or the full inventory as CSV, JSON
+  or TSV; groups export their individual members once. Commands, paths/ownership and window captions
+  require separate local-export choices. CSV/TSV text is protected against spreadsheet formulas.
 - Processes and services explained through ownership, purpose, and supporting evidence.
 - Separate purpose, security, and optionality assessments, with confidence and unknown
   outcomes when the evidence is insufficient.

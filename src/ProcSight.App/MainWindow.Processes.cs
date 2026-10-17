@@ -53,6 +53,10 @@ public sealed partial class MainWindow
         var refresh=new AppBarButton { Label="Refresh",Icon=new SymbolIcon(Symbol.Refresh) };
         refresh.Click+=(_,_)=> { collector.RequestRefresh(); RefreshRows(reorder:true); if(status is not null) status.Text="Refreshing local metadata…"; };
         commands.PrimaryCommands.Add(analyzeButton); commands.PrimaryCommands.Add(detailsButton); commands.PrimaryCommands.Add(refresh);
+        var columns=new AppBarButton { Label="Choose columns",Icon=new SymbolIcon(Symbol.List) };
+        columns.Click+=async(_,_)=>await ChooseColumnsAsync(); commands.SecondaryCommands.Add(columns);
+        var export=new AppBarButton { Label="Export…",Icon=new SymbolIcon(Symbol.Save) };
+        export.Click+=async(_,_)=>await ExportInventoryAsync(); commands.SecondaryCommands.Add(export);
         var grouped=new AppBarToggleButton { Label="Group by application",Icon=new SymbolIcon(Symbol.AllApps),IsChecked=presentation.Grouped };
         grouped.Click+=(_,_)=> { presentation=presentation with { Grouped=grouped.IsChecked==true }; SavePresentation(); RefreshRows(); };
         commands.SecondaryCommands.Add(grouped);
@@ -76,38 +80,12 @@ public sealed partial class MainWindow
         surface.RowDefinitions.Add(new(){Height=new GridLength(52)}); surface.RowDefinitions.Add(new(){Height=new GridLength(1,GridUnitType.Star)});
         var header=new Grid { HorizontalAlignment=HorizontalAlignment.Left,BorderThickness=new Thickness(0,1,0,1),
             BorderBrush=(Brush)Microsoft.UI.Xaml.Application.Current.Resources["DividerStrokeColorDefaultBrush"] };
-        var widths=page=="Services"?new[]{280,140,56,108,108}:new[]{280,140,56,80,96,96,100};
-        for(var i=0;i<widths.Length;i++) header.ColumnDefinitions.Add(new(){Width=i==0?new GridLength(1,GridUnitType.Star):new GridLength(widths[i]),MinWidth=i==0?280:0});
-        sortHeaders.Clear();
-        for(var i=0;i<widths.Length;i++)
-        {
-            var column=i;
-            var label=page=="Services"?new[]{"Name","Assessment","PID","Status","Startup"}[i]:new[]{"Name","Assessment","PID","CPU","Memory","Disk","Network"}[i];
-            var stack=new StackPanel { VerticalAlignment=VerticalAlignment.Bottom,HorizontalAlignment=i>=3?HorizontalAlignment.Right:HorizontalAlignment.Left };
-            var total=new TextBlock { FontSize=16,TextAlignment=TextAlignment.Right };
-            if(page=="Processes"&&i==3) { cpuSummary=total; stack.Children.Add(total); }
-            if(page=="Processes"&&i==4) { memorySummary=total; stack.Children.Add(total); }
-            if(page=="Processes"&&i>=5) stack.Children.Add(new TextBlock { Text="—",FontSize=16,TextAlignment=TextAlignment.Right });
-            var labelText=new TextBlock { Text=label,FontSize=12 }; stack.Children.Add(labelText);
-            var button=new Button { Content=stack,Background=new SolidColorBrush(Microsoft.UI.Colors.Transparent),
-                BorderThickness=new Thickness(0),CornerRadius=new CornerRadius(0),HorizontalAlignment=HorizontalAlignment.Stretch,VerticalAlignment=VerticalAlignment.Stretch,
-                HorizontalContentAlignment=i>=3?HorizontalAlignment.Right:HorizontalAlignment.Left,VerticalContentAlignment=VerticalAlignment.Bottom,
-                Padding=new Thickness(i==0?16:8,0,8,8) };
-            var sorting=column switch { 1=>ProcessSort.Assessment,2=>ProcessSort.Pid,3=>page=="Services"?ProcessSort.ServiceState:ProcessSort.Cpu,
-                4=>page=="Services"?ProcessSort.Startup:ProcessSort.Memory,5=>ProcessSort.Disk,6=>ProcessSort.Network,_=>ProcessSort.Name };
-            sortHeaders[sorting]=(labelText,label,button);
-            button.Click+=(_,_)=>SelectSort(sorting);
-            var border=new Border { Child=button,BorderThickness=new Thickness(i==0?0:1,0,0,0),BorderBrush=header.BorderBrush };
-            Grid.SetColumn(border,i); header.Children.Add(border);
-        }
-        UpdateSortHeaders();
-        var minimum=page=="Services"?710:848;
-        header.MinWidth=minimum;
+        InitializeColumns(); tableHeader=header; PopulateColumnHeader(header);
         var headerScroll=new ScrollViewer { Content=header,HorizontalScrollMode=ScrollMode.Enabled,
             HorizontalScrollBarVisibility=ScrollBarVisibility.Hidden,VerticalScrollMode=ScrollMode.Disabled,
             VerticalScrollBarVisibility=ScrollBarVisibility.Disabled,IsTabStop=false };
         surface.Children.Add(headerScroll);
-        table=new ListView { ItemsSource=rows,SelectionMode=ListViewSelectionMode.Single,
+        table=new ListView { ItemsSource=rows,SelectionMode=ListViewSelectionMode.Extended,
             ItemContainerTransitions=new Microsoft.UI.Xaml.Media.Animation.TransitionCollection(),
             ItemsPanel=(ItemsPanelTemplate)XamlReader.Load("""
             <ItemsPanelTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"><ItemsStackPanel ItemsUpdatingScrollMode="KeepItemsInView"/></ItemsPanelTemplate>
@@ -116,13 +94,15 @@ public sealed partial class MainWindow
             <Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" TargetType="ListViewItem">
             <Setter Property="MinHeight" Value="28"/><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="CornerRadius" Value="0"/></Style>
-            """),ItemTemplate=page=="Services"?(DataTemplate)XamlReader.Load(ServiceTemplate):(DataTemplate)WindowRoot.Resources["ProcessTemplate"] };
+            """),ItemTemplate=ColumnTemplate() };
         table.SelectionChanged+=(_,_)=>
         {
             if(refreshingRows) return;
             UpdateSelectionActions(); ShowDetail(table.SelectedItem as ProcessRow);
         };
         table.DoubleTapped+=(_,_)=> { if(table.SelectedItem is ProcessRow { IsGroup:false }) { detailsOpen=true; UpdateDetailsLayout(); ShowDetail(table.SelectedItem as ProcessRow); } };
+        table.ContextRequested+=ShowRowContextMenu;
+        table.ContainerContentChanging+=BindRowChevron;
         table.KeyDown+=(_,args)=>
         {
             if(table.SelectedItem is not ProcessRow selected) return;
@@ -142,7 +122,7 @@ public sealed partial class MainWindow
         table.Loaded+=(_,_)=> {
             if(FindTableScrollViewer(table) is not { } scrolling) return;
             void SynchronizeHeader() {
-                var width=Math.Max(minimum,Math.Max(scrolling.ExtentWidth,scrolling.ViewportWidth));
+                var width=Math.Max(TableMinimumWidth,Math.Max(scrolling.ExtentWidth,scrolling.ViewportWidth));
                 if(double.IsNaN(header.Width)||Math.Abs(header.Width-width)>.5) header.Width=width;
                 if(Math.Abs(headerScroll.HorizontalOffset-scrolling.HorizontalOffset)>.5)
                     headerScroll.ChangeView(scrolling.HorizontalOffset,null,null,true);
@@ -196,7 +176,7 @@ public sealed partial class MainWindow
     }
     private void UpdateSelectionActions()
     {
-        if(analyzeButton is not null) analyzeButton.IsEnabled=table?.SelectedItem is ProcessRow { IsGroup:false } && ProcSight.Application.Analysis.ConnectionRouter.Resolve(EffectivePolicy).Count>0;
+        if(analyzeButton is not null) analyzeButton.IsEnabled=table?.SelectedItems.Count==1&&table.SelectedItem is ProcessRow { IsGroup:false } && ProcSight.Application.Analysis.ConnectionRouter.Resolve(EffectivePolicy).Count>0;
     }
     private void UpdateDetailsLayout()
     {
@@ -213,18 +193,4 @@ public sealed partial class MainWindow
         if(memorySummary is not null) memorySummary.Text=lastSnapshot.SystemResources?.MemoryPercent is { } memory?$"{memory:F0}%":"—";
         UpdateSelectionActions();
     }
-    private const string ServiceTemplate="""
-    <DataTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-     <Grid Height="28" MinWidth="710"><Grid.ColumnDefinitions><ColumnDefinition Width="*" MinWidth="280"/><ColumnDefinition Width="140"/><ColumnDefinition Width="56"/><ColumnDefinition Width="108"/><ColumnDefinition Width="108"/></Grid.ColumnDefinitions>
-      <Grid Margin="16,0,8,0" VerticalAlignment="Center"><Grid.ColumnDefinitions><ColumnDefinition Width="24"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-       <Grid Width="16" Height="16" HorizontalAlignment="Left"><FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE713;" FontSize="16" Visibility="{Binding FallbackIconVisibility}"/><Image Source="{Binding Icon}" Width="16" Height="16"/></Grid>
-       <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="13" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-      </Grid>
-      <TextBlock Grid.Column="1" Text="{Binding Status}" FontSize="12" Margin="8,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-      <TextBlock Grid.Column="2" Text="{Binding Pid}" FontSize="12" Margin="8,0" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-      <TextBlock Grid.Column="3" Text="{Binding ServiceState}" FontSize="12" Margin="8,0" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-      <TextBlock Grid.Column="4" Text="{Binding Startup}" FontSize="12" Margin="8,0" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-     </Grid>
-    </DataTemplate>
-    """;
 }

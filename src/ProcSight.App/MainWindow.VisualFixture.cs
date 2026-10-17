@@ -57,7 +57,7 @@ public sealed partial class MainWindow
                 MetadataIssues=[new("ExecutablePath",MetadataUnavailableReason.AccessDenied),new("Started",MetadataUnavailableReason.AccessDenied),new("CommandLine",MetadataUnavailableReason.AccessDenied)] };
         }
         lastSnapshot=new(Guid.NewGuid(),now,processes,[],new(36,16L*1024*1024*1024,7L*1024*1024*1024));
-        if(args.Length>5&&args[5]=="details-service-selection") lastSnapshot=lastSnapshot with { Services=[
+        if(args.Length>5&&args[5] is "details-service-selection" or "columns-services") lastSnapshot=lastSnapshot with { Services=[
             new("FixtureServiceA","Fixture service A","Running","Auto",1000,"host.exe --fixture-a",ObservationState.Available,new("fixture-a.dll")),
             new("FixtureServiceB","Fixture service B","Stopped","Manual",null,"host.exe --fixture-b",ObservationState.Available,new("fixture-b.dll"))] };
         entities=new IdentityResolver().Resolve(lastSnapshot,[]);
@@ -114,6 +114,8 @@ public sealed partial class MainWindow
                 if(args.Length>5&&args[5]=="services") {
                     Navigation.SelectedItem=Navigation.MenuItems.OfType<Microsoft.UI.Xaml.Controls.NavigationViewItem>().First(i=>i.Tag?.ToString()=="Services"); page="Services"; RenderPage(); await Task.Delay(350);
                 }
+                if(args.Length>5&&args[5] is "columns" or "columns-services" or "columns-pointer" or "row-menu" or "column-chooser" or "inventory-export" or "export-picker")
+                    await CheckTableCustomizationAsync(args[5],output);
                 if(args.Length>5&&args[5].StartsWith("rules",StringComparison.Ordinal)) {
                     if(args[5]!="rules-process") { Navigation.SelectedItem=Navigation.MenuItems.OfType<Microsoft.UI.Xaml.Controls.NavigationViewItem>().First(i=>i.Tag?.ToString()=="Knowledge"); page="Knowledge"; RenderPage(); }
                     else { page="Processes"; RenderPage(); detailsOpen=true; table!.SelectedItem=rows.First(r=>r.Entity.Identity==node.Identity); UpdateDetailsLayout(); ShowDetail(table.SelectedItem as ViewModels.ProcessRow); }
@@ -379,7 +381,7 @@ public sealed partial class MainWindow
                     }
                     void CheckAlignment() {
                         var container=(Microsoft.UI.Xaml.Controls.ListViewItem)table!.ContainerFromIndex(0);
-                        var rowGrid=FindLayoutControl<Microsoft.UI.Xaml.Controls.Grid>(container,g=>g.MinWidth==848&&g.Height==28)??throw new InvalidOperationException("Missing realized process row.");
+                        var rowGrid=FindLayoutControl<Microsoft.UI.Xaml.Controls.Grid>(container,g=>g.Height==28&&g.ColumnDefinitions.Count==tableColumnLayout.Length+1)??throw new InvalidOperationException("Missing realized process row.");
                         var start=rowGrid.TransformToVisual(WindowRoot).TransformPoint(new(0,0));
                         var headerStart=sortHeaders[ProcSight.Application.Presentation.ProcessSort.Name].Button.TransformToVisual(WindowRoot).TransformPoint(new(0,0));
                         if(Math.Abs(start.X-headerStart.X)>1) throw new InvalidOperationException("Name header offset from rows: "+(headerStart.X-start.X));
@@ -419,7 +421,7 @@ public sealed partial class MainWindow
                     if(rows.Count(r=>r.Icon is not null)!=2||rows.Single(r=>r.Entity.Service!.Name=="SyntheticFallback").Icon is not null) throw new InvalidOperationException("Service icon/fallback selection failed.");
                     WindowRoot.UpdateLayout();
                 }
-                var bitmap=new RenderTargetBitmap(); await bitmap.RenderAsync(connectionConfigurationDialog is not null?connectionConfigurationDialog:WindowRoot);
+                var bitmap=new RenderTargetBitmap(); await bitmap.RenderAsync(connectionConfigurationDialog is not null?connectionConfigurationDialog:tableConfigurationDialog is not null?tableConfigurationDialog:WindowRoot);
                 var pixels=await bitmap.GetPixelsAsync();
                 Directory.CreateDirectory(Path.GetDirectoryName(output)!);
                 var folder=await StorageFolder.GetFolderFromPathAsync(Path.GetDirectoryName(output)!);
@@ -431,6 +433,7 @@ public sealed partial class MainWindow
             }
             catch(Exception e) { File.WriteAllText(output+".error",e.GetType().Name+": "+e.Message); }
             finally {
+                tableConfigurationDialog?.Hide();
                 Close();
                 if(fixtureRulesDatabase is { } database) {
                     Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();

@@ -2,6 +2,16 @@
 
 ## Current state
 
+Table UI fixtures `columns`, `columns-services`, `row-menu`, `column-chooser` and `inventory-export`
+exercise dynamic native templates, shared row/header widths, optional-column sorting, selection,
+menus and native configuration dialogs. Fixtures never launch the actual Save picker or modify the
+real clipboard. The opt-in `columns-pointer` probe waits for real pointer reordering before a
+`.finish` marker; `export-picker` waits for a synthetic CSV written through the real Save picker.
+Keep those opt-in probes distinct from unattended fixtures. Export uses the [Windows App SDK Save picker](https://learn.microsoft.com/en-us/windows/apps/develop/files/pickers-save-file)
+owned by AppWindow.Id; elevated picker acceptance still requires manual desktop testing.
+CSV/TSV resource values are invariant percent/bytes/bytes-per-second; JSON retains text/null fields.
+Application tests verify layout normalization, formula escaping and excluded context in derived names.
+
 Native Debug visual fixtures `details-selection`, `details-service-selection` and `rules-selection`
 exercise real ListView selection changes and expanded/collapsed detail choices, using synthetic
 metadata only. The entity fixtures also cover empty selection, page recreation and updated item

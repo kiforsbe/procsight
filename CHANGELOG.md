@@ -7,6 +7,17 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Windows 11 table-interaction guidelines derived from the supplied Task Manager recording:
+  live reorder previews, dragged-header feedback, edge resize cursors and stable row/header cells.
+
+- Native context-aware process/service menus, Ctrl/Shift multi-selection, resizable/reorderable
+  columns and an immediate column chooser. Name stays first and visible; separate process/service
+  layouts survive restarts. Optional local metadata columns include commands, executable name/path,
+  parent PID, verified publisher, signature, start time, ownership, captions and collection availability.
+- Explicit local CSV/JSON/TSV export of selected, filtered or all entries through the native Save
+  picker. Groups export deduplicated members. Private fields are opt-in, snapshot data is frozen,
+  delimited text is formula-protected, and completed files replace the chosen destination atomically.
+
 - Validated per-table column layout preferences and explicit local inventory projections, with
   CSV/TSV quoting and spreadsheet-formula protection plus JSON output. Export field selection gates
   commands, identifying fields and window captions independently of online analysis policy.

@@ -3,23 +3,7 @@
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
  <Window.SystemBackdrop><MicaBackdrop Kind="Base" /></Window.SystemBackdrop>
  <Grid x:Name="WindowRoot">
-  <Grid.Resources>
-<DataTemplate x:Key="ProcessTemplate" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-     <Grid Height="28" MinWidth="848"><Grid.ColumnDefinitions><ColumnDefinition Width="*" MinWidth="280"/><ColumnDefinition Width="140"/><ColumnDefinition Width="56"/><ColumnDefinition Width="80"/><ColumnDefinition Width="96"/><ColumnDefinition Width="96"/><ColumnDefinition Width="100"/></Grid.ColumnDefinitions>
-      <Grid Margin="{Binding Indent}" ToolTipService.ToolTip="{Binding Owner}"><Grid.ColumnDefinitions><ColumnDefinition Width="24"/><ColumnDefinition Width="24"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-       <Button Width="24" Height="24" Padding="0" BorderThickness="0" Background="Transparent" Visibility="{Binding ExpanderVisibility}" Tag="{Binding Key}" Click="ToggleExpansion" AutomationProperties.Name="{Binding ExpansionAction}"><FontIcon FontFamily="Segoe Fluent Icons" Glyph="{Binding ExpansionGlyph}" FontSize="10"/></Button>
-       <Grid Grid.Column="1"><SymbolIcon Symbol="AllApps" Width="16" Height="16" Visibility="{Binding FallbackIconVisibility}"/><Image Source="{Binding Icon}" Width="16" Height="16"/></Grid>
-       <TextBlock Grid.Column="2" Text="{Binding Name}" FontSize="13" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-      </Grid>
-      <Border Grid.Column="1" BorderThickness="1,0,0,0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"><TextBlock Text="{Binding Status}" FontSize="12" Margin="8,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{Binding Status}"/></Border>
-      <Border Grid.Column="2" BorderThickness="1,0,0,0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"><TextBlock Text="{Binding Pid}" FontSize="12" Margin="8,0" VerticalAlignment="Center" HorizontalAlignment="Right"/></Border>
-      <Border Grid.Column="3" Background="{Binding CpuBrush}" BorderThickness="1,0,0,0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"><TextBlock Text="{Binding Cpu}" FontSize="12" Margin="8,0" VerticalAlignment="Center" HorizontalAlignment="Right"/></Border>
-      <Border Grid.Column="4" Background="{Binding MemoryBrush}" BorderThickness="1,0,0,0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"><TextBlock Text="{Binding Memory}" FontSize="12" Margin="8,0" VerticalAlignment="Center" HorizontalAlignment="Right"/></Border>
-      <Border Grid.Column="5" BorderThickness="1,0,0,0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"><TextBlock Text="—" FontSize="12" Margin="8,0" VerticalAlignment="Center" HorizontalAlignment="Right"/></Border>
-      <Border Grid.Column="6" BorderThickness="1,0,0,0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"><TextBlock Text="—" FontSize="12" Margin="8,0" VerticalAlignment="Center" HorizontalAlignment="Right"/></Border>
-     </Grid>
-    </DataTemplate>
-  </Grid.Resources>
+
   <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
   <TitleBar x:Name="AppTitleBar" Title="ProcSight" Height="48">
    <TitleBar.IconSource><BitmapIconSource UriSource="ms-appx:///Assets/ProcSight-32.png" ShowAsMonochrome="False" /></TitleBar.IconSource>

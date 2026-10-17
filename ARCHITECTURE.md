@@ -1060,6 +1060,35 @@ stateDiagram-v2
 availability, default widths and private-field groups. Layout normalization preserves one Name column
 at the first position, ignores unknown/duplicate IDs and bounds widths before native rendering.
 Presentation preferences store separate process/service layouts, never cell contents.
+[Native columns](src/ProcSight.App/MainWindow.Columns.cs) generate the header and virtualized row
+template from that same catalog, binding both to shared observable width objects. Native thumbs,
+header drag/drop and the immediate chooser update only layout. Name cannot be hidden or moved.
+Header gestures preview order changes in place, retain the row template and header control instances,
+and save only on a valid release. A small pointer threshold separates sorting from dragging; a popup
+shows the dragged label while cells move into their preview slots. Escape/cancel restores the original
+layout. Resize thumbs follow column identity after a move and inherit a horizontal resize cursor.
+Virtualized containers apply the latest cell order when realized. Template/width-slot reconstruction
+is reserved for changed visible-column sets; old index bindings are detached before slot counts change.
+[Row actions](src/ProcSight.App/MainWindow.RowActions.cs) use context requests to target the clicked
+item while preserving existing multi-selection, and reject stale process lifetimes at invocation.
+[Native export](src/ProcSight.App/MainWindow.Export.cs) captures entities/assessments before dialogs,
+expands selected groups once and offers selected, filtered or full scopes. It excludes collapsed-tree
+visibility from filter scope. The owner-bound Windows App SDK Save picker chooses a destination;
+off-thread serialization writes a temporary sibling before replacement. No provider is involved.
+
+```mermaid
+classDiagram
+    PresentationPreferences "1" --> "0..*" TableColumnPreference : per-table saved IDs and widths
+    NativeColumns --> TableColumns : normalize and generate cells
+    NativeColumns "1" --> "1..*" TableColumnWidth : current observable widths
+    NativeHeader --> TableColumnWidth : bind
+    VirtualizedRows --> TableColumnWidth : bind
+    RowContextMenu --> ProcessKey : lifetime check
+    NativeExport --> TableValues : explicit local disclosure
+    NativeExport --> InventoryExport : snapshot serialization
+    NativeExport --> SavePicker : explicit destination
+```
+
 [TableValues](src/ProcSight.Application/Presentation/TableValues.cs) projects transient local fields;
 it is separate from AnalysisProjection and must never feed providers, rules or activity history.
 [InventoryExport](src/ProcSight.Application/Presentation/InventoryExport.cs) writes explicitly selected

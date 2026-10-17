@@ -45,6 +45,46 @@ must not imply a broader matching scope. IDs and matching hashes belong in detai
 
 ## Commands and discovery
 
+Process/service rows use native MenuFlyout commands for the clicked row; right-click on an existing
+multi-selection preserves it. Blank areas do not act on a previously selected row. Native context
+requests also support keyboard invocation. Groups expose expansion and export rather than individual
+analysis. Disable commands that cannot apply, and revalidate process lifetime before executing.
+
+Columns share one layout between headers and virtualized rows. Use native resize thumbs (keyboard
+arrows also change widths), header dragging and a native chooser with show/hide, width and move controls.
+Name remains first and mandatory. The chooser applies valid edits immediately; process/service layouts
+are separate. Export is a focused native dialog followed by the Save picker, with explicit scope,
+format and private-field choices. Do not silently reuse online-sharing choices for a local export.
+
+### Task Manager column interaction reference
+
+The user's Windows 11 Task Manager recording `20261017-0659-52.2612434.mp4`, reviewed on
+2026-10-17, is the interaction reference for ProcSight's process/service tables. It shows Status
+being moved among neighboring headers and later shows column-edge resizing. Record the behavior
+here; do not check the recording or its real process inventory into the repository.
+
+- **Header body:** clicking sorts; pressing and moving horizontally beyond a small drag threshold
+  begins reordering. The drag must not also change the sort. Show a lightweight dragged-header
+  visual and preview neighboring columns moving into their new positions while the pointer moves.
+  Header and body cells move together, with their existing values and sort indicator attached to
+  the same column identity. Releasing commits the arrangement. ProcSight's cancel convention is
+  Escape or a cancelled capture restoring the original order without saving a partial preview.
+- **Header edge:** show the horizontal double-arrow cursor over the resize hit area. Dragging
+  changes that column's width continuously; neighboring columns shift accordingly. Do not turn
+  an edge drag into a reorder or sort, and do not redistribute all column widths automatically.
+- **Stable list:** keep row identities, selection, group expansion, icons and resource data intact.
+  Reordering must move existing cells, not recreate the row templates on every pointer move.
+  Keep boundaries aligned through horizontal scrolling and virtualization, without binding errors,
+  flicker, blank cells or a jump in vertical scroll position.
+- **ProcSight constraints:** Name stays visible and first and cannot be a reorder destination.
+  Width bounds and keyboard resize/move controls remain available. Save a completed layout separately
+  for Processes and Services. Keep native theme/focus visuals and resource-summary header content;
+  do not copy a recording's incidental colors, process names or private data into UI assets.
+
+Verify both real pointer gestures and synthetic regression scenarios. Calling the reorder helper
+alone does not prove that dragging works. Preserve the current sort during reorder/resize; the
+recording's resource-header summaries and sorted Memory indicator illustrate that distinction.
+
 Use CommandBar for page and selection commands. Put frequent actions first; place secondary
 actions in overflow. Native AppBarButton controls supply labels, icons and responsive
 overflow behavior. Search and filters should have accessible names and form a coherent group.

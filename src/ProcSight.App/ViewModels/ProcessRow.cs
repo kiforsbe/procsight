@@ -10,6 +10,21 @@ public sealed class ProcessRow : INotifyPropertyChanged
     public ResolvedEntity Entity { get; private set; } = null!;
     public ProcessListRow Projection { get; private set; } = null!;
     public bool IsGroup => Projection.IsGroup;
+    private IReadOnlyList<TableColumnWidth> tableColumns=[];
+    public IReadOnlyList<TableColumnWidth> TableColumns { get=>tableColumns; set { tableColumns=value; Changed(nameof(TableColumns)); } }
+    public string NativeName=>LocalValue("NativeName");
+    public string CommandLine=>LocalValue("CommandLine");
+    public string Path=>LocalValue("Path");
+    public string ParentPid=>LocalValue("ParentPid");
+    public string Publisher=>LocalValue("Publisher");
+    public string Signature=>LocalValue("Signature");
+    public string Started=>LocalValue("Started");
+    public string Ownership=>LocalValue("Owner");
+    public string Windows=>LocalValue("Windows");
+    public string ServiceName=>LocalValue("ServiceName");
+    public string Availability=>LocalValue("Availability");
+    private IReadOnlyDictionary<string,string?>? localValues;
+    private string LocalValue(string id)=>IsGroup?"—":(localValues??=TableValues.Read(Entity,analysis)).GetValueOrDefault(id) is { Length:>0 } text?text:"—";
     public ImageSource? Icon { get; private set; }
     public Visibility FallbackIconVisibility=>Icon is null?Visibility.Visible:Visibility.Collapsed;
     public Visibility ExpanderVisibility=>Projection.HasChildren?Visibility.Visible:Visibility.Collapsed;
@@ -54,8 +69,8 @@ public sealed class ProcessRow : INotifyPropertyChanged
     public override string ToString() => "ProcessRow ["+Key+"]";
     private AnalysisUpdate? analysis;
     public string Classification => analysis is null ? "Unknown" : string.Join(" / ",analysis.Result.Assessments.Select(a=>a.Value));
-    private static readonly string[] Fields=[nameof(Name),nameof(Owner),nameof(Pid),nameof(Cpu),nameof(Memory),nameof(Status),nameof(ServiceState),nameof(Startup),nameof(ExpansionGlyph),nameof(ExpansionAction),nameof(ExpanderVisibility),nameof(Indent)];
-    private string[] Values()=>[Name,Owner,Pid,Cpu,Memory,Status,ServiceState,Startup,ExpansionGlyph,ExpansionAction,ExpanderVisibility.ToString(),Indent.ToString()];
+    private static readonly string[] Fields=[nameof(Name),nameof(Owner),nameof(Pid),nameof(Cpu),nameof(Memory),nameof(Status),nameof(ServiceState),nameof(Startup),nameof(ExpansionGlyph),nameof(ExpansionAction),nameof(ExpanderVisibility),nameof(Indent),nameof(NativeName),nameof(CommandLine),nameof(Path),nameof(ParentPid),nameof(Publisher),nameof(Signature),nameof(Started),nameof(Ownership),nameof(Windows),nameof(ServiceName),nameof(Availability)];
+    private string[] Values()=>[Name,Owner,Pid,Cpu,Memory,Status,ServiceState,Startup,ExpansionGlyph,ExpansionAction,ExpanderVisibility.ToString(),Indent.ToString(),NativeName,CommandLine,Path,ParentPid,Publisher,Signature,Started,Ownership,Windows,ServiceName,Availability];
     private void Changed(string field)=>PropertyChanged?.Invoke(this,new(field));
     private void Notify(string[]? before) {
         var after=Values();
@@ -63,14 +78,14 @@ public sealed class ProcessRow : INotifyPropertyChanged
         if(before is null||before[3]!=after[3]) Changed(nameof(CpuBrush));
         if(before is null||before[4]!=after[4]) Changed(nameof(MemoryBrush));
     }
-    public void SetAnalysis(AnalysisUpdate value) { var before=Values(); analysis=value; Notify(before); }
+    public void SetAnalysis(AnalysisUpdate value) { var before=Values(); analysis=value; localValues=null; Notify(before); }
     public void Update(ProcessListRow projection)
     {
         var before=Projection is null?null:Values();
         if(Entity is not null&&!StringComparer.OrdinalIgnoreCase.Equals(ProcessIconSource.Key(Entity),ProcessIconSource.Key(projection.Entity)))
         { Icon=null; Changed(nameof(Icon)); Changed(nameof(FallbackIconVisibility)); }
         if(Entity is not null&&Entity.Identity!=projection.Entity.Identity) analysis=null;
-        Projection=projection; Entity=projection.Entity; Notify(before);
+        Projection=projection; Entity=projection.Entity; localValues=null; Notify(before);
     }
     public event PropertyChangedEventHandler? PropertyChanged;
 }

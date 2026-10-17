@@ -159,6 +159,17 @@ or invented explanations about ownership.
 
 ## Native UI design maintenance
 
+Native table columns use TableColumns stable IDs and bounded widths, with separate process/service
+preferences. Name is mandatory and fixed first; rows and headers share TableColumnWidth instances.
+Header dragging previews cell order in place and commits only on release; Escape/cancel restores the
+original. Never rebuild templates on each reorder; resize handlers must resolve the current column
+identity after moves. Preserve the Task Manager interaction reference in docs/WINUI3-DESIGN.md.
+Preserve multi-selection through live updates, and lifetime-check context actions. Export is a distinct
+explicit local projection, never an AnalysisPayload: private commands/paths/captions require export
+opt-in, including when deriving names. Export no credentials/activity transport objects; use typed
+availability and deduplicate groups by individual lifetime/service key. CSV/TSV neutralizes formula
+text; JSON retains original projected text/nulls. Never commit real inventory exports.
+
 Connection management uses a compact native toolbar/list plus separate fallback row. Add/Configure
 opens a focused per-profile ContentDialog; provider fields must not leak back into the main page.
 Close flushes pending valid edits and protected-key commits using a closing deferral. Removing a

@@ -43,6 +43,17 @@ and observed behavior, impact, and minimal reproduction steps with synthetic dat
 
 ## Implemented security boundaries and validation limits
 
+Local inventory export is a separate explicit disclosure boundary. Command lines/derived names,
+paths/ownership and window captions/derived names are excluded until independently selected in the
+export dialog, regardless of online-sharing settings. The UI freezes a collector/assessment snapshot;
+export does not access credential stores or provider/activity transport records. Full command lines
+may contain secrets supplied to other applications, so opt-in exports can be sensitive. Nothing is
+uploaded automatically. Delimited text is quoted and formula-like strings are prefixed for spreadsheet
+safety; JSON retains original projected strings and nulls. Writes use a temporary file in the chosen
+folder and replace the destination only after successful completion. The temporary file is deleted
+on ordinary failure/cancellation; interruption of the whole process can leave it behind. In an elevated
+session the Save picker and write use that session's privileges, so choose the destination deliberately.
+
 Local MSIX tooling validates explicit package identity, capabilities and contents before labeling
 an artifact inspected. Public Direct distribution requires a selected trusted code-signing certificate
 matching the publisher and HTTPS timestamping; development certificate creation never installs trust.

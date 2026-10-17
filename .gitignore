@@ -79,3 +79,12 @@ Desktop.ini
 
 # Keep source, assets, package lock files and documentation tracked.
 # Update these rules whenever tooling or generated output changes.
+# Local inventory exports (sanitized fixtures should use explicit test names elsewhere).
+/exports/
+ProcSight-processes*.csv
+ProcSight-processes*.json
+ProcSight-processes*.tsv
+ProcSight-services*.csv
+ProcSight-services*.json
+ProcSight-services*.tsv
+.procsight-export-*.tmp

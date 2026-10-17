@@ -6,6 +6,28 @@ using ProcSight.Tests;
 namespace ProcSight.Application.Tests;
 public sealed class TableCustomizationTests
 {
+    [Fact] public void ExportSelectionExpandsGroupsOnceWithoutConflatingDifferentLifetimes()
+    {
+        var snapshot=Samples.Snapshot(Samples.Process(41),Samples.Process(42));
+        var entities=new IdentityResolver().Resolve(snapshot,[]).ToArray();
+        ProcessListRow Row(ResolvedEntity entity,bool group,List<ResolvedEntity> members)=>new("fixture",entity,group,members,null,0,true,0,true);
+        var selected=InventoryExport.ExpandSelection([Row(entities[0],true,entities.ToList()),Row(entities[0],false,[entities[0]])]);
+        Assert.Equal(2,selected.Length);
+        var replacement=entities[0] with { Process=entities[0].Process! with { Key=new(41,Samples.Now.AddHours(1),null) } };
+        Assert.Equal(2,InventoryExport.ExpandSelection([Row(entities[0],false,[entities[0]]),Row(replacement,false,[replacement])]).Length);
+    }
+    [Fact] public void DragPreviewUsesStableSlotsWithUnequalWidths()
+    {
+        TableColumnPreference[] original=[new("Name",280),new("Assessment",140),new("Pid",56),new("Cpu",80)];
+        foreach(var x in new[]{400d,399,398,397}) {
+            var preview=TableColumns.ReorderPreview(original,"Pid",x);
+            Assert.Equal(new[]{"Name","Pid","Assessment","Cpu"},preview.Select(c=>c.Id));
+            Assert.Equal(56,preview.Single(c=>c.Id=="Pid").Width);
+        }
+        Assert.Equal(original,TableColumns.ReorderPreview(original,"Pid",440));
+        Assert.Equal(original,TableColumns.ReorderPreview(original,"Pid",100));
+        Assert.Equal(original,TableColumns.ReorderPreview(original,"Name",500));
+    }
     [Fact] public void LayoutAlwaysHasOneFirstNameAndRejectsUnknownDuplicateAndInvalidWidths()
     {
         var layout=TableColumns.Normalize([new("CommandLine",400),new("Name",double.NaN),new("Name",99),new("Bogus",99),new("Pid",-1)],false);

@@ -103,6 +103,7 @@ public sealed partial class MainWindow : Window
     {
         if (page is not ("Processes" or "Services")) return;
         var selected = (table?.SelectedItem as ProcessRow)?.Projection;
+        var selections=table?.SelectedItems.OfType<ProcessRow>().Select(r=>r.Projection).ToArray()??[];
         var projected=ProcessListProjection.Build(lastSnapshot,entities,analysis.Values.ToList(),
             new(search,presentation.Grouped,page=="Services",sort,expandedGroups,classificationFilter,
                 reorder?null:rows.Select(r=>r.Key).ToArray(),collapsedTree,sortDescending));
@@ -114,6 +115,7 @@ public sealed partial class MainWindow : Window
             var key = projectedRow.Key;
             if (!knownRows.TryGetValue(key, out var row)) knownRows[key] = row = new() { Key = key };
             row.TotalMemoryBytes=lastSnapshot.SystemResources?.TotalPhysicalBytes;
+            if(!ReferenceEquals(row.TableColumns,tableColumnWidths)) row.TableColumns=tableColumnWidths;
             row.Update(projectedRow); ordered.Add(row);
             QueueIcon(row);
             if(analysis.TryGetValue(entity.Identity,out var finding)) row.SetAnalysis(finding);
@@ -129,7 +131,12 @@ public sealed partial class MainWindow : Window
         }
         var live = entities.Select(ProcessListProjection.RowKey).Concat(projected.Rows.Select(r=>r.Key)).ToHashSet();
         foreach (var key in knownRows.Keys.Where(k => !live.Contains(k)).ToArray()) knownRows.Remove(key);
-        if (selected is not null && table is not null) table.SelectedItem = rows.FirstOrDefault(r => r.Key == selectedKey);
+        if(table is not null) {
+            var selectedKeys=selections.Select(s=>ProcessListProjection.SelectionKey(projected,s)).Where(k=>k is not null).ToHashSet();
+            if(selectedKey is not null) selectedKeys.Add(selectedKey);
+            foreach(var row in table.SelectedItems.OfType<ProcessRow>().Where(r=>!selectedKeys.Contains(r.Key)).ToArray()) table.SelectedItems.Remove(row);
+            foreach(var row in rows.Where(r=>selectedKeys.Contains(r.Key)&&!table.SelectedItems.Contains(r))) table.SelectedItems.Add(row);
+        }
         } finally { refreshingRows=false; }
         var active=entities.Select(e=>e.Identity).ToHashSet();
         foreach(var id in analysis.Keys.Where(id=>!active.Contains(id)).ToArray()) analysis.Remove(id);

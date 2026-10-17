@@ -94,6 +94,7 @@ public sealed partial class MainWindow
     private async Task CorrectSelectedAsync()
     {
         if(table?.SelectedItem is not ViewModels.ProcessRow row) return;
+        var entity=row.Entity;
         var axis=new ComboBox { Header="Assessment",ItemsSource=Enum.GetValues<AssessmentAxis>(),SelectedIndex=0 };
         var value=new ComboBox { Header="Classification",ItemsSource=RuleValidator.Values[AssessmentAxis.Purpose].ToArray(),SelectedIndex=0 };
         axis.SelectionChanged+=(_,_)=> { value.ItemsSource=RuleValidator.Values[(AssessmentAxis)axis.SelectedItem].ToArray(); value.SelectedIndex=0; };
@@ -102,13 +103,15 @@ public sealed partial class MainWindow
         var panel=new StackPanel { Spacing=8 }; panel.Children.Add(axis); panel.Children.Add(value); panel.Children.Add(scope); panel.Children.Add(reason);
         var dialog=new ContentDialog { Title="Correct classification",Content=panel,PrimaryButtonText="Save correction",CloseButtonText="Cancel",XamlRoot=PageContent.XamlRoot };
         if(await dialog.ShowAsync()!=ContentDialogResult.Primary) return;
+        if(!IsEntityCurrent(entity)) { await MessageAsync("Selection changed","The original process or service is no longer available. Select the current entry and try again."); return; }
         var selectedScope=(CorrectionScope)scope.SelectedItem;
-        var scopeValue=selectedScope switch { CorrectionScope.Executable=>row.Entity.Facts.GetValueOrDefault("hash"),
-            CorrectionScope.ApplicationFamily=>row.Entity.Owner,_=>row.Entity.Identity.Value };
+        var scopeValue=selectedScope switch { CorrectionScope.Executable=>entity.Facts.GetValueOrDefault("hash"),
+            CorrectionScope.ApplicationFamily=>entity.Owner,_=>entity.Identity.Value };
         if(string.IsNullOrWhiteSpace(scopeValue)) { await MessageAsync("Scope unavailable","This scope needs verified executable or application identity. Use invocation context instead."); return; }
         try
         {
-            var entry=await knowledge.LoadAsync(row.Entity.Identity,lifetime.Token);
+            var entry=await knowledge.LoadAsync(entity.Identity,lifetime.Token);
+            if(!IsEntityCurrent(entity)) { await MessageAsync("Selection changed","The original process or service is no longer available. No correction was saved."); return; }
             var selectedAxis=(AssessmentAxis)axis.SelectedItem;
             entry.Corrections.Add(new(Guid.NewGuid(),selectedScope,scopeValue,new(selectedAxis,(string)value.SelectedItem,
                 MetadataSanitizer.Normalize(reason.Text),Confidence.High,[],DateTimeOffset.UtcNow.AddDays(selectedAxis==AssessmentAxis.Purpose?30:7),[DataOrigin.UserCorrection])));
