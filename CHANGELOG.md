@@ -7,6 +7,8 @@ plans, implementation details and validation records belong in the project docum
 
 ### Added
 
+- Direct maximum-shading control with a brighter 50% default and system/custom color selection.
+
 - Optional logarithmic time axis on Performance charts, with labelled elapsed-time ticks.
 
 - Friendly Started-column dates with full timestamps preserved in tooltips and export.

@@ -62,13 +62,43 @@ public sealed partial class MainWindow
         if(new[]{measured.DiskBrush,measured.NetworkBrush,measured.GpuBrush}.OfType<SolidColorBrush>().Any(b=>b.Color.A!=0))
             throw new InvalidOperationException("Off mode left a resource cell shaded.");
         presentation=presentation with { ResourceShading=new() }; RefreshResourceShading(all:true);
+        presentation=presentation with { ResourceShading=new(MaximumOpacityPercent:80,UseSystemAccent:false,CustomColorHex:"#D050A0") };
+        RefreshResourceShading(all:true);
+        if(new[]{measured.CpuBrush,measured.MemoryBrush,measured.DiskBrush,measured.NetworkBrush,measured.GpuBrush}
+            .OfType<SolidColorBrush>().Any(brush=>brush.Color.R!=0xD0||brush.Color.G!=0x50||brush.Color.B!=0xA0||brush.Color.A==0))
+            throw new InvalidOperationException("Custom shading color was not applied consistently across resource columns.");
+        var usageNotifications=0;
+        System.ComponentModel.PropertyChangedEventHandler checkUsage=(_,args)=> { if(args.PropertyName is "CpuBrush" or "MemoryBrush") usageNotifications++; };
+        measured.PropertyChanged+=checkUsage; RefreshResourceShading(all:true); measured.PropertyChanged-=checkUsage;
+        if(usageNotifications!=0) throw new InvalidOperationException("A stable palette caused redundant CPU/Memory notifications.");
+        presentation=presentation with { ResourceShading=new() }; RefreshResourceShading(all:true);
         if(mode=="resource-shading-settings") {
+            var folder=Path.Combine(Path.GetTempPath(),"procsight-shading-"+Guid.NewGuid());
+            preferences=new(Path.Combine(folder,"settings.json"));
+            settingsController=new(preferences,(_,_)=>Task.CompletedTask,policy,presentation);
             resourceShadeTimer?.Stop(); PageContent.Children.Clear();
             var settings=(Expander)BuildResourceShadingSettings(); settings.IsExpanded=true;
             PageContent.Children.Add(new ScrollViewer { Content=settings,Margin=new Microsoft.UI.Xaml.Thickness(24) });
             await Task.Delay(100); settings.IsExpanded=true; await Task.Delay(300);
             if(!settings.IsExpanded||FixtureControls<ComboBox>(settings).Count()!=6)
                 throw new InvalidOperationException("Resource shading controls were not shown in the expanded native settings section.");
+            try {
+                var roof=FixtureControls<NumberBox>(settings).Single(n=>n.Name=="ResourceShadingRoof");
+                var colorSource=FixtureControls<ComboBox>(settings).Single(c=>c.Name=="ResourceShadingColorSource");
+                var picker=FixtureControls<ColorPicker>(settings).Single();
+                colorSource.SelectedIndex=1; roof.Value=80;
+                picker.Color=global::Windows.UI.Color.FromArgb(255,0xD0,0x50,0xA0);
+                await Task.Delay(700);
+                var saved=preferences.Load().Presentation.ResourceShading;
+                if(saved is not { MaximumOpacityPercent:80,UseSystemAccent:false,CustomColorHex:"#D050A0" }||picker.Visibility!=Microsoft.UI.Xaml.Visibility.Visible)
+                    throw new InvalidOperationException("Native roof/color edits were not persisted.");
+                roof.Value=double.NaN; await Task.Delay(450);
+                if(preferences.Load().Presentation.ResourceShading?.MaximumOpacityPercent!=80)
+                    throw new InvalidOperationException("A partial opacity draft replaced the valid setting.");
+                roof.Value=80; colorSource.SelectedIndex=0; await Task.Delay(500);
+                if(preferences.Load().Presentation.ResourceShading?.UseSystemAccent!=true||picker.Visibility!=Microsoft.UI.Xaml.Visibility.Collapsed)
+                    throw new InvalidOperationException("System highlight mode did not restore or hide the custom picker.");
+            } finally { settingsController=null; preferences=null!; if(Directory.Exists(folder)) Directory.Delete(folder,true); }
         }
     }
 }

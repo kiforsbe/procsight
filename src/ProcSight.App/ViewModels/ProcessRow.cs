@@ -64,10 +64,12 @@ public sealed partial class ProcessRow : INotifyPropertyChanged
     public string ServiceState=>Entity.Service?.State ?? "—";
     public string Startup=>Entity.Service?.StartMode ?? "—";
     private int minimumShadingPercent=5;
+    private int maximumShadingPercent=50;
+    private Func<byte,Brush>? usagePalette;
     private bool usageHighContrast;
-    public void ConfigureUsageShading(int minimumPercent,bool highContrast) {
-        if(minimumShadingPercent==minimumPercent&&usageHighContrast==highContrast) return;
-        minimumShadingPercent=minimumPercent; usageHighContrast=highContrast;
+    public void ConfigureUsageShading(int minimumPercent,bool highContrast,int maximumPercent=50,Func<byte,Brush>? palette=null) {
+        if(minimumShadingPercent==minimumPercent&&usageHighContrast==highContrast&&maximumShadingPercent==maximumPercent&&ReferenceEquals(usagePalette,palette)) return;
+        minimumShadingPercent=minimumPercent; usageHighContrast=highContrast; maximumShadingPercent=maximumPercent; usagePalette=palette;
         Changed(nameof(CpuBrush)); Changed(nameof(MemoryBrush));
     }
     public Brush CpuBrush=>Heat(Projection.CpuPercent,Projection.Members.Any(m=>m.Process?.Resources.CpuPercent.Value is not null));
@@ -75,10 +77,12 @@ public sealed partial class ProcessRow : INotifyPropertyChanged
         TotalMemoryBytes is >0&&Projection.Members.Any(m=>m.Process?.Resources.WorkingSetBytes.Value is not null));
     private Brush Heat(double percent,bool available)
     {
-        var color=new global::Windows.UI.ViewManagement.UISettings().GetColorValue(global::Windows.UI.ViewManagement.UIColorType.Accent);
         var floor=255*minimumShadingPercent/100d;
+        var roof=255*maximumShadingPercent/100d;
         var alpha=available&&!usageHighContrast&&double.IsFinite(percent)?
-            (byte)Math.Clamp(Math.Round(floor+(88-floor)*Math.Clamp(percent,0,100)/100),0,88):(byte)0;
+            (byte)Math.Clamp(Math.Round(floor+(roof-floor)*Math.Clamp(percent,0,100)/100),0,255):(byte)0;
+        if(usagePalette is not null) return usagePalette(alpha);
+        var color=new global::Windows.UI.ViewManagement.UISettings().GetColorValue(global::Windows.UI.ViewManagement.UIColorType.Accent);
         return new SolidColorBrush(global::Windows.UI.Color.FromArgb(alpha,color.R,color.G,color.B));
     }
     private RoleLabel? localRole;

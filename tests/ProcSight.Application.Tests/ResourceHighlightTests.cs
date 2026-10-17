@@ -4,6 +4,13 @@ using Xunit;
 namespace ProcSight.Application.Tests;
 public class ResourceHighlightTests
 {
+    [Fact] public void RoofIsDirectOpacityAndBrighterByDefault() {
+        var state=new ResourceHighlightState(1); state.Observe(10,DateTimeOffset.UnixEpoch,0);
+        var settings=new ResourceShadingOptions();
+        Assert.Equal(128,state.Opacity(ResourceShadingMode.RecentChanges,0,settings,100));
+        Assert.Equal(204,state.Opacity(ResourceShadingMode.RecentChanges,0,settings with { MaximumOpacityPercent=80 },100));
+        Assert.Equal(13,state.Opacity(ResourceShadingMode.RecentChanges,10,settings with { MaximumOpacityPercent=80 },100));
+    }
     [Fact] public void ConfigurableFloorDefaultsBelowPreviousTintAndNeverShadesMissingOrOff() {
         var state=new ResourceHighlightState(1); var options=new ResourceShadingOptions();
         state.Observe(0,DateTimeOffset.UnixEpoch,0);

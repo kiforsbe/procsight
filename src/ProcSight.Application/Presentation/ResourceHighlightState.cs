@@ -27,8 +27,8 @@ public sealed class ResourceHighlightState(double quantum)
     public byte Opacity(ResourceShadingMode mode,double now,ResourceShadingOptions settings,double visibleMaximum,bool highContrast=false) {
         if(value is null||mode==ResourceShadingMode.Off||highContrast) return 0;
         var floor=255*settings.MinimumOpacityPercent/100d;
-        var ceiling=Math.Max(floor,96*settings.IntensityPercent/100d);
-        return (byte)Math.Clamp(Math.Round(floor+(ceiling-floor)*Level(mode,now,settings.FadeSeconds,visibleMaximum)),0,96);
+        var ceiling=255*settings.MaximumOpacityPercent/100d;
+        return (byte)Math.Clamp(Math.Round(floor+(ceiling-floor)*Level(mode,now,settings.FadeSeconds,visibleMaximum)),0,255);
     }
     public double Level(ResourceShadingMode mode,double now,double fadeSeconds,double visibleMaximum) {
         if(value is not { } current||!double.IsFinite(now)) return 0;

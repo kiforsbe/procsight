@@ -10,13 +10,18 @@ public sealed record AnalysisPolicy(bool AutomaticEnabled = false, bool Research
     [property:System.Text.Json.Serialization.JsonIgnore] bool ExternalAnalysisAllowed=true);
 public sealed record TableColumnPreference(string Id,double Width);
 public enum ResourceShadingMode { Off,RecentChanges,CurrentActivity,RecentSpikes,TopConsumers }
+// IntensityPercent remains readable for older settings; MaximumOpacityPercent is the current roof.
 public sealed record ResourceShadingOptions(ResourceShadingMode Disk=ResourceShadingMode.RecentChanges,
     ResourceShadingMode Network=ResourceShadingMode.RecentChanges,ResourceShadingMode Gpu=ResourceShadingMode.RecentChanges,
-    int FadeSeconds=5,int IntensityPercent=50,int MinimumOpacityPercent=5)
+    int FadeSeconds=5,int IntensityPercent=50,int MinimumOpacityPercent=5,
+    int MaximumOpacityPercent=50,bool UseSystemAccent=true,string CustomColorHex="#0078D4")
 {
     public void Validate() {
         if(!Enum.IsDefined(Disk)||!Enum.IsDefined(Network)||!Enum.IsDefined(Gpu)||FadeSeconds is <1 or >30||IntensityPercent is <0 or >100||MinimumOpacityPercent is <0 or >15)
             throw new ArgumentException("Invalid resource shading preferences.");
+        if(MaximumOpacityPercent<MinimumOpacityPercent||MaximumOpacityPercent>100||CustomColorHex is not { Length:7 }||
+            CustomColorHex[0]!='#'||!CustomColorHex[1..].All(Uri.IsHexDigit))
+            throw new ArgumentException("Invalid resource shading color or opacity range.");
     }
 }
 public sealed record PresentationPreferences(string Theme = "System", bool Grouped = true,

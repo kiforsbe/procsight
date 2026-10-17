@@ -192,6 +192,10 @@ bounded tick controls and redraw charts without rebuilding the navigation shell.
 
 The shared resource shading floor defaults to 5%; valid zero readings may retain it, but missing
 values, disabled shading modes and high contrast remain transparent. Keep the floor configurable.
+The shared roof is direct opacity (50% default), never the legacy relative intensity multiplier.
+Use Windows accent by default or validated custom #RRGGBB. CPU/Memory and Disk/Network/GPU must
+share floor, roof and palette. Cache a stable palette delegate so fade ticks do not notify unchanged
+CPU/Memory cells. Preserve valid ranges and flush debounced native opacity/color edits on leaving.
 Started table text uses friendly local calendar/time formatting; full ISO timestamps remain in
 tooltips and explicit exports. Sort by the timestamp itself, with unknown values last.
 

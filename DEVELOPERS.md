@@ -2,6 +2,11 @@
 
 ## Current state
 
+Resource shading now persists `MaximumOpacityPercent`, system/custom color selection and a validated
+RGB hex value. The legacy `IntensityPercent` field remains readable but the direct roof replaces its
+relative multiplier. Native fixtures check custom color on all resource columns, a shared CPU/Memory
+roof, stable-palette notification isolation, debounced saves and rejection of partial opacity drafts.
+
 `PerformanceTimeAxisTests` cover linear/logarithmic elapsed-time mapping, endpoints, monotonicity
 and invalid times. The native `performance-log-time` fixture toggles the saved presentation mode,
 checks logarithmic tick labels and verifies that the existing subsystem list stays attached.

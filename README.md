@@ -78,10 +78,13 @@ them. New layouts include GPU; for an existing layout, enable **Choose columns �
 groups show the busiest GPU member. Missing GPU counters remain unavailable.
 Under **Settings → Appearance → Resource cell shading**, choose a mode independently for Disk,
 Network and GPU. Recent displayed-value changes brighten and fade by default; other modes show
-current activity, recent spikes or top consumers, or turn shading off. Fade duration and intensity
+current activity, recent spikes or top consumers, or turn shading off. Fade duration, opacity range and color
 apply immediately. Shading is disabled in high contrast and never represents a security judgment.
 **Minimum shading** sets the shared resource-cell floor, defaulting to 5% (slightly darker than
 the former CPU/Memory tint). Choose 0% for no floor. Unavailable readings and Off modes stay clear.
+**Maximum shading** sets the brightest opacity, now 50% by default. Choose the system highlight
+(Windows accent) or a custom color using the native picker. Floor, roof and color apply consistently
+to CPU, Memory, Disk, Network and GPU; the roof cannot be lower than the floor.
 The Started column uses friendly local dates/times; its tooltip and exports retain the full timestamp.
 
 The process-page overflow menu and Appearance settings offer **Automatically sort live values**.

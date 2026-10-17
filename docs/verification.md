@@ -1,5 +1,19 @@
 # Development verification
 
+## Resource shading roof and color — 2026-10-17
+
+Debug/Release builds passed with zero warnings/errors. Selected Release suites passed Core 74,
+Application 136, Windows 67 and Infrastructure 113 (390 total); Infrastructure excludes
+`FullyQualifiedName!~ChatGptAuth`. Tests cover the brighter 50% default, direct 80% roof,
+floor constraints, custom RGB validation and preference round-trip. Native fixtures verify all
+five resource columns share the custom color, CPU/Memory reach the configured roof, stable
+palette refreshes avoid redundant CPU/Memory notifications, and Off remains clear. Native
+settings checks exercise debounced persistence, invalid drafts and switching back to system color.
+Dark wide/light narrow shading, settings, row checks and column fixtures passed. Independent
+review identified the missing color-picker focus-loss flush; it was added before final verification.
+No authentication, credentials, provider or live inventory access occurred. Desktop accessibility,
+scaling and subjective contrast acceptance remain manual checks.
+
 ## Performance logarithmic time axis — 2026-10-17
 
 Debug and Release builds passed with zero warnings/errors. Selected Release suites passed Core

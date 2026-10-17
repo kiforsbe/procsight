@@ -187,6 +187,12 @@ actual start instants, with unknowns last, independently of presentation text.
 CPU/Memory heat reflects current utilization. All resource cells share a configurable minimum
 opacity (5% by default, below the former CPU/Memory 7% floor). Valid zero values retain the floor;
 missing values, Off modes and high contrast are transparent. Disk/Network/GPU use transient history.
+All five resource columns share a direct maximum opacity (50% default) and system Windows accent
+or custom RGB color. Validated settings enforce floor <= roof <= 100 and #RRGGBB only; no alpha
+channel hides inside the color. The old intensity multiplier is retained only for file compatibility.
+Native NumberBox/ColorPicker drafts update valid presentation state immediately and save after
+400 ms, with focus-loss/unload flushing. A stable shared palette delegate prevents unchanged
+CPU/Memory cells from receiving fade-tick notifications and reuses bounded brush instances.
 
 [ResourceHighlightState](src/ProcSight.Application/Presentation/ResourceHighlightState.cs) keeps
 one bounded numeric history per Disk/Network/GPU cell: the last displayed quantum, change/spike
@@ -198,7 +204,7 @@ consumers compare currently displayed rows. These relative scales do not establi
 
 [Row state](src/ProcSight.App/ViewModels/ProcessRow.ResourceShading.cs) remains transient and
 outside snapshot export, rules and provider payloads. Only
-[mode/fade/intensity preferences](src/ProcSight.Core/Models/PolicyModels.cs) persist.
+[mode/fade/opacity/color preferences](src/ProcSight.Core/Models/PolicyModels.cs) persist.
 [Native rendering](src/ProcSight.App/MainWindow.ResourceShading.cs) uses monotonic time, a bounded
 256-brush accent palette and one 200 ms timer for realized cells. Full snapshots initialize all row
 brushes; recycled cells refresh on realization. No timer runs off-page, and hidden/minimized windows

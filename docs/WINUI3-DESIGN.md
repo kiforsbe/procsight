@@ -34,12 +34,15 @@ Keyboard, Narrator, high contrast and scaling acceptance remain separate checks.
 Resource-cell backgrounds are optional presentation cues. Disk, Network and GPU default to
 recent displayed-value changes: brighten when the visible number changes, then fade without
 refreshing on unchanged polls. Offer per-column Off, Recent changes, Current activity, Recent
-spikes and Top consumers modes plus fade duration/intensity in Appearance. Explain relative
+spikes and Top consumers modes plus fade duration, opacity range and color in Appearance. Explain relative
 scales; never imply hardware saturation or trust. Missing values and high contrast have no heat.
 Use cached accent brushes, preserve text/selection contrast and retain brush bindings after drag.
 CPU and Memory retain usage-based heat. Resource cells share a configurable minimum opacity,
 defaulting to 5% (slightly below the former CPU/Memory 7% floor); valid zero readings retain that
 floor, while missing values, Off modes and high contrast remain transparent. A 0% floor disables it.
+Offer a direct maximum opacity (roof), default 50%, plus system highlight (Windows accent) or custom
+RGB color using a native ColorPicker. Keep floor <= roof, use a NumberBox for the roof, and debounce
+valid drafts with focus-loss/unload flush. Apply the same range/color across resource columns.
 
 Keep live process order stable by default. Offer automatic sorting as an explicit switch in
 Appearance and the process overflow menu; it follows the selected header direction. Automatic

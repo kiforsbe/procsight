@@ -29,6 +29,11 @@ public sealed partial class MainWindow
         row.Update(Project(Resolve(process with { Resources=process.Resources with {
             CpuPercent=Observation<double>.Missing("Synthetic unavailable"),WorkingSetBytes=Observation<long>.Missing("Synthetic unavailable") } })));
         Check(Alpha(row.CpuBrush)==0&&Alpha(row.MemoryBrush)==0,"Unavailable CPU/memory cells retain a minimum tint.");
+        row.ConfigureUsageShading(5,false,80);
+        row.Update(Project(Resolve(process with { Resources=process.Resources with {
+            CpuPercent=Observation<double>.Available(100),WorkingSetBytes=Observation<long>.Available(10485760) } })));
+        Check(Alpha(row.CpuBrush)==204&&Alpha(row.MemoryBrush)==204,"CPU/memory do not share the configured opacity roof.");
+        row.ConfigureUsageShading(5,false);
         row.TotalMemoryBytes=null;
         row.Update(Project(Resolve(process)));
         Check(row.Started!=now.ToString("O")&&row.StartedDetails==now.ToString("O"),"Started display did not separate friendly text from its full tooltip.");
