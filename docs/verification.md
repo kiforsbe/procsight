@@ -1,5 +1,14 @@
 # Development verification
 
+## Stable Performance navigation — 2026-10-17
+
+The native navigation fixture first failed against the previous implementation because selecting
+GPU replaced the sidebar. After separating persistent navigation from right-hand content, dark
+1200px and light 660px navigation fixtures passed across all subsystems, including synchronized
+compact selection and retained sidebar/item instances. A network detail fixture also passed.
+Debug and Release builds passed with zero warnings/errors using isolated ignored output because
+the user's running Debug executable was locked. No authentication tests or real account access ran.
+
 ## Resource monitoring and selected Performance layout — 2026-10-17
 
 Locked restore and solution Release build passed with zero warnings/errors. Release suites passed:

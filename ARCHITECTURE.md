@@ -200,7 +200,9 @@ No system metric substitutes for per-process attribution.
 [Performance view](src/ProcSight.App/MainWindow.PerformanceView.cs) opens Overview first, with
 a compact live subsystem selector and five adaptive tiles. CPU, Memory, Disks, Network and GPU
 have native graph/readings detail views. [Sampling dispatch](src/ProcSight.App/MainWindow.Performance.cs)
-coalesces pending updates and keeps at most 60 observations in memory. Missing samples break
+coalesces pending updates and keeps at most 60 observations in memory. Subsystem selection retains
+the sidebar, chart instances and compact selector; only the right-hand page is rebuilt, avoiding
+list entrance transitions during navigation. Missing samples break
 graph lines; accessible text and theme resources accompany every chart. Neither sampling path
 uses AI, persistent history or provider payloads.
 

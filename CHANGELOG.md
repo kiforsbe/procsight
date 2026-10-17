@@ -54,6 +54,8 @@ plans, implementation details and validation records belong in the project docum
 
 ### Fixed
 
+- Performance subsystem navigation keeps the left list in place instead of replaying its entrance animation.
+
 - Connection dialogs retain working account/model controls through transient visual unloads and
   own fresh editor panels to avoid reopening crashes.
 - Evidence-backed known-purpose analysis creates an exact-binary rule when the provider proposes none, preserving

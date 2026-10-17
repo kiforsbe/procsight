@@ -13,6 +13,8 @@ is selected. Overview uses five uniform tile buttons with label, primary reading
 and small graph; use three tiles above two on wide windows, two columns at medium widths and one
 when necessary. Each tile opens the corresponding subsystem detail page with a larger history
 graph and structured readings. Keep selected subsystem for the window session.
+Keep the sidebar, its items/charts and compact selector attached when switching subsystems.
+Replace only right-hand page content; replaying list entrance transitions makes navigation bounce.
 
 On narrow windows replace the sidebar with a native ComboBox and keep the content vertically
 scrollable. Use theme resources for series colors, including high-contrast resources, with text

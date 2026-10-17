@@ -74,6 +74,7 @@ public sealed partial class MainWindow : Window
         if(PageContent is null) return;
         PageContent.Children.Clear();
         updatePerformanceView=null;
+        changePerformanceSection=null;
         if(page=="Performance") { RenderPerformance(); return; }
         if(page=="Settings") { RenderSettings(); return; }
         if(page=="Knowledge") { RenderKnowledge(); return; }

@@ -306,12 +306,29 @@ public sealed partial class MainWindow
                     if(performanceSubsystem==PerformanceSubsystem.Overview&&FindPerformance<Microsoft.UI.Xaml.Controls.Grid>(PageContent,g=>g.Name=="PerformanceOverviewTiles")?.Children.Count!=5)
                         throw new InvalidOperationException("Performance overview must have five tiles.");
                     if(args[5]=="performance-navigation") {
+                        var originalSidebar=sections!;
+                        var originalItems=originalSidebar.Items.Cast<object>().ToArray();
+                        var originalPicker=FindPerformance<Microsoft.UI.Xaml.Controls.ComboBox>(PageContent,c=>c.Name=="PerformanceCompactPicker");
                         sections.SelectedIndex=5; await Task.Delay(100);
+                        if(!ReferenceEquals(originalSidebar,FindPerformance<Microsoft.UI.Xaml.Controls.ListView>(PageContent,v=>v.Name=="PerformanceSubsystems")))
+                            throw new InvalidOperationException("Subsystem navigation rebuilt the sidebar and replays its entrance animation.");
                         if(performanceSubsystem!=PerformanceSubsystem.Gpu||FindPerformance<Microsoft.UI.Xaml.Controls.Grid>(PageContent,g=>g.Name=="PerformanceDetailReadings") is null)
                             throw new InvalidOperationException("GPU detail navigation failed.");
                         sections=FindPerformance<Microsoft.UI.Xaml.Controls.ListView>(PageContent,v=>v.Name=="PerformanceSubsystems");
                         sections!.SelectedIndex=0; await Task.Delay(100);
                         if(performanceSubsystem!=PerformanceSubsystem.Overview) throw new InvalidOperationException("Overview navigation failed.");
+                        foreach(var section in Enum.GetValues<PerformanceSubsystem>()) {
+                            originalSidebar.SelectedIndex=(int)section; await Task.Delay(40);
+                            WindowRoot.UpdateLayout();
+                            if(!ReferenceEquals(originalSidebar,FindPerformance<Microsoft.UI.Xaml.Controls.ListView>(PageContent,v=>v.Name=="PerformanceSubsystems"))||
+                                !originalItems.SequenceEqual(originalSidebar.Items.Cast<object>())||
+                                !ReferenceEquals(originalPicker,FindPerformance<Microsoft.UI.Xaml.Controls.ComboBox>(PageContent,c=>c.Name=="PerformanceCompactPicker"))||
+                                originalPicker!.SelectedIndex!=(int)section||performanceSubsystem!=section)
+                                throw new InvalidOperationException("Performance navigation replaced its shell or lost selection synchronization.");
+                        }
+                        originalPicker!.SelectedIndex=0; await Task.Delay(40);
+                        if(originalSidebar.SelectedIndex!=0||performanceSubsystem!=PerformanceSubsystem.Overview)
+                            throw new InvalidOperationException("Compact navigation did not synchronize the persistent sidebar.");
                     }
                 }
                 if(args.Length>5&&args[5].StartsWith("activity",StringComparison.Ordinal)) {

@@ -213,6 +213,8 @@ before the last window's first asynchronous shutdown await; ETW survives owner p
 The Performance page keeps 60 system samples in memory, with compact left navigation, Overview
 tiles first and native subsystem details. Preserve independent off-thread sampling, bounded
 dispatcher updates, theme resources, text equivalents and explicit missing/warm-up states.
+Subsystem navigation must retain sidebar items/charts and the compact selector; update only
+right-hand content so selection does not replay list entrance transitions.
 
 Settings apply valid values immediately, with 400 ms text debounce and focus-loss flush; partial
 drafts cannot replace active configuration. API keys commit only on Enter/focus loss. Restrictive

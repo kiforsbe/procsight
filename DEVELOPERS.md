@@ -12,7 +12,9 @@ Native `--visual-fixture <absolute.png> Dark|Light 1200|660 <fixture>` modes inc
 `performance-overview`, `performance-navigation`, `performance-cpu`, `performance-memory`,
 `performance-disks`, `performance-network`, `performance-gpu`, `performance-empty`,
 `performance-unavailable` and `process-io`. These use synthetic data only. They exercise native
-navigation, responsive tiles, graphs, details and process rate availability. Keep captures under
+navigation, responsive tiles, graphs, details and process rate availability. `performance-navigation`
+also checks that every subsystem switch retains the same sidebar items and compact selector and
+synchronizes both navigation controls. Keep captures under
 ignored `artifacts/performance-ui`. Elevated event delivery, end-to-end rate attribution, shutdown
 session removal, Narrator, high contrast and scaling still require manual desktop acceptance.
 

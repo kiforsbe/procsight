@@ -8,9 +8,10 @@ public sealed partial class MainWindow
 {
     private static readonly PerformanceSubsystem[] PerformanceSections=[PerformanceSubsystem.Overview,PerformanceSubsystem.Cpu,
         PerformanceSubsystem.Memory,PerformanceSubsystem.Disks,PerformanceSubsystem.Network,PerformanceSubsystem.Gpu];
+    private Action? changePerformanceSection;
     private void SelectPerformance(PerformanceSubsystem section) {
         if(performanceSubsystem==section) return;
-        performanceSubsystem=section; RenderPage();
+        performanceSubsystem=section; changePerformanceSection?.Invoke();
     }
     private void RenderPerformance() {
         var root=new Grid(); root.RowDefinitions.Add(new() { Height=GridLength.Auto }); root.RowDefinitions.Add(new());
@@ -51,11 +52,18 @@ public sealed partial class MainWindow
             SelectedIndex=(int)performanceSubsystem,HorizontalAlignment=HorizontalAlignment.Stretch,Visibility=Visibility.Collapsed };
         compactPicker.SelectionChanged+=(_,_)=> { if(compactPicker.SelectedIndex>=0) SelectPerformance((PerformanceSubsystem)compactPicker.SelectedIndex); };
         main.Children.Add(compactPicker);
+        var contentUpdates=new List<Action>();
+        Grid? tiles=null;
+        TextBlock? context=null;
+        var arranged=-1;
+        void BuildContent() {
+        contentUpdates.Clear(); tiles=null; arranged=-1;
+        // Keep navigation controls attached: rebuilding them replays ListView entrance transitions.
+        while(main.Children.Count>1) main.Children.RemoveAt(main.Children.Count-1);
         var heading=new Grid { ColumnSpacing=12 }; heading.ColumnDefinitions.Add(new()); heading.ColumnDefinitions.Add(new() { Width=GridLength.Auto });
         heading.Children.Add(new TextBlock { Text=performanceSubsystem==PerformanceSubsystem.Overview?"System overview":SubsystemName(performanceSubsystem),FontSize=26,FontWeight=Microsoft.UI.Text.FontWeights.SemiBold,TextWrapping=TextWrapping.Wrap });
-        var context=new TextBlock { Text="Last 60 samples",Opacity=.7,FontSize=12,VerticalAlignment=VerticalAlignment.Center };
+        context=new TextBlock { Text="Last 60 samples",Opacity=.7,FontSize=12,VerticalAlignment=VerticalAlignment.Center };
         Grid.SetColumn(context,1); heading.Children.Add(context); main.Children.Add(heading);
-        Grid? tiles=null;
         if(performanceSubsystem==PerformanceSubsystem.Overview) {
             tiles=new Grid { Name="PerformanceOverviewTiles",ColumnSpacing=12,RowSpacing=12,HorizontalAlignment=HorizontalAlignment.Stretch };
             main.Children.Add(tiles);
@@ -69,7 +77,7 @@ public sealed partial class MainWindow
                 var tile=new Button { Content=content,Padding=new Thickness(0),HorizontalAlignment=HorizontalAlignment.Stretch,
                     HorizontalContentAlignment=HorizontalAlignment.Stretch,VerticalAlignment=VerticalAlignment.Stretch,Tag=section };
                 tile.Click+=(_,_)=>SelectPerformance(section); tiles.Children.Add(tile);
-                updates.Add(()=> { var point=performanceHistory.LastOrDefault(); var metric=point?.Metric(section);
+                contentUpdates.Add(()=> { var point=performanceHistory.LastOrDefault(); var metric=point?.Metric(section);
                     reading.Text=MetricValue(metric,section); description.Text=OverviewDetail(point,section);
                     chart.Update(performanceHistory.Select(p=>p.Metric(section)).ToArray(),section!=PerformanceSubsystem.Network);
                     ToolTipService.SetToolTip(tile,metric?.State==ObservationState.Unavailable?metric.Reason:MetricDescription(section));
@@ -100,7 +108,7 @@ public sealed partial class MainWindow
                 Grid.SetColumn(group,index); readings.Children.Add(group);
             }
             var note=new TextBlock { FontSize=12,Opacity=.7,TextWrapping=TextWrapping.Wrap }; main.Children.Add(note);
-            updates.Add(()=> { var point=performanceHistory.LastOrDefault(); var metric=point?.Metric(section);
+            contentUpdates.Add(()=> { var point=performanceHistory.LastOrDefault(); var metric=point?.Metric(section);
                 reading.Text=MetricValue(metric,section); graph.Update(performanceHistory.Select(p=>p.Metric(section)).ToArray(),section!=PerformanceSubsystem.Network);
                 caption.Text=section==PerformanceSubsystem.Cpu&&point?.CpuName is { Length:>0 } name?name:MetricDescription(section);
                 var fields=DetailReadings(point,section); for(var index=0;index<values.Count;index++) values[index].Text=fields[index];
@@ -115,11 +123,11 @@ public sealed partial class MainWindow
                 for(var row=0;row<(stacked?labels.Length:1);row++) readings.RowDefinitions.Add(new() { Height=GridLength.Auto });
                 for(var index=0;index<readings.Children.Count;index++) { Grid.SetColumn((FrameworkElement)readings.Children[index],stacked?0:index); Grid.SetRow((FrameworkElement)readings.Children[index],stacked?index:0); Grid.SetColumnSpan((FrameworkElement)readings.Children[index],stacked?3:1); } };
         }
-        var arranged=-1;
+        }
         void Arrange(double width) {
             var compact=width<790; sidebar.Visibility=compact?Visibility.Collapsed:Visibility.Visible;
             layout.ColumnDefinitions[0].Width=new GridLength(compact?0:190); compactPicker.Visibility=compact?Visibility.Visible:Visibility.Collapsed;
-            context.Visibility=width<500?Visibility.Collapsed:Visibility.Visible;
+            if(context is not null) context.Visibility=width<500?Visibility.Collapsed:Visibility.Visible;
             if(tiles is null) return;
             var available=width-(compact?44:234); var columns=available>=620?3:available>=380?2:1;
             if(arranged==columns) return; arranged=columns; tiles.ColumnDefinitions.Clear(); tiles.RowDefinitions.Clear();
@@ -133,8 +141,15 @@ public sealed partial class MainWindow
                 Grid.SetColumnSpan(element,columns==3?(index<3?2:3):1);
             }
         }
-        root.SizeChanged+=(_,e)=>Arrange(e.NewSize.Width); Arrange(PageContent.ActualWidth);
-        updatePerformanceView=()=> { foreach(var update in updates) update(); }; updatePerformanceView();
+        root.SizeChanged+=(_,e)=>Arrange(e.NewSize.Width);
+        updatePerformanceView=()=> { foreach(var update in updates) update(); foreach(var update in contentUpdates) update(); };
+        changePerformanceSection=()=> {
+            sidebar.SelectedItem=sidebar.Items.Cast<ListViewItem>().Single(item=>Equals(item.Tag,performanceSubsystem));
+            compactPicker.SelectedIndex=(int)performanceSubsystem;
+            BuildContent(); scroll.ChangeView(null,0,null,true);
+            Arrange(root.ActualWidth>0?root.ActualWidth:PageContent.ActualWidth); updatePerformanceView();
+        };
+        changePerformanceSection();
     }
     private static string MemorySize(long? bytes)=>bytes is { } value?$"{Math.Max(0,value)/1073741824d:F1} GB":"Unavailable";
     private static string ByteRate(Observation<double>? value,bool network=false)=>value is null?"Unavailable":
