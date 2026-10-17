@@ -9,6 +9,8 @@ in this repository; planned product features are documented in the design and ro
 
 - Windows 11 table-interaction guidelines derived from the supplied Task Manager recording:
   live reorder previews, dragged-header feedback, edge resize cursors and stable row/header cells.
+  The accepted full-column drag and invisible divider resize behavior is recorded as the approved
+  baseline for future native tables.
 
 - Native context-aware process/service menus, Ctrl/Shift multi-selection, resizable/reorderable
   columns and an immediate column chooser. Name stays first and visible; separate process/service

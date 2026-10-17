@@ -63,6 +63,13 @@ The user's Windows 11 Task Manager recording `20261017-0659-52.2612434.mp4`, rev
 being moved among neighboring headers and later shows column-edge resizing. Record the behavior
 here; do not check the recording or its real process inventory into the repository.
 
+**Approved interaction baseline:** on 2026-10-17 the user accepted the implementation in
+commit `e438eb4`. Preserve this behavior for process/service tables and reuse it for future native
+tables: the full column follows the mouse fluidly, neighbors slide aside, and resizing uses an
+invisible target spanning both sides of the thin divider. Do not reintroduce visible grips or
+replace full-column movement with a floating header label. Treat these conventions as established
+product requirements when changing shared table controls.
+
 - **Header body:** clicking sorts; pressing and moving horizontally beyond a small drag threshold
   begins reordering. The drag must not also change the sort. The entire column, including the full
   header, resource summary, sort indicator and visible body cells, follows the pointer continuously

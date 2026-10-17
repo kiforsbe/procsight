@@ -22,6 +22,10 @@ coverage is separate from physical pointer acceptance, including Escape and rapi
 while a neighbor animation is active, which remains manual. Narrator/high contrast/scaling were not
 revalidated.
 
+The user subsequently accepted the column interaction in `e438eb4` on 2026-10-17 as the desired
+behavior. This is recorded as the approved baseline in WINUI3-DESIGN.md; it does not independently
+establish the untested accessibility, cancellation or rapid-scroll cases above.
+
 Locked Release verification passed 378 .NET tests and 70 script checks with zero build warnings or
 errors. Independent static review found a Services fixture incorrectly assuming a CPU column; it was
 corrected. No further blocking findings remained. Architecture diagrams parsed/rendered and relative
