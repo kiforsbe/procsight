@@ -28,6 +28,7 @@ public sealed partial class MainWindow
             }
         }
         if(args.InRecycleQueue) return;
+        if(args.Item is ProcessRow resourceRow) RefreshResourceShading(only:resourceRow);
         if(args.Phase==0) { args.RegisterUpdateCallback(1,BindRowChevron); return; }
         void Bind(DependencyObject parent) {
             if(parent is Button { Tag:string } button) { button.Click-=ToggleExpansion; button.Click+=ToggleExpansion; return; }
@@ -159,7 +160,7 @@ public sealed partial class MainWindow
             var binding=id switch { "Assessment"=>"Status","Owner"=>"Ownership",_=>id };
             var value="{Binding "+binding+"}";
             var tooltip=id is "Disk" or "Network" or "Gpu"?"{Binding "+id+"Details}":value;
-            var background=id is "Cpu" or "Memory"?$" Background=\"{{Binding {id}Brush}}\"":"";
+            var background=id is "Cpu" or "Memory" or "Disk" or "Network" or "Gpu"?$" Background=\"{{Binding {id}Brush}}\"":"";
             var alignment=id is "Pid" or "ParentPid" or "Cpu" or "Memory" or "Disk" or "Network" or "Gpu"?" HorizontalAlignment=\"Right\"":"";
             text.Append($"<Border Tag=\"{id}\" Grid.Column=\"{i}\" BorderThickness=\"1,0,0,0\" BorderBrush=\"{{ThemeResource DividerStrokeColorDefaultBrush}}\"{background}><TextBlock Text=\"{value}\" ToolTipService.ToolTip=\"{tooltip}\" FontSize=\"12\" Margin=\"8,0\" VerticalAlignment=\"Center\" TextTrimming=\"CharacterEllipsis\"{alignment}/></Border>");
         }

@@ -7,6 +7,9 @@ plans, implementation details and validation records belong in the project docum
 
 ### Added
 
+- Configurable Disk/Network/GPU shading for recent changes, activity, spikes and top consumers.
+- Optional automatic process sorting; stable ordering remains the default.
+
 - Per-process GPU column with busiest-engine utilization, sorting and export.
 - Process-page monitoring availability notice with an explicit administrator restart action.
 

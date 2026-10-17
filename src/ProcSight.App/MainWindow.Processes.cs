@@ -62,6 +62,11 @@ public sealed partial class MainWindow
         var grouped=new AppBarToggleButton { Label="Group by application",Icon=new SymbolIcon(Symbol.AllApps),IsChecked=presentation.Grouped };
         grouped.Click+=(_,_)=> { presentation=presentation with { Grouped=grouped.IsChecked==true }; SavePresentation(); RefreshRows(); };
         commands.SecondaryCommands.Add(grouped);
+        if(page=="Processes") {
+            var autoSort=new AppBarToggleButton { Label="Automatically sort live values",IsChecked=presentation.AutomaticProcessSorting };
+            autoSort.Click+=(_,_)=> { presentation=presentation with { AutomaticProcessSorting=autoSort.IsChecked==true }; SavePresentation(); RefreshRows(); };
+            commands.SecondaryCommands.Add(autoSort);
+        }
         var raw=new AppBarButton { Label="Process tree",Icon=new SymbolIcon(Symbol.List) };
         raw.Click+=(_,_)=> { presentation=presentation with { Grouped=false }; grouped.IsChecked=false; SavePresentation(); RefreshRows(); };
         commands.SecondaryCommands.Add(raw);
@@ -164,7 +169,7 @@ public sealed partial class MainWindow
         Grid.SetColumn(detailsBorder,1); processBody.Children.Add(detailsBorder);
         processBody.SizeChanged+=(_,_)=>UpdateDetailsLayout();
         status=new TextBlock { Text="Collecting local metadata…",FontSize=11,Opacity=.65,Margin=new Thickness(16,0,8,0),VerticalAlignment=VerticalAlignment.Center,TextTrimming=TextTrimming.CharacterEllipsis };
-        Grid.SetRow(status,3); root.Children.Add(status); PageContent.Children.Add(root); UpdateDetailsLayout(); RefreshRows();
+        Grid.SetRow(status,3); root.Children.Add(status); PageContent.Children.Add(root); UpdateDetailsLayout(); RefreshRows(); ConfigureResourceShadingTimer();
     }
     private void SelectSort(ProcessSort column)
     {

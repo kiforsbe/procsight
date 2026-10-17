@@ -49,12 +49,12 @@ public sealed partial class MainWindow
             new(Observation<double>.Available(i==0?3.2:0),Observation<long>.Available((12+i*5)*1048576L),
                 Observation<double>.Missing("Not collected"),Observation<double>.Missing("Not collected"),now,TimeSpan.FromSeconds(1)),[],
                 name=="node.exe"?new CommandLineValue(i==2?"node.exe --type=extensionHost":i==3?"node.exe --type=renderer":"node.exe --type=gpu-process",now):null)).ToList();
-        if(args.Length>5&&args[5] is "scroll" or "layout") {
+        if(args.Length>5&&args[5] is "scroll" or "layout" or "live-sort") {
             processes.AddRange(Enumerable.Range(0,60).Select(i=>processes[0] with { Key=new(2000+i,now,null),
                 Executable=new("python.exe",Product:"Python"),CommandLine=new($"python.exe script_{i:00}.py --token PRIVATE",now) }));
         }
         var fixtureLifetime=new ProcSight.Windows.Collection.ProcessLifetimeTracker();
-        if(args.Length>5&&args[5]=="process-io") {
+        if(args.Length>5&&args[5] is "process-io" or "resource-shading" or "resource-shading-settings" or "live-sort") {
             processes=processes.Select((p,index)=>p with { Resources=p.Resources with {
                 DiskBytesPerSecond=index==0?Observation<double>.Missing("Synthetic permission unavailable"):Observation<double>.Available(index*1000000),
                 NetworkBytesPerSecond=index==0?Observation<double>.Pending():Observation<double>.Available(index*125000),
@@ -135,6 +135,7 @@ public sealed partial class MainWindow
                         tableColumnLayout.All(c=>c.Id!="Gpu")||processIoNotice is not { IsOpen:true,ActionButton:not null })
                         throw new InvalidOperationException("Process throughput values or availability did not bind to live rows.");
                 }
+                if(args.Length>5&&args[5] is "resource-shading" or "resource-shading-settings" or "live-sort") await CheckResourceShadingAsync(args[5]);
                 if(args.Length>5&&args[5]=="services") {
                     Navigation.SelectedItem=Navigation.MenuItems.OfType<Microsoft.UI.Xaml.Controls.NavigationViewItem>().First(i=>i.Tag?.ToString()=="Services"); page="Services"; RenderPage(); await Task.Delay(350);
                 }

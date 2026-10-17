@@ -28,6 +28,10 @@ public sealed partial class MainWindow
         var theme=new ComboBox { ItemsSource=new[]{"System","Light","Dark"},SelectedItem=presentation.Theme,MinWidth=170 };
         theme.SelectionChanged+=async(_,_)=> { presentation=presentation with { Theme=(string)theme.SelectedItem }; ConfigureTheme(); await Apply(policy); };
         panel.Children.Add(SettingsCard("\uE790","App theme","Choose which theme the app displays",theme));
+        panel.Children.Add(BuildResourceShadingSettings());
+        var autoSort=new ToggleSwitch { IsOn=presentation.AutomaticProcessSorting };
+        autoSort.Toggled+=async(_,_)=> { presentation=presentation with { AutomaticProcessSorting=autoSort.IsOn }; await Apply(policy); };
+        panel.Children.Add(SettingsCard("\uE8CB","Automatically sort process list","Off keeps row order stable until you sort or refresh; on follows the selected sort column",autoSort));
         panel.Children.Add(BuildTraySettings());
         SettingsSection(panel,"AI connections");
         if(runtimeWarning is not null) panel.Children.Add(new InfoBar { IsOpen=true,Severity=InfoBarSeverity.Warning,Message=runtimeWarning,IsClosable=false });

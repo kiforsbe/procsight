@@ -49,7 +49,7 @@ public sealed partial class MainWindow : Window
         ConfigureTray();
         performanceLoop=RunPerformanceAsync();
         Closed += async (_, _) => {
-            lifetime.Cancel();
+            lifetime.Cancel(); resourceShadeTimer?.Stop();
             // Stop the owned kernel session before the first await and final dispatcher exit.
             collector.Stop(); tray?.Dispose();
             if(trayLoop is not null) await trayLoop;
@@ -73,6 +73,7 @@ public sealed partial class MainWindow : Window
     {
         if(PageContent is null) return;
         PageContent.Children.Clear();
+        resourceShadeTimer?.Stop();
         updatePerformanceView=null;
         changePerformanceSection=null;
         if(page=="Performance") { RenderPerformance(); return; }
@@ -114,6 +115,9 @@ public sealed partial class MainWindow : Window
     private void RefreshRows(bool reorder=false)
     {
         if (page is not ("Processes" or "Services")) return;
+        var explicitReorder=reorder;
+        reorder|=page=="Processes"&&presentation.AutomaticProcessSorting&&draggedColumnId is null;
+        var highlightAt=ShadeClock;
         var selected = (table?.SelectedItem as ProcessRow)?.Projection;
         var selections=table?.SelectedItems.OfType<ProcessRow>().Select(r=>r.Projection).ToArray()??[];
         var projected=ProcessListProjection.Build(lastSnapshot,entities,analysis.Values.ToList(),
@@ -128,14 +132,14 @@ public sealed partial class MainWindow : Window
             if (!knownRows.TryGetValue(key, out var row)) knownRows[key] = row = new() { Key = key };
             row.TotalMemoryBytes=lastSnapshot.SystemResources?.TotalPhysicalBytes;
             if(!ReferenceEquals(row.TableColumns,tableColumnWidths)) row.TableColumns=tableColumnWidths;
-            row.Update(projectedRow); ordered.Add(row);
+            row.Update(projectedRow); row.ObserveHighlights(highlightAt); ordered.Add(row);
             QueueIcon(row);
             if(analysis.TryGetValue(entity.Identity,out var finding)) row.SetAnalysis(finding);
         }
         var wanted = ordered.Select(r => r.Key).ToHashSet();
         refreshingRows=true;
         try {
-        if(reorder&&Math.Max(rows.Count,ordered.Count)>64&&!rows.SequenceEqual(ordered)) rows.ReplaceOrder(ordered);
+        if(explicitReorder&&Math.Max(rows.Count,ordered.Count)>64&&!rows.SequenceEqual(ordered)) rows.ReplaceOrder(ordered);
         else {
             for (var i = rows.Count-1; i >=0; i--) if (!wanted.Contains(rows[i].Key)) rows.RemoveAt(i);
             for (var i = 0; i < ordered.Count; i++) {
@@ -153,6 +157,9 @@ public sealed partial class MainWindow : Window
             foreach(var row in rows.Where(r=>selectedKeys.Contains(r.Key)&&!table.SelectedItems.Contains(r))) table.SelectedItems.Add(row);
         }
         } finally { refreshingRows=false; }
+        resourceShadeMaximum=(rows.Select(r=>r.HighlightValues.Disk).DefaultIfEmpty().Max(),
+            rows.Select(r=>r.HighlightValues.Network).DefaultIfEmpty().Max(),rows.Select(r=>r.HighlightValues.Gpu).DefaultIfEmpty().Max());
+        RefreshResourceShading(all:true);
         var active=entities.Select(e=>e.Identity).ToHashSet();
         foreach(var id in analysis.Keys.Where(id=>!active.Contains(id)).ToArray()) analysis.Remove(id);
         ShowDetail(table?.SelectedItem as ProcessRow);

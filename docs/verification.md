@@ -1,5 +1,26 @@
 # Development verification
 
+## Resource shading and optional live sorting — 2026-10-17
+
+Debug/Release builds passed with zero warnings/errors. Selected Release suites passed Core 74,
+Application 130, Windows 67 and Infrastructure 113 (384 total); Infrastructure excludes
+`FullyQualifiedName!~ChatGptAuth`. No authentication, credentials, live inventory or providers were
+used. Numeric tests cover unchanged-poll fade, visible precision, missing values, repeated snapshots,
+activity/spike/relative modes and idle zero; preferences tests cover new and older settings files.
+
+Native dark wide/light narrow shading, expanded settings, large-list live sorting and column
+dragging fixtures passed. The 83-row sort fixture first reproduced an unwanted collection Reset;
+the fix distinguishes automatic ordering from explicit bulk reorder, retaining selection and
+using incremental moves. Independent review found that issue and no other concrete shading,
+timer, drag-binding or persistence defects. Captures remain ignored under `artifacts/resource-shading`.
+Keyboard interaction, Narrator, high contrast, scaling and sustained live-load frame timing remain
+manual acceptance items. Shading indicates observation recency/activity, never confidence or threat.
+The optimized synthetic UI/rules harness also completed: 1,000-row refresh mean 7.36 ms (p95
+18.00 ms), column translation 0.05 ms (p95 0.09 ms), and crossing preview 0.22 ms (p95 0.33 ms).
+Large explicit sort/search remained above a frame budget (means 34.66/28.88 ms); these figures
+do not establish sustained live frame-rate acceptance. The highlighting sequence diagram rendered
+with Mermaid CLI; local documentation links and whitespace checks passed.
+
 ## Per-process GPU and I/O permission feedback — 2026-10-17
 
 A read-only token check confirmed the user's running instance was not elevated; `logman query -ets`

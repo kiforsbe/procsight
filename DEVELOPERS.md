@@ -10,6 +10,11 @@ samples local system counters without process inventory or AI. No credential acc
 `ProcessGpuTests` cover engine aggregation, missing samples and reused lifetimes. GPU uses a separate
 off-thread PDH query; `SortTests` cover numeric GPU order and invariant export. The `process-io`
 fixture also checks GPU bindings, new-layout columns and the process-page permission notice.
+`ResourceHighlightTests` verify recency without poll refresh, missing samples, peak/spike/relative
+modes and idle readings. Presentation preference tests cover shading round-trip and older files.
+Native `resource-shading`, `resource-shading-settings` and `live-sort` fixtures use synthetic values
+only. They verify shading/drag binding restoration, mode controls and an 83-row manual/automatic
+sort transition with retained selection and no collection Reset on automatic reordering.
 
 Native `--visual-fixture <absolute.png> Dark|Light 1200|660 <fixture>` modes include
 `performance-overview`, `performance-navigation`, `performance-cpu`, `performance-memory`,

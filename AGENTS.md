@@ -14,7 +14,9 @@ build, and all four test projects. See `docs/verification.md` for actual checks 
 live API/desktop validation. The user approved this feature branch and checkout; preserve
 their shared VS Code files. Do not imply release readiness from synthetic tests alone.
 
-Live-list updates preserve sibling order and keys; explicit sort/refresh may reorder.
+Live-list updates preserve sibling order and keys by default; explicit sort/refresh may reorder.
+Opt-in automatic process sorting follows the selected sort column using incremental moves, never
+the explicit bulk-reset path; pause automatic reordering during column dragging. Preserve selection.
 Application groups require multiple visible processes; one member renders as a normal row.
 Preserve owner-slot keys and lifetime-aware selection across single/group transitions. Empty
 metadata descriptions must use a nonblank executable fallback.
@@ -221,6 +223,11 @@ engine; groups show their busiest member, with incomplete coverage marked. Keep 
 names transient, counters bounded and unavailable/warm-up distinct from zero. Preserve saved
 column choices; GPU is selectable and appears in fresh defaults. Process I/O permission notices
 must use the explicit, package-checked administrator restart path without automatic elevation.
+Resource-cell shading uses transient lifetime-scoped state only. Default recency follows visible
+numeric changes, never unchanged polls; missing values reset history. Keep disk/network/GPU modes,
+fade duration and intensity in presentation preferences, with no activity history persisted or sent.
+Use monotonic fading, bounded cached brushes and one visible-row timer; disable heat in high
+contrast, stop/skip animation off-page or minimized, and restore bindings after header dragging.
 
 Settings apply valid values immediately, with 400 ms text debounce and focus-loss flush; partial
 drafts cannot replace active configuration. API keys commit only on Enter/focus loss. Restrictive

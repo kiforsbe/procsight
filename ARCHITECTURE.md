@@ -177,6 +177,52 @@ sequenceDiagram
     end
 ```
 
+### Resource-cell presentation and live sorting
+
+[ResourceHighlightState](src/ProcSight.Application/Presentation/ResourceHighlightState.cs) keeps
+one bounded numeric history per Disk/Network/GPU cell: the last displayed quantum, change/spike
+time, a ten-second exponential baseline and a decaying peak (30-second time constant). Default
+recency uses changes in displayed precision (0.1 MB/s, 0.1 Mbps or 0.1%), not polling timestamps.
+Missing observations and lifetime/group membership changes reset history. Current activity is
+relative to that row's decaying peak; spikes are increases above its smoothed baseline; top
+consumers compare currently displayed rows. These relative scales do not establish device capacity.
+
+[Row state](src/ProcSight.App/ViewModels/ProcessRow.ResourceShading.cs) remains transient and
+outside snapshot export, rules and provider payloads. Only
+[mode/fade/intensity preferences](src/ProcSight.Core/Models/PolicyModels.cs) persist.
+[Native rendering](src/ProcSight.App/MainWindow.ResourceShading.cs) uses monotonic time, a bounded
+256-brush accent palette and one 200 ms timer for realized cells. Full snapshots initialize all row
+brushes; recycled cells refresh on realization. No timer runs off-page, and hidden/minimized windows
+skip animation. Missing values and high contrast use transparent backgrounds. Drag restoration
+retains brush bindings. Appearance settings apply valid choices immediately.
+
+Automatic process sorting is independently opt-in and defaults off. `RefreshRows` omits previous
+order for the chosen sort when enabled, but still reconciles incrementally; only explicit large
+reorders may use a collection Reset. Selection stays lifetime-aware. Column dragging temporarily
+suspends automatic ordering. Services retain their existing stable live ordering.
+
+UML sequence view of presentation-only highlighting:
+
+```mermaid
+sequenceDiagram
+    participant Snapshot
+    participant Row as Lifetime-scoped row
+    participant State as Numeric highlight state
+    participant Timer as Visible-cell timer
+    participant Cell as Native cell background
+    Snapshot->>Row: Available resource observations
+    Row->>State: Observe displayed quantum and sample identity
+    alt Visible value changed
+        State->>State: Record monotonic change time
+    else Same value or repeated sample
+        State->>State: Keep original change time
+    end
+    Timer->>State: Evaluate configured mode and age
+    State-->>Row: Intensity between zero and one
+    Row->>Cell: Cached brush only when changed
+    Note over Row,Cell: No history enters storage, rules or providers
+```
+
 ### Performance monitoring
 
 [ProcessIoMonitor](src/ProcSight.Windows/Collection/ProcessIoMonitor.cs) starts an owned kernel

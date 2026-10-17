@@ -73,6 +73,14 @@ The process page also offers **Restart as administrator** when disk/network moni
 GPU utilization uses per-process Windows engine counters in ordinary mode where the driver supports
 them. New layouts include GPU; for an existing layout, enable **Choose columns → GPU**. Application
 groups show the busiest GPU member. Missing GPU counters remain unavailable.
+Under **Settings → Appearance → Resource cell shading**, choose a mode independently for Disk,
+Network and GPU. Recent displayed-value changes brighten and fade by default; other modes show
+current activity, recent spikes or top consumers, or turn shading off. Fade duration and intensity
+apply immediately. Shading is disabled in high contrast and never represents a security judgment.
+
+The process-page overflow menu and Appearance settings offer **Automatically sort live values**.
+It is off by default: rows retain their order until you sort a header or refresh. Enabling it follows
+the selected sort column while retaining process selection and using incremental row moves.
 
 Local MSIX packaging is available with `./scripts/package.ps1 -Profile Direct`. It produces an
 inspected, self-contained **unsigned development package** under artifacts/packages; it does not

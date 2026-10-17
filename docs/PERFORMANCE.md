@@ -6,6 +6,13 @@ interaction remains the visual requirement; these changes optimize its implement
 
 ## Repeat the measurements
 
+Resource shading/sort-policy follow-up on 2026-10-17: the optimized synthetic harness completed
+with 1,000-row refresh mean 7.36 ms/p95 18.00 ms, drag position mean 0.05 ms/p95 0.09 ms, and
+crossing preview mean 0.22 ms/p95 0.33 ms. Explicit sort/search means were 34.66/28.88 ms; these
+remain candidates for further optimization. This single run includes current presentation work,
+not a controlled causal comparison or sustained live-load frame-rate claim. The ignored report is
+`artifacts/ui-performance/resource-shading-20261017-125111-656.png.performance.json`.
+
 ```powershell
 ./scripts/measure-ui.ps1 -Label comparison
 ./scripts/measure-ui.ps1 -Label narrow-light -Theme Light -Width 700 -NoBuild

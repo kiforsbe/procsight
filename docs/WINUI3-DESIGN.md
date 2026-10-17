@@ -27,6 +27,18 @@ Keyboard, Narrator, high contrast and scaling acceptance remain separate checks.
 
 ## Native controls and hierarchy
 
+Resource-cell backgrounds are optional presentation cues. Disk, Network and GPU default to
+recent displayed-value changes: brighten when the visible number changes, then fade without
+refreshing on unchanged polls. Offer per-column Off, Recent changes, Current activity, Recent
+spikes and Top consumers modes plus fade duration/intensity in Appearance. Explain relative
+scales; never imply hardware saturation or trust. Missing values and high contrast have no heat.
+Use cached accent brushes, preserve text/selection contrast and retain brush bindings after drag.
+
+Keep live process order stable by default. Offer automatic sorting as an explicit switch in
+Appearance and the process overflow menu; it follows the selected header direction. Automatic
+reordering moves existing rows incrementally, preserving selection and avoiding entrance/reset
+animations. Suspend it during column dragging. Header clicks still sort immediately in either mode.
+
 Use WinUI controls and their theme resources, templates, focus visuals, and interaction
 states. Prefer a native ListView, CommandBar, AutoSuggestBox, ComboBox, Expander, InfoBar,
 and ContentDialog to imitations made from arbitrary buttons and text. Use Segoe UI Variable

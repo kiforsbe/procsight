@@ -4,7 +4,7 @@ using ProcSight.Application.Presentation;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml;
 namespace ProcSight.App.ViewModels;
-public sealed class ProcessRow : INotifyPropertyChanged
+public sealed partial class ProcessRow : INotifyPropertyChanged
 {
     public string Key { get; init; } = "";
     public ResolvedEntity Entity { get; private set; } = null!;
