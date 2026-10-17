@@ -1054,6 +1054,34 @@ stateDiagram-v2
 
 ## Structured local process investigation
 
+### Configurable columns and explicit local export projection
+
+[TableColumns](src/ProcSight.Application/Presentation/TableColumns.cs) defines app-owned column IDs,
+availability, default widths and private-field groups. Layout normalization preserves one Name column
+at the first position, ignores unknown/duplicate IDs and bounds widths before native rendering.
+Presentation preferences store separate process/service layouts, never cell contents.
+[TableValues](src/ProcSight.Application/Presentation/TableValues.cs) projects transient local fields;
+it is separate from AnalysisProjection and must never feed providers, rules or activity history.
+[InventoryExport](src/ProcSight.Application/Presentation/InventoryExport.cs) writes explicitly selected
+fields: quoted CSV/TSV protects formula-like text and JSON retains original text and nulls. Export
+projection strips excluded command/window context before deriving names. Missing observations stay
+null, and availability text comes from typed collector issues without raw exceptions.
+
+```mermaid
+sequenceDiagram
+    participant View as Local inventory UI
+    participant Layout as TableColumns
+    participant Fields as TableValues
+    participant Writer as InventoryExport
+    View->>Layout: Normalize stable IDs, widths, order and visibility
+    Layout-->>View: Name first plus eligible columns
+    View->>Fields: Frozen entities and explicit export disclosure choices
+    Fields-->>View: Local fields with excluded private context removed
+    View->>Writer: Allowed columns and projected snapshot
+    Writer-->>View: CSV, TSV or JSON text for an explicit local destination
+    Note over Fields,Writer: No provider, credential store, rule persistence or telemetry path
+```
+
 [ProcessDetails.Sections](src/ProcSight.Application/Presentation/ProcessDetails.cs) creates local,
 transient field groups for process or service identity, executable metadata, signature/file identity,
 commands, visible windows, hosted services and collection availability. Field values are JSON-ignored

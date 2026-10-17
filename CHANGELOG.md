@@ -7,6 +7,10 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Validated per-table column layout preferences and explicit local inventory projections, with
+  CSV/TSV quoting and spreadsheet-formula protection plus JSON output. Export field selection gates
+  commands, identifying fields and window captions independently of online analysis policy.
+
 - Local SemVer release preparation synchronizes live versions and dated changelog, verifies source,
   commits release files, builds inspected artifacts from that commit and creates an annotated local
   vMAJOR.MINOR.PATCH tag. Includes dry-run, failure rollback and resume; remote publication is separate.

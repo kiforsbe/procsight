@@ -1,7 +1,8 @@
 using ProcSight.Core.Models;
 using ProcSight.Core.Identity;
 namespace ProcSight.Application.Presentation;
-public enum ProcessSort { Name, Pid, Cpu, Memory, Assessment, ServiceState, Startup, Disk, Network }
+public enum ProcessSort { Name, Pid, Cpu, Memory, Assessment, ServiceState, Startup, Disk, Network,
+    NativeName,CommandLine,Path,ParentPid,Publisher,Signature,Started,Owner,Windows,ServiceName,Availability }
 public sealed record ViewOptions(string Search="",bool Grouped=false,bool Services=false,ProcessSort Sort=ProcessSort.Name,
     HashSet<string>? ExpandedGroups=null,string? ClassificationFilter=null,IReadOnlyList<string>? PreviousOrder=null,HashSet<string>? CollapsedTree=null,bool Descending=false);
 public sealed record ProcessListRow(string Key,ResolvedEntity Entity,bool IsGroup,List<ResolvedEntity> Members,
@@ -56,6 +57,10 @@ public static class ProcessListProjection
                 ProcessSort.Startup=>Order(r=>r.Entity.Service?.StartMode ?? "",StringComparer.CurrentCultureIgnoreCase),
                 ProcessSort.Disk=>Order(r=>r.Members.Sum(m=>m.Process?.Resources.DiskBytesPerSecond.Value??0)),
                 ProcessSort.Network=>Order(r=>r.Members.Sum(m=>m.Process?.Resources.NetworkBytesPerSecond.Value??0)),
+                ProcessSort.ParentPid=>Order(r=>r.Entity.Process?.ParentPid??-1),
+                ProcessSort.Started=>Order(r=>r.Entity.Process?.Key.StartedAt??DateTimeOffset.MinValue),
+                ProcessSort.NativeName or ProcessSort.CommandLine or ProcessSort.Path or ProcessSort.Publisher or ProcessSort.Signature or ProcessSort.Owner or ProcessSort.Windows or ProcessSort.ServiceName or ProcessSort.Availability=>
+                    Order(r=>r.IsGroup?"":TableValues.Read(r.Entity,findings.GetValueOrDefault(r.Entity.Identity)).GetValueOrDefault(options.Sort.ToString())??"",StringComparer.CurrentCultureIgnoreCase),
                 _=>Order(Display,StringComparer.CurrentCultureIgnoreCase)
             };
             bool Missing(ProcessListRow row)=>options.Sort switch {
