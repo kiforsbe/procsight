@@ -3,6 +3,10 @@ $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path $PSScriptRoot -Parent
 Push-Location $taskRoot
 try {
+    foreach ($taskScript in @('test-release.ps1','test-packaging.ps1','test-release-workflow.ps1')) {
+        & (Join-Path $PSScriptRoot $taskScript)
+        if (!$?) { throw "$taskScript failed" }
+    }
     dotnet restore ProcSight.slnx --locked-mode --nologo
     if ($LASTEXITCODE -ne 0) { throw 'Locked restore failed' }
     dotnet build ProcSight.slnx -c $Configuration --no-restore --nologo

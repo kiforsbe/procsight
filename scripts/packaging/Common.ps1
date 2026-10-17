@@ -1,9 +1,10 @@
 . (Join-Path $PSScriptRoot '../release/Common.ps1')
 function Get-ProcSightPackageInputs {
- param([string]$Root,[ValidateSet('Direct','Store')][string]$Profile,[string]$IdentityFile,[string]$ElevationMode)
+ param([string]$Root,[ValidateSet('Direct','Store')][string]$Profile,[string]$IdentityFile,[string]$ElevationMode,[string]$VersionForValidation)
  if($ElevationMode -and $ElevationMode -notin @('Disabled','Approved')) { throw 'Invalid elevation mode.' }
  Assert-ProcSightVersionConsistency $Root
  $version=Read-ProcSightVersion $Root
+ if($VersionForValidation) { $version=(Get-ProcSightReleaseVersion -Current $version -Version $VersionForValidation).Version }
  $null=Get-ProcSightReleaseVersion -Current $version -Version $version -Store:($Profile -eq 'Store')
  $identity=[pscustomobject]@{ Name='ProcSight.Development'; Publisher='CN=ProcSight Development'; PublisherDisplayName='ProcSight development' }
  if($Profile -eq 'Store' -and (!$IdentityFile -or !$ElevationMode)) { throw 'Store requires reserved IdentityFile and explicit ElevationMode Disabled or Approved.' }

@@ -57,11 +57,15 @@ is not implicitly migrated. Unknown inspection refuses credential access and use
 data. Packaged restart requires declared allowElevation, enforced in UI and launcher; asInvoker and
 administrator-session sharing restrictions remain unchanged.
 
-The proposed local release workflow derives all live product/assembly/package/feed versions from
-Version.props, prepares the dated changelog, verifies source consistency, commits release files and
-builds artifacts from that commit before creating its annotated SemVer tag. Dependency versions and
-historical documentation remain separate. No release script or actual product tag exists from this
-design work; remote publication is a separate operation.
+The local [release workflow](scripts/prepare-release.ps1) derives all live product/assembly/package/feed
+versions from [Version.props](Version.props), using [scoped version helpers](scripts/release/Common.ps1).
+It renders edits before changing source, prepares the dated changelog, runs verification, commits the
+explicit inventory and calls [package generation](scripts/package.ps1) from that clean commit. Version,
+source commit and artifact SHA-256 must agree before creating the annotated SemVer tag. Precommit
+failure restores unchanged owned edits; postcommit failure retains the prepared commit for Resume.
+Existing tags are immutable. Dependency versions and historical documentation remain separate.
+Synthetic tests use temporary repositories; this implementation creates no actual product release.
+Remote publication remains a separate action.
 
 ```mermaid
 stateDiagram-v2

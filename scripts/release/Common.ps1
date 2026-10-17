@@ -42,6 +42,11 @@ function Set-ProcSightProductVersion([string]$Root,[string]$Version) {
 }
 function Assert-ProcSightVersionConsistency([string]$Root) {
  $value=Read-ProcSightVersion $Root
+ [xml]$properties=Get-Content -LiteralPath (Join-Path $Root 'Version.props') -Raw
+ foreach($property in @('AssemblyVersion','FileVersion','ProcSightPackageVersion')) {
+  if([string]$properties.Project.PropertyGroup.$property -cne '$(VersionPrefix).0') { throw "Version.props $property must derive from the central VersionPrefix." }
+ }
+ if([string]$properties.Project.PropertyGroup.InformationalVersion -cne '$(VersionPrefix)') { throw 'InformationalVersion must derive from VersionPrefix.' }
  foreach($relative in Get-ProcSightVersionTargets $Root) {
   [xml]$document=Get-Content -LiteralPath (Join-Path $Root $relative) -Raw
   $actual=switch($relative) {

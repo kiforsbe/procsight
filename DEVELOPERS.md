@@ -4,8 +4,35 @@
 
 `Version.props` is the authoritative product version. MSBuild derives assembly/file and MSIX versions
 as `X.Y.Z.0`; dependencies remain pinned independently. Run `scripts/test-release.ps1` for synthetic
-version/manifest/changelog checks. Release orchestration and packaging are being implemented; do not
+version/manifest/changelog checks. Local release orchestration and packaging are implemented; do not
 manually bump individual product version fields or infer Store readiness from these tests.
+
+## Local release preparation
+
+Start from a clean branch, with populated Unreleased notes and configured Git author/committer.
+Use stable SemVer `MAJOR.MINOR.PATCH` and annotated `vMAJOR.MINOR.PATCH` tags. Components are capped
+at 65534 for assembly compatibility; prereleases are currently rejected. Store requires major >=1.
+
+```powershell
+./scripts/prepare-release.ps1 -Bump Patch -Profile Direct -DryRun
+./scripts/prepare-release.ps1 -Bump Patch -Profile Direct
+# After a packaging failure, retain the prepared commit and reuse its exact version:
+./scripts/prepare-release.ps1 -Resume -Version X.Y.Z -Profile Direct
+```
+
+Alternatively supply `-Version X.Y.Z`. The first release may use the current initial version.
+The script synchronizes Version.props and both source manifests, dates the changelog, runs verify.ps1,
+commits only that inventory, builds/inspects packages from the clean release commit, then creates the
+annotated local tag. It validates artifact version, commit and SHA-256 before tagging. Release notes
+and artifact metadata go into ignored artifacts/releases. Nothing is pushed or published.
+
+Precommit failure restores unchanged script-owned edits while preserving intervening edits. A package
+failure retains the prepared release commit without tagging; Resume requires that commit at HEAD.
+Existing tags are never moved. Supply the same identity/signing/feed options when resuming. Public
+Direct releases require explicit production identity, trusted signing and timestamping; unsigned
+development output is only a build artifact. DryRun performs no edits, commits, tags or signing.
+Synthetic workflow checks run only in disposable temporary repositories through
+`scripts/test-release-workflow.ps1`; they do not create a release in this repository.
 
 ## MSIX packaging
 
