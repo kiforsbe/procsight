@@ -117,6 +117,13 @@ Use Unreleased changelog entries until an actual release. Keep planned behavior 
 from implemented and verified behavior. Treat dated specifications/plans as history once
 execution begins; write a new dated revision for material design changes.
 
+Keep `CHANGELOG.md` entries short but informative: usually one concise sentence per bullet,
+stating the feature or fix and its practical effect. Combine overlapping Unreleased entries
+instead of appending repeated implementation history. Retain material privacy, compatibility
+and verification limits; put implementation details, test counts and lengthy explanations in
+the relevant developer, architecture or verification document. Apply this rule to every future
+changelog update. Preserve released versions and dates when editing historical entries.
+
 ## UML and living architecture
 
 Use UML liberally and keep [ARCHITECTURE.md](ARCHITECTURE.md) up to date. Include editable
