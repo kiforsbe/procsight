@@ -19,8 +19,43 @@ Locked restore and native Release build passed with zero warnings/errors. Test r
 | Core | 70 | Identity/privacy/rules, research projection and independent connection profiles |
 | Application | 109 | Presentation, rejection/research diagnostics, routing and immediate settings |
 | Infrastructure | 131 | Storage/OAuth/SSE, inline search/citation validation and scoped rule decisions |
-| Windows | 49 | Collection/lifetimes/icons, credential binding, tray metrics/lifecycle and elevation handoff |
-| Total | 359 | No failed or skipped tests |
+| Windows | 58 | Collection/lifetimes/icons, credential binding, tray metrics/lifecycle, package context and elevation handoff |
+| Total | 368 | No failed or skipped tests |
+
+### 2026-10-17 MSIX and local release tooling
+
+Locked Release restore/build and all 368 tests passed with zero build warnings/errors.
+`verify.ps1` also runs 20 version checks, 27 packaging checks and 23 synthetic release-workflow
+checks. Workflow fixtures use temporary Git repositories and fake package output: dirty/detached
+checkout, missing identity, duplicate tag, dry-run, failed verification, intervening edits,
+failed packaging, annotated tags, resume and immutable existing tags. No actual product release
+commit or tag was created. The real checkout's release DryRun also passed without mutation.
+
+Package-context tests cover declared/absent/unknown elevation capability, hostile/oversized XML,
+and separate package-family data/credential namespaces. These are policy tests, not proof of
+Windows deployment lifecycle. Actual installed update preservation of consent, settings, rules
+and account references remains an explicit acceptance requirement.
+
+Direct self-contained MSIX generation uses locked restore and isolated output, followed by SDK
+MakeAppx unpack, exact identity/version/capability/content checks and binary source-commit validation.
+The native WinUI map-control HTML asset is allowlisted by exact framework path; arbitrary HTML and
+private configuration remain rejected. Build output is unsigned development output, not installable
+until explicitly signed with a trusted certificate. The SDK may warn about missing optional PDB
+conversion tooling; no symbols package is distributed.
+
+Reserved Store identity, trusted signing, certificate trust, actual install/update/uninstall,
+packaged elevation handoff, OAuth callback/local endpoint access and installed WACK acceptance
+remain unverified. No certificate was created/imported, no app was installed, and nothing was
+pushed, uploaded or submitted. Architecture Mermaid diagrams parsed/rendered in the installed
+browser; source and generated packages do not establish Store acceptance.
+
+The inspected development artifact from source commit `7554325` is under
+`artifacts/packages/Direct/0.1.0/bd8e26e420bd4227843bcb60cc1efd24/`; its local JSON records the
+full commit and SHA-256. Independent review found an undeclared PowerShell 7 requirement, now
+documented and guarded before entry-point actions. A Windows PowerShell 5.1 invocation reproduced
+the early rejection. All 368 .NET tests and 70 script checks then passed. Relative documentation
+links (149) resolved, 27 Mermaid diagrams parsed/rendered and whitespace checks passed. The new
+packaged-permission InfoBar still needs installed-package visual/accessibility acceptance.
 
 ### 2026-10-17 analysis and account-dialog corrections
 

@@ -43,6 +43,19 @@ and observed behavior, impact, and minimal reproduction steps with synthetic dat
 
 ## Implemented security boundaries and validation limits
 
+Local MSIX tooling validates explicit package identity, capabilities and contents before labeling
+an artifact inspected. Public Direct distribution requires a selected trusted code-signing certificate
+matching the publisher and HTTPS timestamping; development certificate creation never installs trust.
+Unsigned development artifacts are not installation-ready. Store preparation does not establish
+Microsoft approval for restricted capabilities or certification. Signing and installed lifecycle
+acceptance remain outstanding; no certificate or package is automatically trusted or installed.
+
+Release preparation requires PowerShell 7+, a clean named branch and valid local Git identity.
+It commits only synchronized version/changelog files, builds from that exact clean commit and checks
+artifact version/commit/hash before an annotated local tag. Tags are never moved and scripts do not
+publish. Review the selected source/dependencies before distributing a release: these consistency
+checks establish provenance, not executable safety or Store acceptance.
+
 Search-enabled analysis projects public identity metadata only, stripping raw commands, private
 paths and command-derived evidence even when ordinary analysis command sharing is permitted.
 ChatGPT-plan requests use the selected account's OAuth token at the fixed public Responses endpoint;
