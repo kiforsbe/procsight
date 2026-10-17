@@ -153,6 +153,11 @@ automation unless later requested. Repository preparation does not authorize pub
 creating a remote repository, pushing, or selecting an unknown security-reporting address.
 
 Packaging/release/verification scripts require PowerShell 7+ and reject older hosts before actions.
+Certificate trust is an explicit user-invoked exception: `scripts/trust-package-certificate.cmd`
+accepts one dropped public `.cer` and its PowerShell companion requests UAC for LocalMachine
+TrustedPeople only. Preserve format/validity/code-signing checks, thumbprint continuity across
+elevation and in-memory import. Packaging must never invoke trust implicitly; synthetic helper
+tests and WhatIf must never elevate or change certificate stores.
 Release tooling in scripts/prepare-release.ps1 must use one authoritative product version, synchronize all live version
 fields and changelog, and create matching annotated vMAJOR.MINOR.PATCH tags only after validation
 and package creation from the release commit. Use stable SemVer with Windows version X.Y.Z.0;

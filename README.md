@@ -33,7 +33,12 @@ PowerShell 7 as your development user:
 ./scripts/package.ps1 -Profile Direct -CertificateThumbprint 'YOUR_40_HEX_THUMBPRINT'
 ```
 
-Open **PowerShell as Administrator** and trust that matching public certificate on your test machine:
+In File Explorer, drag the matching public `.cer` onto
+[`scripts/trust-package-certificate.cmd`](scripts/trust-package-certificate.cmd) and approve the
+administrator prompt. PowerShell 7 must be installed; keep the `.cmd` and companion `.ps1` together.
+The helper displays the certificate identity and imports it into Local Machine > Trusted People.
+
+Alternatively, open **PowerShell as Administrator** and import it manually:
 
 ```powershell
 Import-Certificate -FilePath 'C:\path\to\artifacts\certificates\YOUR_40_HEX_THUMBPRINT.cer' -CertStoreLocation 'Cert:\LocalMachine\TrustedPeople'

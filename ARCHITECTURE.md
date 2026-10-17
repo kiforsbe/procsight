@@ -50,6 +50,30 @@ installation lifecycle checks. Normal builds remain unpackaged; explicit Direct 
 runtimes and Store packaging declares runtime dependencies. Package trust, Store acceptance and
 actual installed elevation/upgrade/uninstall behavior have not been established by synthetic tests.
 
+The explicit [certificate drop target](scripts/trust-package-certificate.cmd) invokes
+[public-certificate validation and trust](scripts/trust-package-certificate.ps1) separately from
+packaging. It accepts one valid public code-signing `.cer`, displays its identity, and uses UAC
+for LocalMachine/TrustedPeople only. The elevated process revalidates the thumbprint and imports
+the parsed object, without reopening the input. Synthetic tests and WhatIf stop before elevation;
+Explorer/UAC and actual certificate-store acceptance remain manual checks.
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Helper as Unelevated certificate helper
+    participant Admin as UAC-approved helper
+    participant Store as LocalMachine TrustedPeople
+    User->>Helper: Drop one public .cer
+    Helper->>Helper: Validate format, dates and code-signing EKU
+    Helper-->>User: Display subject, thumbprint and expiry
+    Helper->>Admin: Request UAC with literal path and expected thumbprint
+    Note over Helper,Admin: Administrator privilege boundary
+    Admin->>Admin: Revalidate certificate and thumbprint
+    Admin->>Store: Add validated in-memory certificate
+    Admin-->>Helper: Exit status
+    Helper-->>User: Result; signed MSIX can now be retried
+```
+
 [PackageContext](src/ProcSight.Windows/Security/PackageContext.cs) reads identity/family/path from
 Windows and the installed manifest with bounded, DTD-disabled XML parsing. Package family scopes
 [credentials](src/ProcSight.Windows/Storage/CredentialStore.cs) and LocalState data; unpackaged state

@@ -176,6 +176,14 @@ Local command rules never execute code, decode encoded commands, or inspect inte
 
 ## Handling sensitive data during development
 
+The explicit `scripts/trust-package-certificate.cmd` drop target delegates to its PowerShell 7
+companion. It accepts only public, currently valid code-signing certificates, displays their identity,
+and requests UAC to add machine-wide LocalMachine/TrustedPeople trust. It never uses Trusted Root
+or installs a package. Only drop a certificate whose source and package signer you have verified;
+this trust extends to other packages signed by that key. Elevated validation pins the original
+thumbprint and imports the validated object rather than reopening the file. Packaging does not
+invoke this helper. Synthetic tests and WhatIf do not import trust.
+
 Visible-window captions and classes can reveal document names or browsing activity. They remain
 local transient observations and are excluded from serialization, provider/research payloads,
 rule literals, and identity. Foreground/minimized state is observational, not trust evidence.

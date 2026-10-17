@@ -117,7 +117,29 @@ Get-PfxCertificate -FilePath 'C:\path\to\artifacts\certificates\YOUR_40_HEX_THUM
     Select-Object Subject, Thumbprint, NotAfter
 ```
 
-On the test machine, open **PowerShell as Administrator** and import only the matching public `.cer`:
+For drag-and-drop setup, drop the matching `.cer` onto
+[`scripts/trust-package-certificate.cmd`](scripts/trust-package-certificate.cmd) in File Explorer,
+then approve the administrator prompt. Keep it next to `trust-package-certificate.ps1`; PowerShell 7
+must be installed. The console stays open to show success or errors. This helper trusts the
+certificate only; reopen the signed MSIX afterward to install the app.
+
+The PowerShell helper also supports a command-line call and a store-free preview:
+
+```powershell
+./scripts/trust-package-certificate.ps1 -CertificatePath 'C:\path\to\development.cer' -WhatIf
+./scripts/test-package-certificate.ps1
+```
+
+It accepts only a currently valid public `.cer` with an explicit code-signing EKU, rejecting private-key
+containers and files over 1 MB. It displays subject, thumbprint and expiry, requests elevation only
+for the explicit trust operation, then revalidates the certificate thumbprint across elevation.
+Import uses the validated in-memory certificate, preventing a file replacement between validation
+and import. Existing trust can be imported again safely. Validation does not prove who supplied
+the certificate: verify the signer match and trust its source before dropping it.
+Synthetic helper tests create certificates in memory, not certificate stores; `-WhatIf` never elevates
+or imports. Actual Explorer drag/drop, UAC cancellation and import still require desktop acceptance.
+
+For manual setup, open **PowerShell as Administrator** and import only the matching public `.cer`:
 
 ```powershell
 Import-Certificate -FilePath 'C:\path\to\artifacts\certificates\YOUR_40_HEX_THUMBPRINT.cer' -CertStoreLocation 'Cert:\LocalMachine\TrustedPeople'
@@ -152,8 +174,8 @@ After development testing, remove only this certificate's trust entry in elevate
 Remove-Item -LiteralPath 'Cert:\LocalMachine\TrustedPeople\YOUR_40_HEX_THUMBPRINT'
 ```
 
-Development certificates are for local testing, not public distribution. Trust/import and installation
-are explicit manual steps; the scripts do not perform them.
+Development certificates are for local testing, not public distribution. Certificate trust is an
+explicit operation through the helper or manual import; packaging never invokes it or installs the app.
 
 ### Store and public distribution
 
