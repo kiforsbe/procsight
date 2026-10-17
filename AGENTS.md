@@ -205,6 +205,14 @@ Tray monitoring is opt-in, system-only and independent of AI. Preserve bounded 3
 one-second sampling, English PDH paths, native handle disposal and explicit unavailable/warm-up
 states. Minimize-to-tray requires a registered icon; close/Exit terminate normally. Preserve recovery
 if Explorer cannot re-register. Per-process resource columns must not reuse system-only metrics.
+Process disk/network rates use an owned real-time TraceEvent kernel session only in explicit
+administrator mode. Enable the kernel provider before accessing Source; keep parser tracking to
+thread/PID attribution, query session.EventsLost and reset baselines on loss. Retain byte totals
+only, never file/endpoint metadata or ETL output. Synchronize startup with synchronous session Stop
+before the last window's first asynchronous shutdown await; ETW survives owner process termination.
+The Performance page keeps 60 system samples in memory, with compact left navigation, Overview
+tiles first and native subsystem details. Preserve independent off-thread sampling, bounded
+dispatcher updates, theme resources, text equivalents and explicit missing/warm-up states.
 
 Settings apply valid values immediately, with 400 ms text debounce and focus-loss flush; partial
 drafts cannot replace active configuration. API keys commit only on Enter/focus loss. Restrictive

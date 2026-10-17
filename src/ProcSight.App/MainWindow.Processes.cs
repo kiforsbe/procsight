@@ -191,6 +191,9 @@ public sealed partial class MainWindow
     {
         if(cpuSummary is not null) cpuSummary.Text=lastSnapshot.SystemResources?.CpuPercent is { } cpu?$"{cpu:F0}%":"—";
         if(memorySummary is not null) memorySummary.Text=lastSnapshot.SystemResources?.MemoryPercent is { } memory?$"{memory:F0}%":"—";
+        var latest=performanceHistory.LastOrDefault();
+        if(diskSummary is not null) diskSummary.Text=latest?.DiskBusy.Value is { } disk?$"{disk:F0}%":"—";
+        if(networkSummary is not null) networkSummary.Text=latest?.NetworkBytes.Value is { } network?$"{network*8/1000000:F1} Mbps":"—";
         UpdateSelectionActions();
     }
 }

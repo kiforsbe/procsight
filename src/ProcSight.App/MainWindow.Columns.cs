@@ -98,7 +98,7 @@ public sealed partial class MainWindow
     }
     private void PopulateColumnHeader(Grid header)
     {
-        header.Children.Clear(); header.ColumnDefinitions.Clear(); sortHeaders.Clear(); cpuSummary=null; memorySummary=null;
+        header.Children.Clear(); header.ColumnDefinitions.Clear(); sortHeaders.Clear(); cpuSummary=null; memorySummary=null; diskSummary=null; networkSummary=null;
         header.MinWidth=TableMinimumWidth;
         for(var i=0;i<tableColumnLayout.Length;i++) {
             var index=i; var preference=tableColumnLayout[i]; var definition=TableColumns.All.Single(c=>c.Id==preference.Id);
@@ -109,7 +109,10 @@ public sealed partial class MainWindow
                 var total=new TextBlock { FontSize=16,TextAlignment=TextAlignment.Right }; stack.Children.Add(total);
                 if(preference.Id=="Cpu") cpuSummary=total; else memorySummary=total;
             }
-            if(preference.Id is "Disk" or "Network") stack.Children.Add(new TextBlock { Text="—",FontSize=16,TextAlignment=TextAlignment.Right });
+            if(preference.Id is "Disk" or "Network") {
+                var summary=new TextBlock { Text="—",FontSize=16,TextAlignment=TextAlignment.Right }; stack.Children.Add(summary);
+                if(preference.Id=="Disk") diskSummary=summary; else networkSummary=summary;
+            }
             var label=new TextBlock { Text=definition.Label,FontSize=12,TextTrimming=TextTrimming.CharacterEllipsis }; stack.Children.Add(label);
             var button=new Button { Content=stack,Background=new SolidColorBrush(Microsoft.UI.Colors.Transparent),BorderThickness=new(0),CornerRadius=new(0),
                 HorizontalAlignment=HorizontalAlignment.Stretch,VerticalAlignment=VerticalAlignment.Stretch,HorizontalContentAlignment=numeric?HorizontalAlignment.Right:HorizontalAlignment.Left,
@@ -154,10 +157,11 @@ public sealed partial class MainWindow
         for(var i=1;i<tableColumnLayout.Length;i++) {
             var id=tableColumnLayout[i].Id;
             var binding=id switch { "Assessment"=>"Status","Owner"=>"Ownership",_=>id };
-            var value=id is "Disk" or "Network"?"—":"{Binding "+binding+"}";
+            var value="{Binding "+binding+"}";
+            var tooltip=id is "Disk" or "Network"?"{Binding "+id+"Details}":value;
             var background=id is "Cpu" or "Memory"?$" Background=\"{{Binding {id}Brush}}\"":"";
             var alignment=id is "Pid" or "ParentPid" or "Cpu" or "Memory" or "Disk" or "Network"?" HorizontalAlignment=\"Right\"":"";
-            text.Append($"<Border Tag=\"{id}\" Grid.Column=\"{i}\" BorderThickness=\"1,0,0,0\" BorderBrush=\"{{ThemeResource DividerStrokeColorDefaultBrush}}\"{background}><TextBlock Text=\"{value}\" ToolTipService.ToolTip=\"{value}\" FontSize=\"12\" Margin=\"8,0\" VerticalAlignment=\"Center\" TextTrimming=\"CharacterEllipsis\"{alignment}/></Border>");
+            text.Append($"<Border Tag=\"{id}\" Grid.Column=\"{i}\" BorderThickness=\"1,0,0,0\" BorderBrush=\"{{ThemeResource DividerStrokeColorDefaultBrush}}\"{background}><TextBlock Text=\"{value}\" ToolTipService.ToolTip=\"{tooltip}\" FontSize=\"12\" Margin=\"8,0\" VerticalAlignment=\"Center\" TextTrimming=\"CharacterEllipsis\"{alignment}/></Border>");
         }
         text.Append("</Grid></DataTemplate>"); return (DataTemplate)XamlReader.Load(text.ToString());
     }

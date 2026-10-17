@@ -47,7 +47,16 @@ public sealed partial class MainWindow : Window
         ConfigureChrome();
         if(elevated) { Title="ProcSight (Administrator)"; AppTitleBar.Title="ProcSight (Administrator)"; }
         ConfigureTray();
-        Closed += async (_, _) => { lifetime.Cancel(); tray?.Dispose(); if(trayLoop is not null) await trayLoop; traySampler.Dispose(); await coordinator.DisposeAsync(); providerHttp.Dispose(); };
+        performanceLoop=RunPerformanceAsync();
+        Closed += async (_, _) => {
+            lifetime.Cancel();
+            // Stop the owned kernel session before the first await and final dispatcher exit.
+            collector.Stop(); tray?.Dispose();
+            if(trayLoop is not null) await trayLoop;
+            if(performanceLoop is not null) await performanceLoop;
+            traySampler.Dispose(); await performanceSampler.DisposeAsync(); await collector.DisposeAsync();
+            await coordinator.DisposeAsync(); providerHttp.Dispose();
+        };
         RenderPage();
         _ = CollectAsync();
         _ = ReadAnalysisAsync();
@@ -64,6 +73,8 @@ public sealed partial class MainWindow : Window
     {
         if(PageContent is null) return;
         PageContent.Children.Clear();
+        updatePerformanceView=null;
+        if(page=="Performance") { RenderPerformance(); return; }
         if(page=="Settings") { RenderSettings(); return; }
         if(page=="Knowledge") { RenderKnowledge(); return; }
         if(page=="AI activity") { RenderActivity(); return; }
@@ -145,7 +156,8 @@ public sealed partial class MainWindow : Window
         foreach(var id in analysis.Keys.Where(id=>!active.Contains(id)).ToArray()) analysis.Remove(id);
         ShowDetail(table?.SelectedItem as ProcessRow);
         RefreshResourceSummary();
-        if (status is not null) status.Text = $"{entities.Count(e=>page=="Processes"?e.Process is not null:e.Service is not null)} {page.ToLowerInvariant()} · {rows.Count} visible rows · disk/network not collected";
+        if (status is not null) status.Text = $"{entities.Count(e=>page=="Processes"?e.Process is not null:e.Service is not null)} {page.ToLowerInvariant()} · {rows.Count} visible rows"+
+            (page=="Processes"&&lastSnapshot.Processes.FirstOrDefault()?.Resources.DiskBytesPerSecond.Reason is { } ioReason?" · "+ioReason:"");
     }
     private void ToggleExpansion(object sender,RoutedEventArgs args)
     {

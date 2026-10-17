@@ -5,6 +5,24 @@ not an official Microsoft specification. Source recommendations are linked below
 ProcSight choices are identified explicitly. Apply this guide to new and changed UI,
 including rule management, process inspection, AI activity, and Settings.
 
+## Performance page convention
+
+Use a compact native ListView on the left with Overview first, followed by CPU, Memory, Disks,
+Network and GPU. Each subsystem retains a small live graph and text reading while another page
+is selected. Overview uses five uniform tile buttons with label, primary reading, brief context
+and small graph; use three tiles above two on wide windows, two columns at medium widths and one
+when necessary. Each tile opens the corresponding subsystem detail page with a larger history
+graph and structured readings. Keep selected subsystem for the window session.
+
+On narrow windows replace the sidebar with a native ComboBox and keep the content vertically
+scrollable. Use theme resources for series colors, including high-contrast resources, with text
+values and native accessible names alongside graphs. Color alone cannot identify a subsystem or
+state. Missing/warming observations have explicit text and break graph segments; never fabricate
+an idle zero or hardware identity. Graphs show the latest 60 samples without growing visual trees.
+
+This is the user-selected ProcSight layout; synthetic light/dark captures validate geometry.
+Keyboard, Narrator, high contrast and scaling acceptance remain separate checks.
+
 ## Native controls and hierarchy
 
 Use WinUI controls and their theme resources, templates, focus visuals, and interaction

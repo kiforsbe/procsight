@@ -125,7 +125,7 @@
       "procsight.application": {
         "type": "Project",
         "dependencies": {
-          "ProcSight.Core": "[1.0.0, )"
+          "ProcSight.Core": "[0.1.0, )"
         }
       },
       "procsight.core": {
@@ -135,7 +135,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Data.Sqlite": "[10.0.13, )",
-          "ProcSight.Application": "[1.0.0, )"
+          "ProcSight.Application": "[0.1.0, )"
         }
       },
       "Microsoft.Data.Sqlite": {

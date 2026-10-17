@@ -1,5 +1,29 @@
 # Development verification
 
+## Resource monitoring and selected Performance layout — 2026-10-17
+
+Locked restore and solution Release build passed with zero warnings/errors. Release suites passed:
+Core 74, Application 125, Windows 64 and Infrastructure 113 (376 total). Infrastructure used
+`--filter "FullyQualifiedName!~ChatGptAuth"`; authentication tests were excluded under the user's
+instruction. No sign-in, account credential access or live provider requests were performed.
+New checks cover lifetime-scoped I/O accumulation, warm-up, late/reused PID events, invalidation,
+loss reset/pruning, partial grouped rates, adapter replacement/reset and directional throughput.
+A local system sampler smoke test verified RAM and CPU warm-up without process inventory.
+
+Debug native captures passed for Overview/navigation, all five subsystem detail views, empty and
+unavailable histories, and process throughput availability. Captures include dark wide and light
+narrow views under ignored `artifacts/performance-ui/final`; Overview geometry and readable rate
+states were visually inspected. These are synthetic UI fixtures, not live performance evidence.
+Local documentation links and whitespace checks passed. The monitoring sequence diagram rendered
+successfully with Mermaid CLI into ignored `artifacts/performance-ui/diagram/monitoring.svg`.
+
+Independent collector review found and corrected kernel-provider startup ordering, real-time
+event-loss queries and synchronous shutdown before dispatcher exit, including startup-failure
+serialization. Explicit ThreadToProcess parser tracking avoids filename tracking. Elevated live
+event delivery/attribution, normal/tray Exit session removal, driver-specific GPU availability,
+keyboard, Narrator, high contrast and scaling remain pending. Counters may be unavailable without
+the required permissions/driver support; missing values are never advertised as measured zero.
+
 ## Manual ChatGPT sign-in diagnosis (2026-10-17)
 
 At the user's request, no automated authentication test or credential inspection ran. The user
@@ -324,8 +348,9 @@ subject matching, conflict/correction precedence, and preservation of specific r
 were corrected and verified. A reported selection-action concern was checked against the
 existing post-reconciliation action refresh; collapse now selects the parent explicitly.
 
-Disk/network counters remain unavailable; GPU collection and management/cleanup actions are
-deferred. Missing/inaccessible executable artwork uses a fallback native symbol.
+At that checkpoint disk/network counters and GPU collection were deferred; the performance
+monitoring extension below supersedes that limitation. Management/cleanup remains deferred.
+Missing/inaccessible executable artwork uses a fallback native symbol.
 
 ## Signed catalog and invocation rules extension
 

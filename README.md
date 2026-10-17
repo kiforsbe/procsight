@@ -60,6 +60,16 @@ and [Microsoft's signing guide](https://learn.microsoft.com/en-us/windows/msix/p
 
 ## Current experience
 
+The **Performance** page opens with Overview tiles and a compact live subsystem list. Select CPU,
+Memory, Disks, Network or GPU for a larger history graph and readings. System monitoring works
+independently of AI and keeps only the latest 60 samples in memory. GPU shows the busiest reported
+engine; disk totals cover physical disks and network totals cover active non-loopback adapters.
+
+Process-list Disk and Network columns show measured read/write and send/receive rates. Their
+kernel-event collection requires the explicit **Restart as administrator** action; ordinary mode
+shows an unavailable reason instead. Warm-up and missing readings are distinct from measured zero.
+Elevated live attribution and full desktop accessibility acceptance remain pending.
+
 Local MSIX packaging is available with `./scripts/package.ps1 -Profile Direct`. It produces an
 inspected, self-contained **unsigned development package** under artifacts/packages; it does not
 install the app or change certificate trust. See [packaging instructions](DEVELOPERS.md#msix-packaging).

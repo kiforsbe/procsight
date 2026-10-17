@@ -177,6 +177,59 @@ sequenceDiagram
     end
 ```
 
+### Performance monitoring
+
+[ProcessIoMonitor](src/ProcSight.Windows/Collection/ProcessIoMonitor.cs) starts an owned kernel
+ETW session off-thread only in explicit administrator mode. Enable precedes Source creation;
+the parser tracks thread/PID relationships without filename tracking. Disk read/write and
+TCP/UDP IPv4/IPv6 byte events feed a bounded
+[accumulator](src/ProcSight.Windows/Collection/ProcessIoAccumulator.cs). Confirmed snapshot
+`ProcessKey` lifetimes gate attribution; process events invalidate buckets. Startup, event loss
+and PID reuse require fresh baselines. Session loss-query failure also invalidates readings.
+Only byte totals survive callbacks. Window shutdown synchronously stops the owned session before
+the first await, including tray Exit and programmatic close. Unexpected process termination is
+outside that guarantee. Ordinary mode retains unavailable reasons; it never prompts for elevation.
+
+[SystemPerformanceSampler](src/ProcSight.Windows/Collection/SystemPerformanceSampler.cs) is a
+separate one-second, off-thread source for CPU, RAM, physical-disk busy/read/write rates,
+non-loopback adapter send/receive deltas and busiest reported GPU-engine utilization. Adapter
+replacement/reset restarts the baseline. Aggregate network traffic can overlap on VPN/virtual
+adapters; disk caching and buffered ETW delivery limit exact process/system comparisons.
+No system metric substitutes for per-process attribution.
+
+[Performance view](src/ProcSight.App/MainWindow.PerformanceView.cs) opens Overview first, with
+a compact live subsystem selector and five adaptive tiles. CPU, Memory, Disks, Network and GPU
+have native graph/readings detail views. [Sampling dispatch](src/ProcSight.App/MainWindow.Performance.cs)
+coalesces pending updates and keeps at most 60 observations in memory. Missing samples break
+graph lines; accessible text and theme resources accompany every chart. Neither sampling path
+uses AI, persistent history or provider payloads.
+
+UML sequence view of the local-only monitoring boundary:
+
+```mermaid
+sequenceDiagram
+    participant UI as Native window
+    participant System as System sampler
+    participant Collector as Snapshot collector
+    participant IO as Owned ETW monitor
+    participant Kernel as Windows kernel
+    UI->>System: Sample off thread each second
+    System-->>UI: CPU / RAM / disk / adapters / GPU observations
+    Note over UI,System: Coalesced dispatch, 60 samples in memory
+    Collector->>IO: Confirmed process lifetimes
+    alt Explicit administrator session
+        IO->>Kernel: Enable owned real-time session before Source
+        Kernel-->>IO: Disk and TCP/UDP byte events
+        Note over IO: Retain lifetime-scoped totals only
+        IO-->>Collector: Interval rates or warm-up/loss
+    else Standard session
+        IO-->>Collector: Unavailable: administrator permission required
+    end
+    Collector-->>UI: Process observations and safe availability reasons
+    UI->>IO: Synchronous Stop before first shutdown await
+    IO->>Kernel: Stop owned session
+```
+
 ### System tray and app identity
 
 [MainWindow.Tray](src/ProcSight.App/MainWindow.Tray.cs) owns opt-in visibility, metric selection,
@@ -187,8 +240,8 @@ re-adds after TaskbarCreated. No arbitrary command is dispatched from callbacks.
 reads disk idle/GPU engine PDH counters and computes network adapter deltas off the UI thread at
 most once per second. Percentages and throughput remain distinct; missing/warm-up readings stay
 explicit. Queries, HICON/GDI resources and menu handles are disposed. Graph history is memory-only,
-bounded to 30 samples, independent of process metadata and provider work. Per-process disk/network
-columns remain unavailable; these system metrics do not fill them.
+bounded to 30 samples, independent of process metadata and provider work. These system metrics
+never fill per-process resource columns.
 
 ```mermaid
 sequenceDiagram
@@ -570,8 +623,9 @@ classDiagram
 
 Purpose, security, and optionality are independent assessment axes. A metadata company string
 is not a verified signer. Missing observations remain unavailable; unknown identity does not
-imply threat. CPU and memory are first-class metrics; unavailable disk/network measurements
-must not be presented as measured zero. GPU collection is deferred.
+imply threat. CPU, memory and process disk/network throughput preserve observation states;
+unavailable measurements must not be presented as measured zero. GPU is system-only and reports
+the busiest available engine rather than a device-wide average.
 
 ## Local-first analysis interaction
 

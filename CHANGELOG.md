@@ -7,6 +7,10 @@ plans, implementation details and validation records belong in the project docum
 
 ### Added
 
+- Performance overview tiles and CPU, RAM, disk, network and GPU detail pages with live graphs.
+- Process disk/network throughput with lifetime-aware event attribution in administrator mode,
+  grouped rates and explicit warm-up/unavailable states.
+
 - Bounded local ChatGPT sign-in diagnostics covering callback, validation, storage and dialog stages,
   without credentials, account details or raw transport data.
 - Drag-and-drop development-certificate trust helper with validation, administrator approval and

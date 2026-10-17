@@ -2,6 +2,20 @@
 
 ## Current state
 
+Resource monitoring uses TraceEvent 4.0.0 for one owned real-time kernel session in explicit
+administrator mode. No ETL files are created. `ProcessIoAccumulator` tests cover elapsed rates,
+PID reuse, lifecycle invalidation, event-loss restart and pruning; `NetworkRatesTests` cover
+direction totals, adapter replacement, reset and invalid intervals. `SystemPerformanceTests`
+samples local system counters without process inventory or AI. No credential access is needed.
+
+Native `--visual-fixture <absolute.png> Dark|Light 1200|660 <fixture>` modes include
+`performance-overview`, `performance-navigation`, `performance-cpu`, `performance-memory`,
+`performance-disks`, `performance-network`, `performance-gpu`, `performance-empty`,
+`performance-unavailable` and `process-io`. These use synthetic data only. They exercise native
+navigation, responsive tiles, graphs, details and process rate availability. Keep captures under
+ignored `artifacts/performance-ui`. Elevated event delivery, end-to-end rate attribution, shutdown
+session removal, Narrator, high contrast and scaling still require manual desktop acceptance.
+
 SQLite restart regressions in `AnalysisIdentityPersistenceTests` cover rule-free provider responses,
 metadata-only reuse across changed invocation/PID, private command scopes, partial Unknown axes,
 changed binaries/paths, rejected proposals and older entry-only identity labels. Existing rule-free

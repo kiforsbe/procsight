@@ -51,7 +51,7 @@
       "procsight.application": {
         "type": "Project",
         "dependencies": {
-          "ProcSight.Core": "[1.0.0, )"
+          "ProcSight.Core": "[0.1.0, )"
         }
       },
       "procsight.core": {

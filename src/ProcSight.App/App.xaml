@@ -1,1 +1,22 @@
-<Application x:Class="ProcSight.App.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"><Application.Resources><ResourceDictionary><ResourceDictionary.MergedDictionaries><XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" /></ResourceDictionary.MergedDictionaries></ResourceDictionary></Application.Resources></Application>
+<Application x:Class="ProcSight.App.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+ <Application.Resources><ResourceDictionary>
+  <ResourceDictionary.MergedDictionaries><XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" /></ResourceDictionary.MergedDictionaries>
+  <ResourceDictionary.ThemeDictionaries>
+   <ResourceDictionary x:Key="Light">
+    <SolidColorBrush x:Key="PerformanceCpuBrush" Color="#0078AD"/><SolidColorBrush x:Key="PerformanceMemoryBrush" Color="#7D4BB0"/>
+    <SolidColorBrush x:Key="PerformanceDisksBrush" Color="#438328"/><SolidColorBrush x:Key="PerformanceNetworkBrush" Color="#A2661E"/>
+    <SolidColorBrush x:Key="PerformanceGpuBrush" Color="#8C4E98"/>
+   </ResourceDictionary>
+   <ResourceDictionary x:Key="Default">
+    <SolidColorBrush x:Key="PerformanceCpuBrush" Color="#69C8EE"/><SolidColorBrush x:Key="PerformanceMemoryBrush" Color="#C59AEE"/>
+    <SolidColorBrush x:Key="PerformanceDisksBrush" Color="#9BC86A"/><SolidColorBrush x:Key="PerformanceNetworkBrush" Color="#DEB16B"/>
+    <SolidColorBrush x:Key="PerformanceGpuBrush" Color="#CF9CDB"/>
+   </ResourceDictionary>
+   <ResourceDictionary x:Key="HighContrast">
+    <SolidColorBrush x:Key="PerformanceCpuBrush" Color="{ThemeResource SystemColorHighlightColor}"/><SolidColorBrush x:Key="PerformanceMemoryBrush" Color="{ThemeResource SystemColorHighlightColor}"/>
+    <SolidColorBrush x:Key="PerformanceDisksBrush" Color="{ThemeResource SystemColorHighlightColor}"/><SolidColorBrush x:Key="PerformanceNetworkBrush" Color="{ThemeResource SystemColorHighlightColor}"/>
+    <SolidColorBrush x:Key="PerformanceGpuBrush" Color="{ThemeResource SystemColorHighlightColor}"/>
+   </ResourceDictionary>
+  </ResourceDictionary.ThemeDictionaries>
+ </ResourceDictionary></Application.Resources>
+</Application>

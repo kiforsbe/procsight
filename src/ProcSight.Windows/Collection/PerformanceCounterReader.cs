@@ -22,7 +22,7 @@ public sealed class PerformanceCounterReader : IDisposable
             if(PdhAddEnglishCounterW(query,path,UIntPtr.Zero,out counter)!=0) Dispose();
         } else opened?.Dispose();
     }
-    public (double? Value,bool Warming) Read(bool idle=false)
+    public (double? Value,bool Warming) Read(bool idle=false,bool percentage=true)
     {
         if(query is null||query.IsInvalid||PdhCollectQueryData(query)!=0) return(null,false);
         if(!sampled) { sampled=true; return(null,true); }
@@ -35,7 +35,7 @@ public sealed class PerformanceCounterReader : IDisposable
             for(var i=0;i<count;i++) {
                 var item=Marshal.PtrToStructure<Item>(buffer+i*Marshal.SizeOf<Item>());
                 if(item.Status>1||!double.IsFinite(item.Value)||item.Value<0) continue;
-                var value=idle?100-item.Value:item.Value; max=Math.Max(max??0,Math.Clamp(value,0,100));
+                var value=idle?100-item.Value:item.Value; max=Math.Max(max??0,percentage?Math.Clamp(value,0,100):Math.Max(0,value));
             }
             return(max,false);
         } finally { Marshal.FreeHGlobal(buffer); }

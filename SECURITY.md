@@ -145,9 +145,16 @@ rules cannot retain arbitrary echoed arguments. Full lines exceeding 32,768 char
 are omitted, never silently truncated. Configured local endpoints must use loopback;
 ProcSight cannot guarantee the behavior of a separately operated server.
 
-See [verification](docs/verification.md) for evidence and outstanding checks. Disk/network
-and GPU measurements are unavailable/deferred. Protected-process access denial is normal
-partial collection; launching with administrator privilege is not required.
+See [verification](docs/verification.md) for evidence and outstanding checks. System resource
+monitoring uses local CPU/memory APIs, PDH and adapter byte totals, independent of AI. Its 60-sample
+history stays in memory. Explicit administrator mode additionally owns a uniquely named real-time
+kernel ETW session for process disk/network byte attribution. It never takes over a shared logger,
+writes an ETL file, requests SeDebugPrivilege or retains file paths, endpoints or packet contents.
+Parser tracking is limited to thread/PID attribution. Loss invalidates the sampling baseline;
+startup and unavailable counters remain explicit. Window shutdown stops the session synchronously
+before asynchronous cleanup. Unexpected process termination may still require OS session cleanup;
+normal/elevated live acceptance remains documented separately. Protected-process access denial is
+normal partial collection; administrator mode is optional for the rest of ProcSight.
 
 Bundled common-task definitions identify known executable purpose using verified signer and
 product/original-name metadata. They do not establish safety, necessity, or the exact behavior

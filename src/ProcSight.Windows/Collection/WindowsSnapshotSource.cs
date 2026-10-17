@@ -1,7 +1,10 @@
 using ProcSight.Core.Models;
 namespace ProcSight.Windows.Collection;
-public sealed class WindowsSnapshotSource : IWindowsSnapshotSource
+public sealed class WindowsSnapshotSource : IWindowsSnapshotSource,IAsyncDisposable
 {
+    private readonly ProcessIoMonitor io=new();
+    public void Stop()=>io.Stop();
+    public ValueTask DisposeAsync()=>io.DisposeAsync();
     private readonly ProcessSampler sampler = new();
     private readonly ProcessLifetimeTracker lifetimes=new();
     private readonly SemaphoreSlim captureGate = new(1);
@@ -84,6 +87,9 @@ public sealed class WindowsSnapshotSource : IWindowsSnapshotSource
             rows=rows.Where(r=>KernelProcessLifetimeReader.ConfirmsLifetime(kernelTable[r.Key.Pid],confirmed?.GetValueOrDefault(r.Key.Pid))).ToList();
         }
         lifetimes.Prune(rows.Select(r=>r.Key.Pid).ToHashSet());
+        var ioRates=io.Sample(rows.Select(r=>r.Key).ToArray(),DateTimeOffset.UtcNow);
+        rows=rows.Select(r=>ioRates.TryGetValue(r.Key,out var rate)?r with { Resources=r.Resources with {
+            DiskBytesPerSecond=rate.Disk,NetworkBytesPerSecond=rate.Network } }:r).ToList();
         sampler.Prune(rows.Select(r => r.Key).ToHashSet());
         var windows=WindowMetadataReader.Read(rows.Select(r=>r.Key).ToArray());
         rows=rows.Select(p=>p with { Windows=windows.GetValueOrDefault(p.Key.Pid) }).ToList();

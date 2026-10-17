@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using ProcSight.Core.Identity;
 using ProcSight.Core.Models;
+using ProcSight.Application.Presentation;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
@@ -53,6 +54,11 @@ public sealed partial class MainWindow
                 Executable=new("python.exe",Product:"Python"),CommandLine=new($"python.exe script_{i:00}.py --token PRIVATE",now) }));
         }
         var fixtureLifetime=new ProcSight.Windows.Collection.ProcessLifetimeTracker();
+        if(args.Length>5&&args[5]=="process-io") {
+            processes=processes.Select((p,index)=>p with { Resources=p.Resources with {
+                DiskBytesPerSecond=index==0?Observation<double>.Missing("Synthetic permission unavailable"):Observation<double>.Available(index*1000000),
+                NetworkBytesPerSecond=index==0?Observation<double>.Pending():Observation<double>.Available(index*125000) } }).ToList();
+        }
         if(args.Length>5&&args[5]=="details-restricted") {
             processes[2]=processes[2] with { Key=fixtureLifetime.Resolve(1002,null,77,Guid.NewGuid()),Executable=new("restricted.exe"),CommandLine=null,
                 MetadataIssues=[new("ExecutablePath",MetadataUnavailableReason.AccessDenied),new("Started",MetadataUnavailableReason.AccessDenied),new("CommandLine",MetadataUnavailableReason.AccessDenied)] };
@@ -118,6 +124,14 @@ public sealed partial class MainWindow
                 }
                 if(args.Length>5&&args[5]=="ui-performance") await CheckUiPerformanceAsync(output);
                 if(args.Length>5&&args[5]=="ui-performance-rules") await CheckUiPerformanceAsync(output,true);
+                if(args.Length>5&&args[5]=="process-io") {
+                    var measured=rows.Single(r=>r.Entity.Process?.Key.Pid==1001);
+                    var unavailable=rows.Single(r=>r.Entity.Process?.Key.Pid==1000);
+                    if(measured.Disk!=ResourceRatePresentation.Text([Observation<double>.Available(1000000)])||
+                        measured.Network!=ResourceRatePresentation.Text([Observation<double>.Available(125000)],true)||
+                        unavailable.Disk!="—"||unavailable.Network!="…"||!unavailable.DiskDetails.Contains("Synthetic permission"))
+                        throw new InvalidOperationException("Process throughput values or availability did not bind to live rows.");
+                }
                 if(args.Length>5&&args[5]=="services") {
                     Navigation.SelectedItem=Navigation.MenuItems.OfType<Microsoft.UI.Xaml.Controls.NavigationViewItem>().First(i=>i.Tag?.ToString()=="Services"); page="Services"; RenderPage(); await Task.Delay(350);
                 }
@@ -263,6 +277,41 @@ public sealed partial class MainWindow
                         var chosen=sections.Children.OfType<Microsoft.UI.Xaml.Controls.Expander>().ElementAt(args[5]=="settings-tray"?0:5);
                         chosen.IsExpanded=true; await Task.Delay(350); WindowRoot.UpdateLayout();
                         if(args[5]=="settings-admin") settingsScroll.ChangeView(null,settingsScroll.ScrollableHeight,null,true);
+                    }
+                }
+                if(args.Length>5&&args[5].StartsWith("performance",StringComparison.Ordinal)) {
+                    T? FindPerformance<T>(DependencyObject root,Func<T,bool> match) where T:DependencyObject {
+                        if(root is T control&&match(control)) return control;
+                        for(var child=0;child<VisualTreeHelper.GetChildrenCount(root);child++)
+                            if(FindPerformance(VisualTreeHelper.GetChild(root,child),match) is { } found) return found;
+                        return null;
+                    }
+                    performanceSubsystem=args[5] switch {
+                        "performance-cpu"=>PerformanceSubsystem.Cpu,"performance-memory"=>PerformanceSubsystem.Memory,
+                        "performance-disks"=>PerformanceSubsystem.Disks,"performance-network"=>PerformanceSubsystem.Network,
+                        "performance-gpu"=>PerformanceSubsystem.Gpu,_=>PerformanceSubsystem.Overview };
+                    for(var index=0;index<(args[5]=="performance-empty"?0:60);index++) {
+                        double Value(double baseline)=>Math.Clamp(baseline+Math.Sin(index*.3)*12,0,100);
+                        var missing=Observation<double>.Missing("Synthetic unavailable counter");
+                        var gpu=args[5]=="performance-unavailable"?missing:Observation<double>.Available(Value(26));
+                        performanceHistory.Add(new(now.AddSeconds(index-60),Observation<double>.Available(Value(34)),Observation<double>.Available(62.5),
+                            Observation<double>.Available(Value(18)),Observation<double>.Available(24000000+index*50000),Observation<double>.Available(3500000+index*10000),gpu,
+                            32L*1073741824,12L*1073741824,16,Observation<double>.Available(20000000),Observation<double>.Available(4000000+index*50000),
+                            Observation<double>.Available(400000),Observation<double>.Available(3100000+index*10000),"Synthetic 16-thread processor"));
+                    }
+                    Navigation.SelectedItem=Navigation.MenuItems.OfType<Microsoft.UI.Xaml.Controls.NavigationViewItem>().First(i=>i.Tag?.ToString()=="Performance");
+                    page="Performance"; RenderPage(); await Task.Delay(300); WindowRoot.UpdateLayout();
+                    var sections=FindPerformance<Microsoft.UI.Xaml.Controls.ListView>(PageContent,v=>v.Name=="PerformanceSubsystems");
+                    if(sections?.Items.Count!=6) throw new InvalidOperationException("Performance navigation must include overview and five subsystems.");
+                    if(performanceSubsystem==PerformanceSubsystem.Overview&&FindPerformance<Microsoft.UI.Xaml.Controls.Grid>(PageContent,g=>g.Name=="PerformanceOverviewTiles")?.Children.Count!=5)
+                        throw new InvalidOperationException("Performance overview must have five tiles.");
+                    if(args[5]=="performance-navigation") {
+                        sections.SelectedIndex=5; await Task.Delay(100);
+                        if(performanceSubsystem!=PerformanceSubsystem.Gpu||FindPerformance<Microsoft.UI.Xaml.Controls.Grid>(PageContent,g=>g.Name=="PerformanceDetailReadings") is null)
+                            throw new InvalidOperationException("GPU detail navigation failed.");
+                        sections=FindPerformance<Microsoft.UI.Xaml.Controls.ListView>(PageContent,v=>v.Name=="PerformanceSubsystems");
+                        sections!.SelectedIndex=0; await Task.Delay(100);
+                        if(performanceSubsystem!=PerformanceSubsystem.Overview) throw new InvalidOperationException("Overview navigation failed.");
                     }
                 }
                 if(args.Length>5&&args[5].StartsWith("activity",StringComparison.Ordinal)) {

@@ -18,6 +18,7 @@
    IsPaneOpen="False" IsTitleBarAutoPaddingEnabled="False" SelectionChanged="Navigate">
    <NavigationView.MenuItems>
     <NavigationViewItem Content="Processes" Tag="Processes" Icon="AllApps" IsSelected="True" />
+    <NavigationViewItem Content="Performance" Tag="Performance" Icon="ShowResults" />
     <NavigationViewItem Content="Services" Tag="Services" Icon="Repair" />
     <NavigationViewItem Content="Rules &amp; knowledge" Tag="Knowledge" Icon="Library" />
     <NavigationViewItem Content="AI activity" Tag="AI activity" Icon="Clock" />
