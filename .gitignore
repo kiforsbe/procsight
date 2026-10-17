@@ -25,6 +25,9 @@
 *.appxbundle
 *.appxsym
 *.appxupload
+*.msixupload
+*.cer
+/packaging/*.local.json
 
 # Tests, coverage, logs and diagnostics
 /.superpowers/

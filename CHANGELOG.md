@@ -17,6 +17,11 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Opt-in Direct/Store MSIX profiles, native package branding, isolated local packaging, package-content
+  inspection, dependency/runtime notices, explicit certificate/signing commands and optional HTTPS
+  App Installer update feeds. Direct self-contained unsigned package generation has been checked;
+  installation/trust and Store acceptance remain separate unverified steps.
+
 - Central product version properties and scoped version/changelog validation helpers, separate from
   dependency pins and historical documentation.
 

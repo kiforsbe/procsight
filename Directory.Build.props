@@ -1,1 +1,9 @@
-<Project><Import Project="$(MSBuildThisFileDirectory)Version.props" /><PropertyGroup><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><RestorePackagesWithLockFile>true</RestorePackagesWithLockFile><Deterministic>true</Deterministic></PropertyGroup></Project>
+<Project><Import Project="$(MSBuildThisFileDirectory)Version.props" /><PropertyGroup><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><RestorePackagesWithLockFile>true</RestorePackagesWithLockFile><Deterministic>true</Deterministic></PropertyGroup>
+<PropertyGroup Condition="'$(ProcSightPackaging)'=='true'">
+ <BaseIntermediateOutputPath>$(ProcSightPackagingRoot)obj/$(MSBuildProjectName)/</BaseIntermediateOutputPath>
+ <DefaultItemExcludes>$(DefaultItemExcludes);$(MSBuildProjectDirectory)/obj/**;$(MSBuildProjectDirectory)/bin/**</DefaultItemExcludes>
+</PropertyGroup>
+<PropertyGroup Condition="'$(MSBuildProjectName)'=='ProcSight.App'">
+ <EnableMsixTooling>$(ProcSightPackaging)</EnableMsixTooling>
+</PropertyGroup>
+</Project>

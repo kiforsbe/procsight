@@ -8,6 +8,12 @@
         "resolved": "10.0.26100.4654",
         "contentHash": "2mgcOlj/t2RfSyyw+pVESfO+Tk1RkfQzto9Vrq42M1lUQIfQEwbi8QLha9GXWIOj+TFzeHIEJckIoF25mgiM8A=="
       },
+      "Microsoft.Windows.SDK.BuildTools.MSIX": {
+        "type": "Direct",
+        "requested": "[1.7.251221100, )",
+        "resolved": "1.7.251221100",
+        "contentHash": "f4aIZJ0NUth2403oxrpR+9rxVzZVI6dabqB21u8ncnk8eJAKCs9m77E4iYAnvP1YwrRe4axz3f8+yUcttNSfEA=="
+      },
       "Microsoft.WindowsAppSDK.Runtime": {
         "type": "Direct",
         "requested": "[2.2.0, )",
@@ -41,11 +47,6 @@
         "type": "Transitive",
         "resolved": "1.0.3719.77",
         "contentHash": "t+ucyKw5NTwMjsUrDF6R9Lk40lpcKQD1/HgyGFxl49tdA4h9dKlsj6FYGEmDRpFNfnTpENuTypMcdbrlkqBdDA=="
-      },
-      "Microsoft.Windows.SDK.BuildTools.MSIX": {
-        "type": "Transitive",
-        "resolved": "1.7.251221100",
-        "contentHash": "f4aIZJ0NUth2403oxrpR+9rxVzZVI6dabqB21u8ncnk8eJAKCs9m77E4iYAnvP1YwrRe4axz3f8+yUcttNSfEA=="
       },
       "Microsoft.WindowsAppSDK.Base": {
         "type": "Transitive",
@@ -108,7 +109,7 @@
       "procsight.application": {
         "type": "Project",
         "dependencies": {
-          "ProcSight.Core": "[1.0.0, )"
+          "ProcSight.Core": "[0.1.0, )"
         }
       },
       "procsight.core": {
@@ -118,13 +119,13 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Data.Sqlite": "[10.0.13, )",
-          "ProcSight.Application": "[1.0.0, )"
+          "ProcSight.Application": "[0.1.0, )"
         }
       },
       "procsight.windows": {
         "type": "Project",
         "dependencies": {
-          "ProcSight.Application": "[1.0.0, )",
+          "ProcSight.Application": "[0.1.0, )",
           "System.Management": "[10.0.13, )"
         }
       },

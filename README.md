@@ -24,6 +24,12 @@ and debug or **Ctrl+F5** to build and run without debugging. See the
 
 ## Current experience
 
+Local MSIX packaging is available with `./scripts/package.ps1 -Profile Direct`. It produces an
+inspected, self-contained **unsigned development package** under artifacts/packages; it does not
+install the app or change certificate trust. See [packaging instructions](DEVELOPERS.md#msix-packaging).
+Store preparation requires your reserved package identity, a version >= 1.0.0 and an explicit elevation
+choice. Installation/upgrade certification remains unverified; no Store release has been published.
+
 ![Native WinUI process tree with synthetic role data](docs/images/tree-groups.png)
 
 This is the actual XAML rendering, using synthetic processes and a synthetic analysis label.

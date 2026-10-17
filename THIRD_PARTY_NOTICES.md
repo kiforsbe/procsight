@@ -9,6 +9,7 @@ redistributable installer or promise compatibility of every future distribution.
 | Microsoft.WindowsAppSDK.WinUI 2.2.1 | Microsoft license file supplied in the package |
 | Microsoft.WindowsAppSDK.Runtime 2.2.0 | Microsoft license file supplied in the package |
 | Microsoft.Windows.SDK.BuildTools 10.0.26100.4654 | Windows SDK license terms linked by the package |
+| Microsoft.Windows.SDK.BuildTools.MSIX 1.7.251221100 | Windows SDK license terms supplied in sdk_license.txt; build-only tooling |
 | Microsoft.Data.Sqlite / Microsoft.Data.Sqlite.Core 10.0.13 | MIT, Microsoft Corporation |
 | System.Management 10.0.13 | MIT, Microsoft Corporation |
 | SQLitePCLRaw dependencies | Apache-2.0; preserve package notices |

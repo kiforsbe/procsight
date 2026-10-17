@@ -5,7 +5,16 @@ Add-Type -AssemblyName System.Drawing
 $taskAssets=Join-Path (Split-Path $PSScriptRoot -Parent) 'src/ProcSight.App/Assets'
 [xml]$taskSvg=Get-Content (Join-Path $taskAssets 'ProcSight.svg') -Raw
 $taskFrames=@()
-foreach($taskSize in @(16,20,24,32,40,48,64,256)) {
+$taskOutputs=@(16,20,24,32,40,48,64,256 | ForEach-Object { @{Size=$_;Name="ProcSight-$_.png";Ico=$true} })
+foreach($taskLogo in @(@{Name='StoreLogo';Size=50},@{Name='Square44x44Logo';Size=44},@{Name='Square150x150Logo';Size=150})) {
+ foreach($taskScale in @(100,125,150,200,400)) {
+  $taskSuffix=if($taskScale -eq 100){''}else{".scale-$taskScale"}
+  $taskOutputs+=@{Size=[int][math]::Ceiling($taskLogo.Size*$taskScale/100);Name="Package/$($taskLogo.Name)$taskSuffix.png";Ico=$false}
+ }
+}
+New-Item -ItemType Directory -Path (Join-Path $taskAssets 'Package') -Force | Out-Null
+foreach($taskOutput in $taskOutputs) {
+    $taskSize=$taskOutput.Size
     $taskBitmap=[Drawing.Bitmap]::new($taskSize,$taskSize)
     $taskGraphics=[Drawing.Graphics]::FromImage($taskBitmap)
     try {
@@ -21,7 +30,7 @@ foreach($taskSize in @(16,20,24,32,40,48,64,256)) {
             }
         }
         $taskStream=[IO.MemoryStream]::new()
-        try { $taskBitmap.Save($taskStream,[Drawing.Imaging.ImageFormat]::Png); $taskBytes=$taskStream.ToArray(); $taskFrames+=,@{Size=$taskSize;Bytes=$taskBytes}; [IO.File]::WriteAllBytes((Join-Path $taskAssets "ProcSight-$taskSize.png"),$taskBytes) } finally { $taskStream.Dispose() }
+        try { $taskBitmap.Save($taskStream,[Drawing.Imaging.ImageFormat]::Png); $taskBytes=$taskStream.ToArray(); if($taskOutput.Ico) { $taskFrames+=,@{Size=$taskSize;Bytes=$taskBytes} }; [IO.File]::WriteAllBytes((Join-Path $taskAssets $taskOutput.Name),$taskBytes) } finally { $taskStream.Dispose() }
     } finally { $taskGraphics.Dispose(); $taskBitmap.Dispose() }
 }
 $taskFile=[IO.File]::Create((Join-Path $taskAssets 'ProcSight.ico')); $taskWriter=[IO.BinaryWriter]::new($taskFile)
@@ -36,4 +45,4 @@ try {
     }
     foreach($taskFrame in $taskFrames) { $taskWriter.Write([byte[]]$taskFrame.Bytes) }
 } finally { $taskWriter.Dispose(); $taskFile.Dispose() }
-Write-Output 'Generated 8 PNG sizes and the multi-resolution ICO from ProcSight.svg.'
+Write-Output 'Generated app/tray PNGs, 15 MSIX logo assets and the 8-frame ICO from ProcSight.svg.'

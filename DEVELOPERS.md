@@ -7,6 +7,43 @@ as `X.Y.Z.0`; dependencies remain pinned independently. Run `scripts/test-releas
 version/manifest/changelog checks. Release orchestration and packaging are being implemented; do not
 manually bump individual product version fields or infer Store readiness from these tests.
 
+## MSIX packaging
+
+Windows SDK 10.0.26100.0+ x64 MakeAppx/SignTool are discovered explicitly. Packaging uses the pinned
+Microsoft.Windows.SDK.BuildTools.MSIX package and opt-in single-project profiles in packaging/.
+Ordinary builds remain unpackaged; isolated packaging intermediates/output live in artifacts/packages.
+
+```powershell
+./scripts/test-packaging.ps1
+./scripts/package.ps1 -Profile Direct
+./scripts/new-package-certificate.ps1 # explicit creation only; does not install trust
+./scripts/package.ps1 -Profile Direct -CertificateThumbprint <your-development-thumbprint>
+```
+
+Unsigned development output is not directly installable. The separate certificate command creates a
+nonexportable CurrentUser\My key and exports only its public .cer into ignored artifacts/certificates.
+On a disposable test account, explicitly trust that public certificate in the appropriate trusted-people
+store before installing the signed development package through Windows App Installer. Never trust a
+certificate from an unverified source. No script imports trust or installs/elevates an application.
+
+For Store preparation, copy packaging/store-identity.example.json to an ignored *.local.json and
+replace every placeholder with exact Partner Center identity values. Store major versions must be >=1;
+use the release workflow for version changes. Choose -ElevationMode Disabled unless the publisher has
+received approval for allowElevation. Microsoft signs accepted Store submissions; this command does
+not publish or certify a package.
+
+Public Direct packages require a production IdentityFile, a trusted CA-issued code-signing certificate
+and explicit HTTPS TimestampUri. Optional FeedUri and PackageUri must both be supplied; generated
+.appinstaller files check on launch without blocking activation. No feed is hosted automatically.
+Each output includes release-artifacts.json with source commit, version, primary package hash and
+signing state. Inspect tool-output.log for local build diagnostics. Source/binary packaging preserves
+ProcSight's AGPL and collects available dependency/runtime licence and notice files under Licenses.
+
+Packaging tests use synthetic identities/certificate metadata and do not change real certificate
+stores. Actual install/update/uninstall, signed-package trust, OAuth return and Store certification
+need separate disposable-system acceptance. A missing optional PDB conversion tool can cause an SDK
+warning about symbol packages; debug symbols are excluded and no symbols package is distributed.
+
 Run `scripts/generate-icons.ps1` on Windows to regenerate the tracked multi-resolution ICO and PNG
 assets from `Assets/ProcSight.svg` using built-in GDI+. SVG rect/line/circle primitives are supported;
 no network download or image dependency is required. Tray counters use English PDH paths, network

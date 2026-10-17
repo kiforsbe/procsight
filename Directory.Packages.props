@@ -2,6 +2,7 @@
 <PackageVersion Include="Microsoft.WindowsAppSDK.WinUI" Version="2.2.1" />
 <PackageVersion Include="Microsoft.WindowsAppSDK.Runtime" Version="2.2.0" />
 <PackageVersion Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.4654" />
+<PackageVersion Include="Microsoft.Windows.SDK.BuildTools.MSIX" Version="1.7.251221100" />
 <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.13" />
 <PackageVersion Include="System.Management" Version="10.0.13" />
 <PackageVersion Include="xunit" Version="2.9.3" />

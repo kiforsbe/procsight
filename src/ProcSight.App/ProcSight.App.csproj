@@ -2,15 +2,24 @@
 <OutputType>WinExe</OutputType><TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
 <ApplicationIcon>Assets/ProcSight.ico</ApplicationIcon>
 <TargetPlatformMinVersion>10.0.26100.0</TargetPlatformMinVersion><RuntimeIdentifier>win-x64</RuntimeIdentifier>
-<PlatformTarget>x64</PlatformTarget><UseWinUI>true</UseWinUI><WindowsPackageType>None</WindowsPackageType>
-<EnableMsixTooling>true</EnableMsixTooling><SelfContained>false</SelfContained>
+<PlatformTarget>x64</PlatformTarget><UseWinUI>true</UseWinUI><WindowsPackageType Condition="'$(ProcSightPackaging)'!='true'">None</WindowsPackageType>
+<WindowsPackageType Condition="'$(ProcSightPackaging)'=='true'">MSIX</WindowsPackageType>
+<EnableMsixTooling>$(ProcSightPackaging)</EnableMsixTooling><SelfContained Condition="'$(ProcSightPackaging)'!='true'">false</SelfContained>
 <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained><ApplicationManifest>app.manifest</ApplicationManifest>
 <WindowsAppSDKBootstrapAutoInitializeOptions_OnNoMatch_ShowUI>true</WindowsAppSDKBootstrapAutoInitializeOptions_OnNoMatch_ShowUI>
-</PropertyGroup><ItemGroup>
+</PropertyGroup>
+<Import Project="$(ProcSightPackageProfile)" Condition="'$(ProcSightPackaging)'=='true' and Exists('$(ProcSightPackageProfile)')" />
+<ItemGroup>
+<AppxManifest Include="$(ProcSightPackageManifest)" Condition="'$(ProcSightPackaging)'=='true' and '$(ProcSightPackageManifest)'!=''" />
+<Content Include="Assets/Package/**" CopyToOutputDirectory="PreserveNewest" />
+<Content Include="../../LICENSE" Link="ProcSight-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
+<Content Include="../../THIRD_PARTY_NOTICES.md" Link="ProcSight-THIRD-PARTY-NOTICES.txt" CopyToOutputDirectory="PreserveNewest" />
+<Content Include="$(ProcSightLicenseFolder)/**/*" Link="Licenses/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Condition="'$(ProcSightPackaging)'=='true'" />
 <Content Update="Assets/ProcSight.ico" CopyToOutputDirectory="PreserveNewest" />
 <Content Update="Assets/ProcSight-32.png" CopyToOutputDirectory="PreserveNewest" />
 <ProjectReference Include="../ProcSight.Windows/ProcSight.Windows.csproj" />
 <ProjectReference Include="../ProcSight.Infrastructure/ProcSight.Infrastructure.csproj" />
 <PackageReference Include="Microsoft.WindowsAppSDK.WinUI" /><PackageReference Include="Microsoft.WindowsAppSDK.Runtime" />
 <PackageReference Include="Microsoft.Windows.SDK.BuildTools" />
+<PackageReference Include="Microsoft.Windows.SDK.BuildTools.MSIX" PrivateAssets="all" />
 </ItemGroup></Project>
