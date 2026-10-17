@@ -22,6 +22,37 @@ extension. Select **ProcSight (Debug)** in Run and Debug, then press **F5** to b
 and debug or **Ctrl+F5** to build and run without debugging. See the
 [VS Code setup](DEVELOPERS.md#run-and-debug-in-vs-code) for tasks and troubleshooting.
 
+## Install a development package
+
+Use a **signed** development MSIX. If you already have one and its matching public `.cer`, skip
+certificate creation and signing. Otherwise, run these commands from the repository in ordinary
+PowerShell 7 as your development user:
+
+```powershell
+./scripts/new-package-certificate.ps1 # Once; keep the printed thumbprint and public .cer path
+./scripts/package.ps1 -Profile Direct -CertificateThumbprint 'YOUR_40_HEX_THUMBPRINT'
+```
+
+Open **PowerShell as Administrator** and trust that matching public certificate on your test machine:
+
+```powershell
+Import-Certificate -FilePath 'C:\path\to\artifacts\certificates\YOUR_40_HEX_THUMBPRINT.cer' -CertStoreLocation 'Cert:\LocalMachine\TrustedPeople'
+```
+
+Then double-click the `*-signed.msix` file, or run this in ordinary PowerShell as the user who will
+use ProcSight, using the package path printed by the packaging script:
+
+```powershell
+Add-AppxPackage -Path 'C:\path\to\ProcSight-VERSION-x64-signed.msix'
+```
+
+Replace the example paths and thumbprint with your actual outputs. Trust only your verified development
+certificate: this grants machine-wide trust for packages signed with its key. Use **Trusted People**,
+not Trusted Root Certification Authorities. Error `0x800B0109` (sometimes wrapped in `0x87e00034`)
+means package certificate trust is missing; creating a certificate in Personal/My alone is insufficient.
+See [detailed installation and troubleshooting](DEVELOPERS.md#install-a-signed-development-package)
+and [Microsoft's signing guide](https://learn.microsoft.com/en-us/windows/msix/package/sign-msix-package-guide).
+
 ## Current experience
 
 Local MSIX packaging is available with `./scripts/package.ps1 -Profile Direct`. It produces an

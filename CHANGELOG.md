@@ -7,6 +7,7 @@ plans, implementation details and validation records belong in the project docum
 
 ### Added
 
+- Development-certificate trust, signed MSIX installation and troubleshooting instructions.
 - Native Windows 11 process/service explorer with live CPU/memory sampling, ownership grouping,
   collapsible process trees, search and classification filters.
 - Configurable table columns with resizing, reordering, saved layouts and additional local metadata;

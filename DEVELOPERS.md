@@ -81,15 +81,81 @@ Ordinary builds remain unpackaged; isolated packaging intermediates/output live 
 ```powershell
 ./scripts/test-packaging.ps1
 ./scripts/package.ps1 -Profile Direct
-./scripts/new-package-certificate.ps1 # explicit creation only; does not install trust
-./scripts/package.ps1 -Profile Direct -CertificateThumbprint <your-development-thumbprint>
 ```
 
-Unsigned development output is not directly installable. The separate certificate command creates a
-nonexportable CurrentUser\My key and exports only its public .cer into ignored artifacts/certificates.
-On a disposable test account, explicitly trust that public certificate in the appropriate trusted-people
-store before installing the signed development package through Windows App Installer. Never trust a
-certificate from an unverified source. No script imports trust or installs/elevates an application.
+Unsigned development output is not directly installable. No packaging script imports trust or
+installs/elevates an application.
+
+### Install a signed development package
+
+Create a signing certificate **once**, in ordinary PowerShell 7 as your development user:
+
+```powershell
+./scripts/new-package-certificate.ps1
+```
+
+The command creates a one-year, nonexportable code-signing key in `Cert:\CurrentUser\My`, with
+subject `CN=ProcSight Development`, and exports its public certificate to the ignored
+`artifacts/certificates/<thumbprint>.cer`. Record the printed thumbprint and reuse this certificate
+for subsequent builds until it expires. Creation alone does not establish installation trust.
+
+Sign a package as the same development user, replacing the placeholder with that thumbprint:
+
+```powershell
+$devThumbprint = 'YOUR_40_HEX_THUMBPRINT'
+./scripts/package.ps1 -Profile Direct -CertificateThumbprint $devThumbprint
+```
+
+Use the final `Package inspected:` path ending in `-signed.msix`; each build has a separate output
+directory under `artifacts/packages/Direct/<version>/<build-id>`. Before trusting a certificate,
+check that its subject and thumbprint match the package signer:
+
+```powershell
+Get-PfxCertificate -FilePath 'C:\path\to\artifacts\certificates\YOUR_40_HEX_THUMBPRINT.cer' |
+    Select-Object Subject, Thumbprint, NotAfter
+(Get-AuthenticodeSignature -LiteralPath 'C:\path\to\ProcSight-VERSION-x64-signed.msix').SignerCertificate |
+    Select-Object Subject, Thumbprint, NotAfter
+```
+
+On the test machine, open **PowerShell as Administrator** and import only the matching public `.cer`:
+
+```powershell
+Import-Certificate -FilePath 'C:\path\to\artifacts\certificates\YOUR_40_HEX_THUMBPRINT.cer' -CertStoreLocation 'Cert:\LocalMachine\TrustedPeople'
+```
+
+This is machine-wide trust; use only a verified certificate you intend to trust for development.
+Use **Trusted People**, not Trusted Root Certification Authorities. The GUI equivalent is opening the
+`.cer`, choosing **Install Certificate > Local Machine > Place all certificates in the following
+store > Trusted People**, then completing the wizard. Test machines need only the public `.cer`,
+never your private signing key. See [Microsoft's MSIX signing guide](https://learn.microsoft.com/en-us/windows/msix/package/sign-msix-package-guide).
+
+Return to ordinary PowerShell as the intended app user and install the signed package:
+
+```powershell
+Add-AppxPackage -Path 'C:\path\to\ProcSight-VERSION-x64-signed.msix'
+```
+
+Alternatively double-click that package in Windows App Installer. If elevation used another account,
+keep signing and app installation in the original development user's session: signing uses their
+Personal/My store, and installation targets the invoking user.
+
+Error `0x800B0109`, possibly wrapped in `0x87e00034`, indicates missing certificate trust. Confirm the
+exact package signer's certificate is present in `Cert:\LocalMachine\TrustedPeople`, is unexpired,
+and that you selected the signed artifact. Importing into Current User or Personal/My alone is not
+this trust step; Developer Mode does not replace it. If you generate a new certificate, trust its
+new public `.cer` before installing packages signed with it. A successful PowerShell signature check
+alone does not establish MSIX deployment trust.
+
+After development testing, remove only this certificate's trust entry in elevated PowerShell:
+
+```powershell
+Remove-Item -LiteralPath 'Cert:\LocalMachine\TrustedPeople\YOUR_40_HEX_THUMBPRINT'
+```
+
+Development certificates are for local testing, not public distribution. Trust/import and installation
+are explicit manual steps; the scripts do not perform them.
+
+### Store and public distribution
 
 For Store preparation, copy packaging/store-identity.example.json to an ignored *.local.json and
 replace every placeholder with exact Partner Center identity values. Store major versions must be >=1;
