@@ -100,7 +100,10 @@ Process details use the same typography, theme resources, padded expandable sect
 bar as rules inspection. Keep summary identity/PID visible, group assessments separately from raw
 metadata, and retain local command/window context under labeled sections. Resource ticks must not
 rebuild the pane; preserve expansion and scroll state through real metadata changes for the same
-selection. Service host signatures remain separate from implementation signatures and module proof.
+selection. Keep top-level section expansion choices when browsing other process/service or rule
+entries, including temporarily missing sections and page navigation. Remember choices by stable
+section kind for the window session, independently of item data; scroll resets for a different item.
+Service host signatures remain separate from implementation signatures and module proof.
 
 Process/service table headings share the row grid's actual width and horizontal offset, including
 when the initial collection is empty. Align CommandBar content vertically with its native actions;

@@ -190,7 +190,10 @@ high-contrast or scaling validation. Do not broaden a rule's scope when deriving
 Process/service details now use the native design guide: structured assessments and metadata,
 separate signature and configured-host proof, expandable local command/window context, and a
 compact toolbar with correction/payload preview in overflow. Preserve expansion and scroll state
-for the same process lifetime; resource-only ticks must not rebuild details. Transient field values
+for the same process lifetime; resource-only ticks must not rebuild details. Top-level detail section
+choices persist across process/service and rule selections and page recreation for the window session.
+Use bounded app-owned section keys, never item names, metadata or evidence IDs, for those preferences;
+only same-selection evidence content/scroll is retained. Transient field values
 and UI comparison strings can contain local private data: never persist, log or send them online.
 Async evidence reads must still match the active selection and pane generation before publishing.
 

@@ -57,6 +57,9 @@ public sealed partial class MainWindow
                 MetadataIssues=[new("ExecutablePath",MetadataUnavailableReason.AccessDenied),new("Started",MetadataUnavailableReason.AccessDenied),new("CommandLine",MetadataUnavailableReason.AccessDenied)] };
         }
         lastSnapshot=new(Guid.NewGuid(),now,processes,[],new(36,16L*1024*1024*1024,7L*1024*1024*1024));
+        if(args.Length>5&&args[5]=="details-service-selection") lastSnapshot=lastSnapshot with { Services=[
+            new("FixtureServiceA","Fixture service A","Running","Auto",1000,"host.exe --fixture-a",ObservationState.Available,new("fixture-a.dll")),
+            new("FixtureServiceB","Fixture service B","Stopped","Manual",null,"host.exe --fixture-b",ObservationState.Available,new("fixture-b.dll"))] };
         entities=new IdentityResolver().Resolve(lastSnapshot,[]);
         var node=entities.First(e=>e.Process?.Key.Pid==1002);
         analysis[node.Identity]=new(node.Identity,AnalysisState.Local,new([
@@ -115,7 +118,7 @@ public sealed partial class MainWindow
                     if(args[5]!="rules-process") { Navigation.SelectedItem=Navigation.MenuItems.OfType<Microsoft.UI.Xaml.Controls.NavigationViewItem>().First(i=>i.Tag?.ToString()=="Knowledge"); page="Knowledge"; RenderPage(); }
                     else { page="Processes"; RenderPage(); detailsOpen=true; table!.SelectedItem=rows.First(r=>r.Entity.Identity==node.Identity); UpdateDetailsLayout(); ShowDetail(table.SelectedItem as ViewModels.ProcessRow); }
                     await Task.Delay(350); WindowRoot.UpdateLayout();
-                    if(args[5] is "rules-detail" or "rules-actions" or "rules-rejected" or "rules-unknown") {
+                    if(args[5] is "rules-detail" or "rules-actions" or "rules-rejected" or "rules-unknown" or "rules-selection") {
                         Microsoft.UI.Xaml.Controls.ListView? FindRulesList(DependencyObject parent) {
                             if(parent is Microsoft.UI.Xaml.Controls.ListView found) return found;
                             for(var i=0;i<VisualTreeHelper.GetChildrenCount(parent);i++) if(FindRulesList(VisualTreeHelper.GetChild(parent,i)) is { } nested) return nested;
@@ -124,6 +127,22 @@ public sealed partial class MainWindow
                         var ruleList=FindRulesList(PageContent) ?? throw new InvalidOperationException("Missing rules list.");
                         if(ruleList.Items.Count!=374) throw new InvalidOperationException("Rules were not loaded.");
                         ruleList.SelectedIndex=0; await Task.Delay(350); WindowRoot.UpdateLayout();
+                        if(args[5]=="rules-selection") {
+                            Microsoft.UI.Xaml.Controls.Expander? Conditions(DependencyObject parent) {
+                                if(parent is Microsoft.UI.Xaml.Controls.Expander e&&e.Header as string=="Matching conditions") return e;
+                                for(var i=0;i<VisualTreeHelper.GetChildrenCount(parent);i++) if(Conditions(VisualTreeHelper.GetChild(parent,i)) is { } found) return found;
+                                return null;
+                            }
+                            Conditions(PageContent)!.IsExpanded=false;
+                            ruleList.SelectedIndex=1; await Task.Delay(150);
+                            if(Conditions(PageContent)!.IsExpanded) throw new InvalidOperationException("Rule selection reset collapsed conditions.");
+                            Conditions(PageContent)!.IsExpanded=true;
+                            ruleList.SelectedIndex=2; await Task.Delay(150);
+                            if(!Conditions(PageContent)!.IsExpanded) throw new InvalidOperationException("Rule selection reset expanded conditions.");
+                            ruleList.SelectedIndex=0; await Task.Delay(150);
+                            if(!Conditions(PageContent)!.IsExpanded) throw new InvalidOperationException("Learned rule did not retain shared section choice.");
+                            File.WriteAllText(output+".checks","Learned/bundled rule selections retain both expanded and collapsed section choices.");
+                        }
                         if(args[5]=="rules-actions") {
                             T? FindControl<T>(DependencyObject parent,Func<T,bool> predicate) where T:DependencyObject {
                                 if(parent is T match&&predicate(match)) return match;
@@ -300,6 +319,27 @@ public sealed partial class MainWindow
                 }
                 if(args.Length>5&&args[5].StartsWith("details",StringComparison.Ordinal))
                 { detailsOpen=true; table!.SelectedItem=rows.First(r=>r.Entity.Identity==node.Identity); UpdateDetailsLayout(); ShowDetail(table.SelectedItem as ViewModels.ProcessRow); }
+                if(args.Length>5&&args[5] is "details-selection" or "details-service-selection") {
+                    if(args[5]=="details-service-selection") {
+                        page="Services"; RenderPage(); await Task.Delay(200); detailsOpen=true; UpdateDetailsLayout();
+                    }
+                    var first=rows.First(r=>!r.IsGroup); var second=rows.First(r=>!r.IsGroup&&r.Key!=first.Key);
+                    table!.SelectedItem=first; ShowDetail(first); await Task.Delay(100);
+                    Microsoft.UI.Xaml.Controls.Expander Section(string key)=>detailPanel!.Children.OfType<Microsoft.UI.Xaml.Controls.Expander>().Single(e=>e.Tag as string==key);
+                    Section("command").IsExpanded=true; Section("assessment-Purpose").IsExpanded=true;
+                    table.SelectedItem=second; await Task.Delay(150);
+                    if(!Section("command").IsExpanded||!Section("assessment-Purpose").IsExpanded) throw new InvalidOperationException("Selection reset expanded details.");
+                    var selectedSummary=second.Entity.Process is { } selectedProcess?$"PID {selectedProcess.Key.Pid} · {selectedProcess.Executable.Name}":$"Service {second.Entity.Service!.Name} · {second.Entity.Service.State}";
+                    if(!detailPanel!.Children.OfType<Microsoft.UI.Xaml.Controls.TextBlock>().Any(t=>t.Text==selectedSummary)) throw new InvalidOperationException("Selection preserved stale item metadata.");
+                    Section("command").IsExpanded=false;
+                    table.SelectedItem=first; await Task.Delay(150);
+                    if(Section("command").IsExpanded||!Section("assessment-Purpose").IsExpanded) throw new InvalidOperationException("Selection reset section choices.");
+                    // Empty selection and page recreation must not discard preferences for temporarily absent sections.
+                    table.SelectedItem=null; ShowDetail(null); RenderPage(); await Task.Delay(150);
+                    detailsOpen=true; table!.SelectedItem=rows.First(r=>r.Key==first.Key); UpdateDetailsLayout(); ShowDetail(table.SelectedItem as ViewModels.ProcessRow); await Task.Delay(150);
+                    if(Section("command").IsExpanded||!Section("assessment-Purpose").IsExpanded) throw new InvalidOperationException("Page recreation reset detail choices.");
+                    File.WriteAllText(output+".checks","Selection, empty selection and page recreation retain expanded/collapsed detail choices; selected data is rebuilt.");
+                }
                 if(args.Length>5&&args[5] is "details-stability" or "details-command") {
                     var commandSection=detailPanel!.Children.OfType<Microsoft.UI.Xaml.Controls.Expander>().Single(e=>e.Tag as string=="command");
                     commandSection.IsExpanded=true; await Task.Delay(350);

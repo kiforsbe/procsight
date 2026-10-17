@@ -2,6 +2,12 @@
 
 ## Current state
 
+Native Debug visual fixtures `details-selection`, `details-service-selection` and `rules-selection`
+exercise real ListView selection changes and expanded/collapsed detail choices, using synthetic
+metadata only. The entity fixtures also cover empty selection, page recreation and updated item
+identity. Run with `--visual-fixture <absolute.png> Dark|Light 1200|700 <fixture>`; check `.error`
+and `.checks` beside the PNG. Existing `details-stability` and `details-evidence` cover refreshes.
+
 `Version.props` is the authoritative product version. MSBuild derives assembly/file and MSIX versions
 as `X.Y.Z.0`; dependencies remain pinned independently. Run `scripts/test-release.ps1` for synthetic
 version/manifest/changelog checks. Local release orchestration and packaging are implemented; do not

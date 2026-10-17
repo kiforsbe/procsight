@@ -1064,7 +1064,13 @@ field and typography helpers with rule inspection. Service host/implementation p
 A transient comparison key includes displayed local metadata and analysis results but excludes
 resource samples. Unchanged views are retained, reducing reconstruction and repeated database reads.
 When displayed metadata changes for the same selection/lifetime, the pane restores top-level
-expansion state and scroll position. A different selection starts fresh. Local comparison strings
+expansion state and scroll position. A different selection retains top-level expansion choices but
+starts with fresh item content and scroll. [Shared section presentation](src/ProcSight.App/MainWindow.RulePresentation.cs)
+remembers native IsExpanded property changes by app-owned section kind in a window-session dictionary.
+Process/service sections and rule-inspection sections have separate namespaces; learned/bundled rules
+share matching-condition preferences. Missing sections do not erase remembered choices. Preferences
+contain no item identity or metadata and are never persisted. Item-specific nested evidence remains
+selection-scoped. Local comparison strings
 can contain private command context and must never enter persistence, logs or providers.
 Evidence results require both current selection/lifetime and pane generation to prevent an older
 async read from overwriting newly selected or rebuilt details. Group selection requests an individual
@@ -1078,13 +1084,16 @@ sequenceDiagram
     participant Pane as Native details pane
     participant Model as Local presentation fields
     participant Store as Knowledge store
+    opt User selects another process or service
+        Pane->>Pane: Retain section-kind choices and discard old item content and scroll
+    end
     Live->>Pane: Update selected process
     Pane->>Model: Build local metadata sections
     Model-->>Pane: JSON-ignored private values and safe unavailable reasons
     alt Display inputs unchanged
         Pane->>Pane: Retain controls and scroll
     else Display inputs changed
-        Pane->>Pane: Save selection-scoped expansion / scroll
+        Pane->>Pane: Keep section-kind choices and same-selection scroll
         Pane->>Pane: Rebuild structured view and increment generation
         Pane->>Store: Read candidate evidence off UI thread
         Store-->>Pane: Stored rules and evidence

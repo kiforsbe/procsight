@@ -130,6 +130,10 @@ in this repository; planned product features are documented in the design and ro
 
 ### Fixed
 
+- Process, service and rule details retain each section's expanded/collapsed choice when selecting
+  another list entry or rebuilding the page. Choices last for the window session; newly selected
+  metadata and evidence remain independent of the previous item.
+
 - Single-process applications render directly, without redundant headers or `(1)` counts.
   Group transitions preserve row order and selection. Blank Windows descriptions fall back
   to executable names instead of creating unnamed groups.

@@ -6,6 +6,21 @@ were used for automated verification.
 
 ## Local checks
 
+### 2026-10-17 detail expansion while browsing
+
+Native Debug fixtures first reproduced selection resetting expanded process/service details and
+collapsed rule matching conditions. After the fix, `details-selection`, `details-service-selection`
+and `rules-selection` passed at 1200/700 effective pixels in Dark/Light themes (12 captures).
+They cover open and closed choices, learned/bundled rules, empty selection, page recreation and
+replacement of displayed item identity. Existing `details-stability` and `details-evidence` also
+passed resource/metadata refresh and nested evidence/scroll checks. Captures use synthetic metadata,
+isolated output and no real credentials/providers. Wide dark and narrow light entity views were
+visually inspected. Narrator, high contrast and text scaling were not revalidated for this fix.
+
+Locked Release restore/build passed with zero warnings/errors, all 368 .NET tests and 70 script
+checks passed. Section choices are window-session preferences keyed only by app-owned section kinds;
+they do not preserve another item's metadata or widen evidence lifetime/selection checks.
+
 On Windows 11 x64 with .NET SDK 10.0.301 and installed Windows App Runtime 2.2:
 
 ```powershell

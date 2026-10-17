@@ -8,6 +8,16 @@ using ProcSight.Core.Rules;
 namespace ProcSight.App;
 public sealed partial class MainWindow
 {
+    // Section preferences only: bounded app-owned keys, no item identities or displayed values.
+    // Keep these for this window session, independently of selection and control recreation.
+    private readonly Dictionary<string,bool> detailSectionChoices=[];
+    private Expander RememberDetailSection(Expander section,string key)
+    {
+        if(detailSectionChoices.TryGetValue(key,out var expanded)) section.IsExpanded=expanded;
+        section.RegisterPropertyChangedCallback(Expander.IsExpandedProperty,(sender,_)=>
+            detailSectionChoices[key]=((Expander)sender).IsExpanded);
+        return section;
+    }
     private static TextBlock RuleText(string text,string style="BodyTextBlockStyle",bool secondary=false)
     {
         var foreground=secondary?"Foreground=\"{ThemeResource TextFillColorSecondaryBrush}\"":"";
@@ -86,40 +96,40 @@ public sealed partial class MainWindow
         };
         UpdateActions();
         panel.Children.Add(RuleText("Classifications","BodyStrongTextBlockStyle"));
-        foreach(var a in rule.Assessments) panel.Children.Add(RuleSection(a.Axis+" · "+RuleInspection.Classifications(rule with { Assessments=[a] }),
-            RuleFields(("Confidence",a.Confidence.ToString()),("Explanation",a.Reason),("Review by",a.ExpiresAt.LocalDateTime.ToString("g"))),true));
+        foreach(var a in rule.Assessments) panel.Children.Add(RememberDetailSection(RuleSection(a.Axis+" · "+RuleInspection.Classifications(rule with { Assessments=[a] }),
+            RuleFields(("Confidence",a.Confidence.ToString()),("Explanation",a.Reason),("Review by",a.ExpiresAt.LocalDateTime.ToString("g"))),true),"rule/assessment-"+a.Axis));
         var conditions=new StackPanel { Spacing=12 }; conditions.Children.Add(RuleText("All conditions must match. A descriptive name does not expand this rule's scope.","CaptionTextBlockStyle",true));
         foreach(var p in rule.Predicates) {
             var text=RuleInspection.Value(p.Field,p.Value);
             if(entity is not null) text+="\nObserved: "+(entity.Facts.TryGetValue(p.Field,out var actual)?RuleInspection.Value(p.Field,actual)+(PredicateMatcher.Matches(p,actual)?" · matches":" · does not match"):"unavailable");
             conditions.Children.Add(RuleFields((RuleInspection.Field(p.Field)+(p.Kind==PredicateKind.PathRoot?" · under location":" · equals"),text)));
         }
-        panel.Children.Add(RuleSection("Matching conditions",conditions,true));
+        panel.Children.Add(RememberDetailSection(RuleSection("Matching conditions",conditions,true),"rule/conditions"));
         var validation=new RuleValidator().Validate(rule,evidence,DateTimeOffset.UtcNow);
         var evidenceContent=new StackPanel { Spacing=12 };
         evidenceContent.Children.Add(new InfoBar { IsOpen=true,IsClosable=false,Severity=validation.Accepted?InfoBarSeverity.Informational:InfoBarSeverity.Warning,
             Title=validation.Accepted?"Evidence supports this rule":"Evidence needs review",Message=validation.Accepted?"A match does not guarantee contribution; corrections and conflicts can take precedence.":string.Join("; ",validation.Reasons.Distinct()) });
         foreach(var record in evidence) evidenceContent.Children.Add(RuleSection(record.Kind+" · "+record.Origin,RuleText(RuleInspection.Describe(record))));
-        panel.Children.Add(RuleSection($"Supporting evidence ({evidence.Length})",evidenceContent));
+        panel.Children.Add(RememberDetailSection(RuleSection($"Supporting evidence ({evidence.Length})",evidenceContent),"rule/evidence"));
         var history=RuleFields(("Rule ID",rule.Id.ToString()),("Created",rule.CreatedAt.LocalDateTime.ToString("g")),("Review by",rule.ReviewAt.LocalDateTime.ToString("g")),("Expires",rule.ExpiresAt.LocalDateTime.ToString("g")),("Privacy origin",rule.Origin.ToString()));
         if(rule.Provenance is { } provenance) history.Children.Add(RuleFields(("AI generation",provenance.GeneratedAt.LocalDateTime.ToString("g")),("Destination",provenance.Destination==AnalysisDestination.LocalModel?"Local model":"Online provider")));
         else history.Children.Add(RuleText("Provider/model history was not recorded for this rule."));
         if(rule.IdentityLabel is { } label) history.Children.Add(RuleFields(("Suggested identity",label)));
         if(rule.Role is { } role) history.Children.Add(RuleFields(("Suggested role",role)));
         history.Children.Add(RuleText("Provider provenance is an audit aid, not proof of identity or safety.","CaptionTextBlockStyle",true));
-        panel.Children.Add(RuleSection("Provenance & lifecycle",history));
+        panel.Children.Add(RememberDetailSection(RuleSection("Provenance & lifecycle",history),"rule/provenance"));
         return panel;
     }
-    private static StackPanel CreateBundledRulePanel(KnownTaskDefinition definition,ResolvedEntity? entity=null,LocalAnalysis? current=null)
+    private StackPanel CreateBundledRulePanel(KnownTaskDefinition definition,ResolvedEntity? entity=null,LocalAnalysis? current=null)
     {
         var panel=new StackPanel { Spacing=12 };
         panel.Children.Add(RuleText(definition.Label,"SubtitleTextBlockStyle"));
         panel.Children.Add(RuleText("Bundled definition · Read-only","CaptionTextBlockStyle",true));
         if(entity is not null) panel.Children.Add(RuleText(RuleInspection.ApplicationStatus(definition.Id,current)));
         panel.Children.Add(RuleText(definition.PublisherOnly?"Publisher reference only; purpose remains unknown.":"Purpose: "+definition.Purpose+". Security and optionality remain unresolved."));
-        panel.Children.Add(RuleSection("Matching conditions",RuleFields(("Executable",definition.Executable),("Service",definition.ServiceName??"Process definition"),("Product",definition.Product??"Windows component / publisher gate"),("Original file",definition.OriginalName??definition.Executable),("Required verified signer",string.Join(", ",definition.Signers)),("Allowed locations",RuleInspection.Locations(definition))),true));
+        panel.Children.Add(RememberDetailSection(RuleSection("Matching conditions",RuleFields(("Executable",definition.Executable),("Service",definition.ServiceName??"Process definition"),("Product",definition.Product??"Windows component / publisher gate"),("Original file",definition.OriginalName??definition.Executable),("Required verified signer",string.Join(", ",definition.Signers)),("Allowed locations",RuleInspection.Locations(definition))),true),"rule/conditions"));
         panel.Children.Add(new HyperlinkButton { Content="Open public reference",NavigateUri=new(definition.SourceUrl),HorizontalAlignment=HorizontalAlignment.Left });
-        panel.Children.Add(RuleSection("Definition details",RuleFields(("Rule ID",definition.Id.ToString()),("Reference",definition.SourceUrl))));
+        panel.Children.Add(RememberDetailSection(RuleSection("Definition details",RuleFields(("Rule ID",definition.Id.ToString()),("Reference",definition.SourceUrl))),"rule/definition"));
         return panel;
     }
 }

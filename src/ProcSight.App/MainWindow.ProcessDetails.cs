@@ -22,7 +22,6 @@ public sealed partial class MainWindow
             string.Join(',',update?.Result.MatchingRuleIds??[])+"|"+string.Join(',',update?.Result.AppliedRuleIds??[])+"|"+string.Join('|',update?.Result.Issues??[]);
         if(detailFingerprint==fingerprint) return;
         var sameSelection=selection==detailSelectionKey;
-        var expanded=sameSelection?detailPanel.Children.OfType<Expander>().Where(e=>e.Tag is string).ToDictionary(e=>(string)e.Tag,e=>e.IsExpanded):[];
         var offset=sameSelection?detailScroll?.VerticalOffset??0:0;
         var previousEvidence=sameSelection&&detailEvidenceScope==entity?.Identity.Value?evidencePanel:null;
         var evidenceExpanded=previousEvidence?.Children.OfType<Expander>().Where(e=>e.Tag is string).ToDictionary(e=>(string)e.Tag,e=>e.IsExpanded)??[];
@@ -84,8 +83,7 @@ public sealed partial class MainWindow
         DispatcherQueue.TryEnqueue(()=> { if(detailVersion==version) detailScroll?.ChangeView(null,offset,null,true); });
         void AddSection(Expander expander,string key) {
             expander.Tag=key;
-            if(expanded.TryGetValue(key,out var open)) expander.IsExpanded=open;
-            detailPanel.Children.Add(expander);
+            detailPanel.Children.Add(RememberDetailSection(expander,"entity/"+key));
         }
     }
     private async Task ShowEvidenceAsync(ResolvedEntity entity,StackPanel target,int version,IReadOnlyDictionary<string,bool> expanded,double offset)
