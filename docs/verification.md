@@ -1,5 +1,23 @@
 # Development verification
 
+## Manual ChatGPT sign-in diagnosis (2026-10-17)
+
+At the user's request, no automated authentication test or credential inspection ran. The user
+performed sign-in in a self-contained diagnostic executable launched under the installed MSIX
+identity with Invoke-CommandInDesktopPackage. Only the bounded, typed authentication log was read.
+It showed transient visual unload immediately cancelling model loading, followed by a Windows
+stowed XAML exception when reopening the dialog. Code inspection found the retained visual parent
+and cleanup attached to transient Unloaded notifications.
+
+After switching to owner-controlled cleanup and fresh per-dialog editors, the user's next attempt
+logged successful callback validation, token exchange, identity validation, session/catalog writes,
+account-picker publication and discovery of seven models. Release build passed with zero warnings
+or errors; Direct package generation and content inspection passed. Normal installed activation,
+repeated close/reopen acceptance and the full automated suite were not established by this check.
+The diagnostic launcher provides package identity but is not identical to normal activation.
+
+## Earlier verification records
+
 Recorded 2026-10-17. ProcSight is an unreleased development preview, not a completed
 release certification. No real API credentials, process dumps, or paid provider requests
 were used for automated verification.
