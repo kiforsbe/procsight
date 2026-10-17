@@ -18,7 +18,20 @@ public sealed partial class MainWindow
         ProcessListRow Project(ResolvedEntity e)=>new("synthetic",e,false,[e],null,e.Process!.Resources.WorkingSetBytes.Value??0,true,
             e.Process.Resources.CpuPercent.Value??0,true);
         var row=new ProcessRow { Key="synthetic" };
+        byte Alpha(Microsoft.UI.Xaml.Media.Brush brush)=>((Microsoft.UI.Xaml.Media.SolidColorBrush)brush).Color.A;
+        row.TotalMemoryBytes=10485760;
+        row.Update(Project(Resolve(process with { Resources=process.Resources with {
+            CpuPercent=Observation<double>.Available(0),WorkingSetBytes=Observation<long>.Available(0) } })));
+        Check(Alpha(row.CpuBrush)==13&&Alpha(row.MemoryBrush)==13,"Default CPU/memory floor is not the subtle 5% tint.");
+        row.ConfigureUsageShading(0,false);
+        Check(Alpha(row.CpuBrush)==0&&Alpha(row.MemoryBrush)==0,"Disabling the CPU/memory floor retained a minimum tint.");
+        row.ConfigureUsageShading(5,false);
+        row.Update(Project(Resolve(process with { Resources=process.Resources with {
+            CpuPercent=Observation<double>.Missing("Synthetic unavailable"),WorkingSetBytes=Observation<long>.Missing("Synthetic unavailable") } })));
+        Check(Alpha(row.CpuBrush)==0&&Alpha(row.MemoryBrush)==0,"Unavailable CPU/memory cells retain a minimum tint.");
+        row.TotalMemoryBytes=null;
         row.Update(Project(Resolve(process)));
+        Check(row.Started!=now.ToString("O")&&row.StartedDetails==now.ToString("O"),"Started display did not separate friendly text from its full tooltip.");
         var changed=new List<string>(); row.PropertyChanged+=(_,e)=>changed.Add(e.PropertyName!);
         var originalName=row.Name; var originalOwner=row.Owner; var originalCommand=row.CommandLine;
         row.Update(Project(Resolve(process with { Resources=process.Resources with { CpuPercent=Observation<double>.Available(2) } })));

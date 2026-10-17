@@ -77,6 +77,9 @@ Under **Settings → Appearance → Resource cell shading**, choose a mode indep
 Network and GPU. Recent displayed-value changes brighten and fade by default; other modes show
 current activity, recent spikes or top consumers, or turn shading off. Fade duration and intensity
 apply immediately. Shading is disabled in high contrast and never represents a security judgment.
+**Minimum shading** sets the shared resource-cell floor, defaulting to 5% (slightly darker than
+the former CPU/Memory tint). Choose 0% for no floor. Unavailable readings and Off modes stay clear.
+The Started column uses friendly local dates/times; its tooltip and exports retain the full timestamp.
 
 The process-page overflow menu and Appearance settings offer **Automatically sort live values**.
 It is off by default: rows retain their order until you sort a header or refresh. Enabling it follows

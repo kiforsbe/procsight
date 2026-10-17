@@ -1,5 +1,17 @@
 # Development verification
 
+## Minimum shading and friendly start times — 2026-10-17
+
+The native floor check first reproduced the old unconditional tint. It now checks the configurable
+5% default, zero-floor behavior and transparent unavailable readings. Application tests cover a
+faded valid cell at 5%, 0% and 7% floors, disabled/missing/high-contrast cases, local Today/Yesterday
+boundaries, exact ISO export and chronological sorting across UTC offsets. Selected Release suites
+passed Core 74, Application 133, Windows 67 and Infrastructure 113 (387 total); Infrastructure
+excluded `FullyQualifiedName!~ChatGptAuth`. Debug/Release builds passed with zero warnings/errors.
+Native row checks passed dark wide/light narrow; expanded minimum-shading settings and shading
+fixtures also passed. No authentication, credentials or provider access ran. Desktop accessibility
+and scaling acceptance remain pending.
+
 ## Automatic-sort native reset regression — 2026-10-17
 
 The 83-row synthetic live-sort fixture reproduced 81 native vector Reset events from managed

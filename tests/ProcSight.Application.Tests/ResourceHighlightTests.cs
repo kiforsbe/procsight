@@ -4,6 +4,16 @@ using Xunit;
 namespace ProcSight.Application.Tests;
 public class ResourceHighlightTests
 {
+    [Fact] public void ConfigurableFloorDefaultsBelowPreviousTintAndNeverShadesMissingOrOff() {
+        var state=new ResourceHighlightState(1); var options=new ResourceShadingOptions();
+        state.Observe(0,DateTimeOffset.UnixEpoch,0);
+        Assert.Equal(13,state.Opacity(ResourceShadingMode.RecentChanges,10,options,100));
+        Assert.Equal(0,state.Opacity(ResourceShadingMode.RecentChanges,10,options with { MinimumOpacityPercent=0 },100));
+        Assert.Equal(18,state.Opacity(ResourceShadingMode.RecentChanges,10,options with { MinimumOpacityPercent=7 },100));
+        Assert.Equal(0,state.Opacity(ResourceShadingMode.Off,10,options,100));
+        Assert.Equal(0,state.Opacity(ResourceShadingMode.RecentChanges,10,options,100,true));
+        state.Reset(); Assert.Equal(0,state.Opacity(ResourceShadingMode.RecentChanges,10,options,100));
+    }
     [Fact] public void UnchangedPollsDoNotRestartRecencyAndDisplayedChangesDo() {
         var state=new ResourceHighlightState(1); var at=DateTimeOffset.UnixEpoch;
         state.Observe(10,at,0);

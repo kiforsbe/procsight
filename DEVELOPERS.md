@@ -2,6 +2,9 @@
 
 ## Current state
 
+The native `row-performance-checks` fixture also verifies the default 5% CPU/Memory tint, a disabled
+floor and transparent unavailable readings, alongside notification and metadata-cache checks.
+
 Resource monitoring uses TraceEvent 4.0.0 for one owned real-time kernel session in explicit
 administrator mode. No ETL files are created. `ProcessIoAccumulator` tests cover elapsed rates,
 PID reuse, lifecycle invalidation, event-loss restart and pruning; `NetworkRatesTests` cover

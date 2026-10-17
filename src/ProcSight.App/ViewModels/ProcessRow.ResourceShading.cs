@@ -28,8 +28,8 @@ public sealed partial class ProcessRow
     }
     public void RefreshHighlights(ResourceShadingOptions settings,double now,(double Disk,double Network,double Gpu) maximum,
         Func<byte,Brush> palette,bool highContrast) {
-        Brush Pick(ResourceHighlightState state,ResourceShadingMode mode,double max)=>palette(highContrast?(byte)0:
-            (byte)Math.Clamp(Math.Round(96*settings.IntensityPercent/100d*state.Level(mode,now,settings.FadeSeconds,max)),0,96));
+        ConfigureUsageShading(settings.MinimumOpacityPercent,highContrast);
+        Brush Pick(ResourceHighlightState state,ResourceShadingMode mode,double max)=>palette(state.Opacity(mode,now,settings,max,highContrast));
         var disk=Pick(diskHighlight,settings.Disk,maximum.Disk); var network=Pick(networkHighlight,settings.Network,maximum.Network);
         var gpu=Pick(gpuHighlight,settings.Gpu,maximum.Gpu);
         if(!ReferenceEquals(DiskBrush,disk)) { DiskBrush=disk; Changed(nameof(DiskBrush)); }

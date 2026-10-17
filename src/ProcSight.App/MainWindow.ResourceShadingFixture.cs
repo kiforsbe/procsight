@@ -67,7 +67,7 @@ public sealed partial class MainWindow
             var settings=(Expander)BuildResourceShadingSettings(); settings.IsExpanded=true;
             PageContent.Children.Add(new ScrollViewer { Content=settings,Margin=new Microsoft.UI.Xaml.Thickness(24) });
             await Task.Delay(100); settings.IsExpanded=true; await Task.Delay(300);
-            if(!settings.IsExpanded||FixtureControls<ComboBox>(settings).Count()!=5)
+            if(!settings.IsExpanded||FixtureControls<ComboBox>(settings).Count()!=6)
                 throw new InvalidOperationException("Resource shading controls were not shown in the expanded native settings section.");
         }
     }

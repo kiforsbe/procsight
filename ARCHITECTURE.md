@@ -179,6 +179,15 @@ sequenceDiagram
 
 ### Resource-cell presentation and live sorting
 
+[ProcessTimePresentation](src/ProcSight.Application/Presentation/ProcessTimePresentation.cs) formats
+Started as Today/Yesterday or a readable local date/time. Row labels cache by local day and lifetime;
+the full ISO timestamp remains in the tooltip and separate export projection. Ordering still uses
+actual start instants, with unknowns last, independently of presentation text.
+
+CPU/Memory heat reflects current utilization. All resource cells share a configurable minimum
+opacity (5% by default, below the former CPU/Memory 7% floor). Valid zero values retain the floor;
+missing values, Off modes and high contrast are transparent. Disk/Network/GPU use transient history.
+
 [ResourceHighlightState](src/ProcSight.Application/Presentation/ResourceHighlightState.cs) keeps
 one bounded numeric history per Disk/Network/GPU cell: the last displayed quantum, change/spike
 time, a ten-second exponential baseline and a decaying peak (30-second time constant). Default

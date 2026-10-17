@@ -14,6 +14,8 @@ public sealed class TrayPreferencesTests
             store.Save(new(),new(ResourceShading:options,AutomaticProcessSorting:true));
             var restored=store.Load().Presentation;
             Assert.Equal(options,restored.ResourceShading); Assert.True(restored.AutomaticProcessSorting);
+            Assert.Equal(5,restored.ResourceShading!.MinimumOpacityPercent);
+            Assert.Throws<ArgumentException>(()=>store.Save(new(),new(ResourceShading:options with { MinimumOpacityPercent=16 })));
             Assert.Throws<ArgumentException>(()=>store.Save(new(),new(ResourceShading:options with { FadeSeconds=0 })));
             Assert.Throws<ArgumentException>(()=>store.Save(new(),new(ResourceShading:options with { Gpu=(ResourceShadingMode)999 })));
             File.WriteAllText(Path.Combine(folder,"settings.json"),"""{"Policy":{},"Presentation":{"Theme":"Dark"}}""");

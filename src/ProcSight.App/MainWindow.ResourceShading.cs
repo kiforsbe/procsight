@@ -53,11 +53,14 @@ public sealed partial class MainWindow
             Disk=(ResourceShadingMode)disk.SelectedIndex,Network=(ResourceShadingMode)network.SelectedIndex,Gpu=(ResourceShadingMode)gpu.SelectedIndex }); }
         disk.SelectionChanged+=async(_,_)=>await Modes(); network.SelectionChanged+=async(_,_)=>await Modes(); gpu.SelectionChanged+=async(_,_)=>await Modes();
         var durations=new[]{2,5,10,20}; var strengths=new[]{25,50,75};
+        var floors=new[]{0,3,5,7,10};
+        var floor=new ComboBox { Header="Minimum shading",ItemsSource=new[]{"None (0%)","3%","5% (default)","7%","10%"},SelectedIndex=Array.IndexOf(floors,options.MinimumOpacityPercent) };
+        floor.SelectionChanged+=async(_,_)=> { if(floor.SelectedIndex>=0) await Apply((presentation.ResourceShading??new()) with { MinimumOpacityPercent=floors[floor.SelectedIndex] }); };
         var duration=new ComboBox { Header="Fade duration",ItemsSource=durations.Select(v=>$"{v} seconds").ToArray(),SelectedIndex=Array.IndexOf(durations,options.FadeSeconds) };
         var strength=new ComboBox { Header="Intensity",ItemsSource=new[]{"Subtle","Balanced","Strong"},SelectedIndex=Array.IndexOf(strengths,options.IntensityPercent) };
         duration.SelectionChanged+=async(_,_)=> { if(duration.SelectedIndex>=0) await Apply((presentation.ResourceShading??new()) with { FadeSeconds=durations[duration.SelectedIndex] }); };
         strength.SelectionChanged+=async(_,_)=> { if(strength.SelectedIndex>=0) await Apply((presentation.ResourceShading??new()) with { IntensityPercent=strengths[strength.SelectedIndex] }); };
-        return SettingsExpander("\uE790","Resource cell shading","Choose how Disk, Network and GPU cells are highlighted",disk,network,gpu,duration,strength,
-            new TextBlock { Text="Recent changes brighten when the displayed value changes, then fade. Unchanged polling does not refresh the highlight. Current activity compares with that row’s decaying recent peak; recent spikes highlight increases above its smoothed baseline; top consumers compare visible rows. Missing values and high contrast use no shading.",TextWrapping=TextWrapping.Wrap },feedback);
+        return SettingsExpander("\uE790","Resource cell shading","Choose activity highlighting and the minimum background tint",disk,network,gpu,duration,strength,floor,
+            new TextBlock { Text="Recent changes brighten when the displayed value changes, then fade to the minimum tint. Unchanged polling does not refresh the highlight. Current activity compares with that row’s decaying recent peak; recent spikes highlight increases above its smoothed baseline; top consumers compare visible rows. The minimum applies to valid CPU, Memory, Disk, Network and GPU readings. Off modes, missing values and high contrast use no shading.",TextWrapping=TextWrapping.Wrap },feedback);
     }
 }

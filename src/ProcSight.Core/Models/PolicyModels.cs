@@ -12,10 +12,10 @@ public sealed record TableColumnPreference(string Id,double Width);
 public enum ResourceShadingMode { Off,RecentChanges,CurrentActivity,RecentSpikes,TopConsumers }
 public sealed record ResourceShadingOptions(ResourceShadingMode Disk=ResourceShadingMode.RecentChanges,
     ResourceShadingMode Network=ResourceShadingMode.RecentChanges,ResourceShadingMode Gpu=ResourceShadingMode.RecentChanges,
-    int FadeSeconds=5,int IntensityPercent=50)
+    int FadeSeconds=5,int IntensityPercent=50,int MinimumOpacityPercent=5)
 {
     public void Validate() {
-        if(!Enum.IsDefined(Disk)||!Enum.IsDefined(Network)||!Enum.IsDefined(Gpu)||FadeSeconds is <1 or >30||IntensityPercent is <0 or >100)
+        if(!Enum.IsDefined(Disk)||!Enum.IsDefined(Network)||!Enum.IsDefined(Gpu)||FadeSeconds is <1 or >30||IntensityPercent is <0 or >100||MinimumOpacityPercent is <0 or >15)
             throw new ArgumentException("Invalid resource shading preferences.");
     }
 }

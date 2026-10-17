@@ -186,6 +186,11 @@ or invented explanations about ownership.
 
 ## Native UI design maintenance
 
+The shared resource shading floor defaults to 5%; valid zero readings may retain it, but missing
+values, disabled shading modes and high contrast remain transparent. Keep the floor configurable.
+Started table text uses friendly local calendar/time formatting; full ISO timestamps remain in
+tooltips and explicit exports. Sort by the timestamp itself, with unknown values last.
+
 Native table columns use TableColumns stable IDs and bounded widths, with separate process/service
 preferences. Name is mandatory and fixed first; rows and headers share TableColumnWidth instances.
 Header dragging previews cell order in place and commits only on release; Escape/cancel restores the

@@ -81,6 +81,7 @@ public static class ProcessListProjection
                 ProcessSort.Disk=>row.Members.All(m=>m.Process?.Resources.DiskBytesPerSecond.Value is null),
                 ProcessSort.Network=>row.Members.All(m=>m.Process?.Resources.NetworkBytesPerSecond.Value is null),
                 ProcessSort.Gpu=>row.Members.All(m=>m.Process?.Resources.GpuPercent?.Value is null),
+                ProcessSort.Started=>row.Entity.Process?.Key.StartedAt is null,
                 _=>false };
             var sorted=ordered.ThenBy(Display,StringComparer.CurrentCultureIgnoreCase).ThenBy(r=>r.Key,StringComparer.Ordinal).OrderBy(Missing).ToList();
             return sorted;

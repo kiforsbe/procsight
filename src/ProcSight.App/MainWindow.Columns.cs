@@ -159,7 +159,7 @@ public sealed partial class MainWindow
             var id=tableColumnLayout[i].Id;
             var binding=id switch { "Assessment"=>"Status","Owner"=>"Ownership",_=>id };
             var value="{Binding "+binding+"}";
-            var tooltip=id is "Disk" or "Network" or "Gpu"?"{Binding "+id+"Details}":value;
+            var tooltip=id is "Disk" or "Network" or "Gpu" or "Started"?"{Binding "+id+"Details}":value;
             var background=id is "Cpu" or "Memory" or "Disk" or "Network" or "Gpu"?$" Background=\"{{Binding {id}Brush}}\"":"";
             var alignment=id is "Pid" or "ParentPid" or "Cpu" or "Memory" or "Disk" or "Network" or "Gpu"?" HorizontalAlignment=\"Right\"":"";
             text.Append($"<Border Tag=\"{id}\" Grid.Column=\"{i}\" BorderThickness=\"1,0,0,0\" BorderBrush=\"{{ThemeResource DividerStrokeColorDefaultBrush}}\"{background}><TextBlock Text=\"{value}\" ToolTipService.ToolTip=\"{tooltip}\" FontSize=\"12\" Margin=\"8,0\" VerticalAlignment=\"Center\" TextTrimming=\"CharacterEllipsis\"{alignment}/></Border>");

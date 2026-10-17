@@ -7,6 +7,8 @@ plans, implementation details and validation records belong in the project docum
 
 ### Added
 
+- Friendly Started-column dates with full timestamps preserved in tooltips and export.
+
 - Configurable Disk/Network/GPU shading for recent changes, activity, spikes and top consumers.
 - Optional automatic process sorting; stable ordering remains the default.
 
@@ -59,6 +61,8 @@ plans, implementation details and validation records belong in the project docum
   and GitHub's standard AGPL v3.0 license.
 
 ### Fixed
+
+- Resource cells share a configurable minimum tint, defaulting to a subtler 5%; unavailable values stay clear.
 
 - Removed native list resets during automatic sorting that caused the process table to flash.
 
