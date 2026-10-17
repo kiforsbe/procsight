@@ -2,6 +2,16 @@
 
 ## Current state
 
+For local UI profiling, run `./scripts/measure-ui.ps1 -Label comparison`. It builds an optimized
+Debug fixture app (retaining SDK bootstrap constants) and reports synthetic 500/1000-row projection,
+updates, sorting, search, details, resizing, grouping, column motion and bundled-rule browsing.
+Reports/captures go under ignored artifacts/ui-performance. `-Theme Light -Width 700` exercises a
+different viewport; compare like-for-like runs without other builds. No live inventory, provider,
+credential, clipboard or real preference access occurs. See [performance measurements](docs/PERFORMANCE.md).
+The local rules harness is `dotnet run --project benchmarks/Rules -c Release`; it uses synthetic
+SQLite data only. Allocation-regression tests complement timings; desktop accessibility and actual
+pointer/frame-rate acceptance remain separate.
+
 Table UI fixtures `columns`, `columns-services`, `row-menu`, `column-chooser` and `inventory-export`
 exercise dynamic native templates, shared row/header widths, optional-column sorting, selection,
 menus and native configuration dialogs. Column checks also cover invisible centered resize targets,

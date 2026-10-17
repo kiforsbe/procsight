@@ -116,6 +116,7 @@ public sealed partial class MainWindow
                     File.WriteAllText(output+".checks","Row notification and metadata invalidation contracts pass.");
                 }
                 if(args.Length>5&&args[5]=="ui-performance") await CheckUiPerformanceAsync(output);
+                if(args.Length>5&&args[5]=="ui-performance-rules") await CheckUiPerformanceAsync(output,true);
                 if(args.Length>5&&args[5]=="services") {
                     Navigation.SelectedItem=Navigation.MenuItems.OfType<Microsoft.UI.Xaml.Controls.NavigationViewItem>().First(i=>i.Tag?.ToString()=="Services"); page="Services"; RenderPage(); await Task.Delay(350);
                 }

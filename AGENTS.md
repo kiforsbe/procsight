@@ -215,6 +215,12 @@ Column reordering moves the full header and visible body cells continuously with
 neighbors slide into preview positions. Restore resource bindings on cancellation/drop. Resize
 targets are invisible in every pointer state and centered across dividers (20px total); only the
 existing thin separator and resize cursor indicate the edge. Never draw a resize grip or drag badge.
+Drag preview uses shared per-column native transforms, without relayout or per-cell animation creation
+on each crossing. Only drop commits layout. Resource ticks remain incremental; bulk list reset is
+reserved for large explicit reorder/filter requests and must restore selected lifetimes. Keep row
+metadata caches transient and invalidate all inputs that affect displayed names/context. Measure UI
+and local-rule changes with synthetic workloads before claiming performance improvements; never use
+provider latency or machine inventory dumps as UI benchmark data.
 
 Restricted processes use Windows kernel sequence numbers, when available, to keep a stable
 collector-session lifetime even when handle-based creation-time reads are denied. Do not replace

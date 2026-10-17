@@ -38,4 +38,17 @@ public sealed class RuleEvaluationPerformanceTests
         Assert.Equal(rule.Id,Assert.Single(result.MatchingRuleIds));
         Assert.Equal(rule.Id,Assert.Single(result.AppliedRuleIds!));
     }
+
+    [Fact] public void MatchingPredicatesStillRequireFreshSupportingEvidence()
+    {
+        var entity=new IdentityResolver().Resolve(Samples.Snapshot(Samples.Process()),[])[0];
+        var expired=entity.Evidence[0] with { Id="expired-fixture",ExpiresAt=Samples.Now.AddSeconds(-1) };
+        var rule=new RuleDefinition(Guid.NewGuid(),1,RuleState.Active,DataOrigin.ShareableMetadata,
+            Samples.Now,Samples.Now.AddDays(7),Samples.Now.AddDays(30),[new(PredicateKind.Exact,"hash","hash-a",[expired.Id])],
+            [new(AssessmentAxis.Purpose,"DeveloperTool","Synthetic fixture",Confidence.High,[expired.Id],Samples.Now.AddDays(30),[DataOrigin.ShareableMetadata])],[expired.Id],100);
+        var result=new LocalAnalysisEngine().Evaluate(entity,KnowledgeEntry.Empty(entity.Identity) with { Evidence=[expired],Rules=[rule] },Samples.Now);
+        Assert.Empty(result.MatchingRuleIds);
+        Assert.Empty(result.Assessments);
+        Assert.Empty(result.AppliedRuleIds!);
+    }
 }

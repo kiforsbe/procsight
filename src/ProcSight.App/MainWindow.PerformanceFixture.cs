@@ -9,7 +9,7 @@ namespace ProcSight.App;
 public sealed partial class MainWindow
 {
     // Synthetic UI-thread timings only. Never collect a machine inventory or provider data here.
-    private async Task CheckUiPerformanceAsync(string output)
+    private async Task CheckUiPerformanceAsync(string output,bool rulesOnly=false)
     {
         var results=new List<object>();
         var seed=lastSnapshot.Processes.ToArray();
@@ -18,7 +18,8 @@ public sealed partial class MainWindow
             var elapsed=new List<double>(); var allocated=new List<long>();
             for(var i=0;i<count;i++) {
                 var bytes=GC.GetAllocatedBytesForCurrentThread(); var start=Stopwatch.GetTimestamp();
-                work(i); if(layout) WindowRoot.UpdateLayout();
+                try { work(i); if(layout) WindowRoot.UpdateLayout(); }
+                catch(Exception e) { File.WriteAllText(output+".stage-error",name+": "+e.GetType().Name+": "+e.Message); throw; }
                 elapsed.Add(Stopwatch.GetElapsedTime(start).TotalMilliseconds);
                 allocated.Add(GC.GetAllocatedBytesForCurrentThread()-bytes);
                 await Task.Delay(16);
@@ -29,7 +30,7 @@ public sealed partial class MainWindow
                 over16ms=elapsed.Count(v=>v>16.67),realizedRows=RealizedColumnRows().Count(),columns=tableColumnLayout.Length });
             File.WriteAllText(output+".performance.json",JsonSerializer.Serialize(results,new JsonSerializerOptions { WriteIndented=true }));
         }
-        foreach(var count in new[]{500,1000}) {
+        foreach(var count in rulesOnly?Array.Empty<int>():new[]{500,1000}) {
             var processes=Enumerable.Range(0,count).Select(i=>seed[i%seed.Length] with {
                 Key=new(10000+i,seed[0].Key.StartedAt,null),
                 Executable=new(i%3==0?"python.exe":i%3==1?"node.exe":"example.exe",$@"C:\Synthetic\Example\worker-{i%20}.exe",Product:"Synthetic application"),
@@ -42,9 +43,18 @@ public sealed partial class MainWindow
             await Measure("projection-"+count,_=>ProcessListProjection.Build(lastSnapshot,entities,analysis.Values.ToList(),
                 new(PreviousOrder:rows.Select(r=>r.Key).ToArray())),12,false);
             await Measure("row-values-"+count,_=> { foreach(var row in rows) row.Update(row.Projection); },12,false);
+            await Measure("resource-row-values-"+count,i=> {
+                foreach(var row in rows) {
+                    var p=row.Entity.Process!;
+                    var entity=row.Entity with { Process=p with { Resources=p.Resources with { CpuPercent=Observation<double>.Available(i%7) } } };
+                    row.Update(row.Projection with { Entity=entity,Members=[entity],CpuPercent=i%7 });
+                }
+            },12,false);
             await Measure("refresh-"+count,_=>RefreshRows(),12);
             if(count==1000) {
+                var selected=rows[5]; var secondSelected=rows[8]; table!.SelectedItems.Add(selected); table.SelectedItems.Add(secondSelected);
                 await Measure("sort-1000",i=> { sort=i%2==0?ProcessSort.Memory:ProcessSort.Name; RefreshRows(true); },8);
+                if(!table.SelectedItems.Contains(selected)||!table.SelectedItems.Contains(secondSelected)) throw new InvalidOperationException("Bulk sort lost selected process lifetimes.");
                 sort=ProcessSort.Name;
                 await Measure("search-1000",i=> { search=i%2==0?"python":""; RefreshRows(true); },8);
                 search=""; RefreshRows(true);
@@ -60,12 +70,20 @@ public sealed partial class MainWindow
             draggedColumnId="Pid";
             PositionDraggedHeader(header,"Pid",450,20); WindowRoot.UpdateLayout();
             await Measure("drag-position-"+count,i=>PositionDraggedHeader(header,"Pid",450+i%40,20),100);
+            var scroller=FindTableScrollViewer(table!)!;
+            scroller.ChangeView(null,scroller.ScrollableHeight,null,true); await Task.Delay(120); WindowRoot.UpdateLayout();
+            foreach(var grid in RealizedColumnRows()) foreach(var cell in grid.Children.OfType<Microsoft.UI.Xaml.FrameworkElement>()) {
+                if(cell.Tag is string id&&columnMotions.TryGetValue(id,out var motion)&&!ReferenceEquals(cell.RenderTransform,motion.Transform))
+                    throw new InvalidOperationException("Recycled row missed the shared column motion.");
+            }
+            scroller.ChangeView(null,0,null,true); await Task.Delay(120);
             var original=tableColumnLayout.ToArray();
             await Measure("drag-crossing-"+count,i=> {
                 var x=i%2==0?390:490;
                 PreviewDraggedColumns(original,"Pid",x);
                 PositionDraggedHeader(header,"Pid",x,20);
             },40);
+            if(!original.SequenceEqual(tableColumnLayout)) throw new InvalidOperationException("Drag preview mutated committed table layout.");
             RestoreDraggedColumn(); ApplyColumns(original,false);
             if(count==1000) {
                 ApplyColumns(TableColumns.Available(false).Select(c=>new TableColumnPreference(c.Id,c.Width)),false);
@@ -89,6 +107,7 @@ public sealed partial class MainWindow
             await Measure("rules-search-bundled",i=>box.Text=i%2==0?"Microsoft":"",20);
         } finally {
             page="Processes"; RenderPage();
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
             foreach(var suffix in new[]{"","-wal","-shm"}) if(File.Exists(ruleFile+suffix)) File.Delete(ruleFile+suffix);
         }
         File.WriteAllText(output+".checks","Synthetic UI performance measurements completed; elapsed times include explicit layout where labeled; no pointer injection or real collection.");

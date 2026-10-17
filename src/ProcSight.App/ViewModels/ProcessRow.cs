@@ -32,7 +32,12 @@ public sealed class ProcessRow : INotifyPropertyChanged
     public string ExpansionAction=>(Projection.Expanded?"Collapse ":"Expand ")+Name;
     public Thickness Indent=>new(8+Projection.Depth*14,0,8,0);
     public void SetIcon(ImageSource icon) { Icon=icon; Changed(nameof(Icon)); Changed(nameof(FallbackIconVisibility)); }
-    public long? TotalMemoryBytes { get; set; }
+    private long? totalMemoryBytes;
+    public long? TotalMemoryBytes { get=>totalMemoryBytes; set {
+        if(totalMemoryBytes==value) return;
+        totalMemoryBytes=value;
+        if(Projection is not null) Changed(nameof(MemoryBrush));
+    } }
     public string ServiceState=>Entity.Service?.State ?? "—";
     public string Startup=>Entity.Service?.StartMode ?? "—";
     public Brush CpuBrush=>Heat(Projection.CpuPercent);
@@ -42,11 +47,13 @@ public sealed class ProcessRow : INotifyPropertyChanged
         var color=new global::Windows.UI.ViewManagement.UISettings().GetColorValue(global::Windows.UI.ViewManagement.UIColorType.Accent);
         return new SolidColorBrush(global::Windows.UI.Color.FromArgb((byte)Math.Clamp(18+percent*.8,18,88),color.R,color.G,color.B));
     }
-    private RoleLabel LocalRole=>ProcessRoleLabels.Describe(Entity);
+    private RoleLabel? localRole;
+    private string? name,owner,status;
+    private RoleLabel LocalRole=>localRole??=ProcessRoleLabels.Describe(Entity);
     public string Name => IsGroup?$"{Projection.GroupName} ({Projection.Members.Count})":
-        ProcessRoleLabels.DisplayName(Entity,analysis?.Result.IdentityLabel);
-    public string Owner=>!IsGroup&&Entity.Process?.Windows is { Count:>0 }?Name+"\n"+OwnerExplanation+
-        "\nVisible-window captions are local observations, not identity proof.":OwnerExplanation;
+        name??=ProcessRoleLabels.DisplayName(Entity,analysis?.Result.IdentityLabel);
+    public string Owner=>IsGroup?OwnerExplanation:owner??=(Entity.Process?.Windows is { Count:>0 }?Name+"\n"+OwnerExplanation+
+        "\nVisible-window captions are local observations, not identity proof.":OwnerExplanation);
     private string OwnerExplanation => IsGroup?"Owner candidate · use the chevron to expand or collapse":LocalRole.UsesCommandContext?
         LocalRole.Label+"\nOwner candidate: "+(Entity.Owner ?? "Unknown")+"\n"+LocalRole.Explanation:analysis?.Result.Role is { } analyzedRole?
         $"{Entity.Owner ?? Entity.Process?.Executable.Name ?? "Unknown owner"} · {analyzedRole}":Entity.Facts.TryGetValue("commandRole",out var role)?
@@ -58,13 +65,14 @@ public sealed class ProcessRow : INotifyPropertyChanged
         $"{(Projection.CompleteMemory?"":"≥")}{Projection.MemoryBytes/1048576.0:F1} MB":"—";
     public string Status
     {
-        get
+        get=>status??=ReadStatus();
+    }
+    private string ReadStatus()
         {
             if(analysis is null) return Entity.Service?.State ?? "Unknown";
             var concern=analysis.Result.Assessments.FirstOrDefault(a=>a.Value is "Suspicious" or "KnownThreat" or "PotentiallyUnwanted" or "PossibleLeftover");
             var value=concern?.Value ?? analysis.Result.Assessments.FirstOrDefault(a=>a.Axis==AssessmentAxis.Purpose)?.Value ?? analysis.State.ToString();
             return System.Text.RegularExpressions.Regex.Replace(value,"([a-z])([A-Z])","$1 $2")+(concern is null?"":$" ({concern.Confidence})");
-        }
     }
     public override string ToString() => "ProcessRow ["+Key+"]";
     private AnalysisUpdate? analysis;
@@ -72,20 +80,51 @@ public sealed class ProcessRow : INotifyPropertyChanged
     private static readonly string[] Fields=[nameof(Name),nameof(Owner),nameof(Pid),nameof(Cpu),nameof(Memory),nameof(Status),nameof(ServiceState),nameof(Startup),nameof(ExpansionGlyph),nameof(ExpansionAction),nameof(ExpanderVisibility),nameof(Indent),nameof(NativeName),nameof(CommandLine),nameof(Path),nameof(ParentPid),nameof(Publisher),nameof(Signature),nameof(Started),nameof(Ownership),nameof(Windows),nameof(ServiceName),nameof(Availability)];
     private string[] Values()=>[Name,Owner,Pid,Cpu,Memory,Status,ServiceState,Startup,ExpansionGlyph,ExpansionAction,ExpanderVisibility.ToString(),Indent.ToString(),NativeName,CommandLine,Path,ParentPid,Publisher,Signature,Started,Ownership,Windows,ServiceName,Availability];
     private void Changed(string field)=>PropertyChanged?.Invoke(this,new(field));
-    private void Notify(string[]? before) {
+    private string[]? displayedValues;
+    private void Notify(string[]? before,bool cpuChanged=false,bool memoryChanged=false) {
         var after=Values();
+        displayedValues=after;
         for(var i=0;i<Fields.Length;i++) if(before is null||before[i]!=after[i]) Changed(Fields[i]);
-        if(before is null||before[3]!=after[3]) Changed(nameof(CpuBrush));
-        if(before is null||before[4]!=after[4]) Changed(nameof(MemoryBrush));
+        if(before is null||cpuChanged||before[3]!=after[3]) Changed(nameof(CpuBrush));
+        if(before is null||memoryChanged||before[4]!=after[4]) Changed(nameof(MemoryBrush));
     }
-    public void SetAnalysis(AnalysisUpdate value) { var before=Values(); analysis=value; localValues=null; Notify(before); }
+    private void InvalidateMetadata() { name=null; owner=null; status=null; localRole=null; localValues=null; }
+    public void SetAnalysis(AnalysisUpdate value) {
+        if(ReferenceEquals(analysis,value)) return;
+        var before=displayedValues; analysis=value; InvalidateMetadata(); Notify(before);
+    }
+    // Snapshots are replaced on collection. Resource samples and evidence timestamps do not change
+    // local presentation; compare its actual inputs before rerunning command/role/table projection.
+    private static bool SameMetadata(ResolvedEntity left,ResolvedEntity right)
+    {
+        if(ReferenceEquals(left,right)) return true;
+        if(left.Identity!=right.Identity||left.DisplayName!=right.DisplayName||left.Owner!=right.Owner||
+            left.Facts.GetValueOrDefault("commandRole")!=right.Facts.GetValueOrDefault("commandRole")||left.Service!=right.Service) return false;
+        var a=left.Process; var b=right.Process;
+        if(a is null||b is null) return a is null&&b is null;
+        return a.Key==b.Key&&a.ParentPid==b.ParentPid&&a.Executable==b.Executable&&a.CommandLine?.Raw==b.CommandLine?.Raw&&
+            SameItems(a.ServiceNames,b.ServiceNames)&&SameItems(a.Windows,b.Windows)&&SameItems(a.MetadataIssues,b.MetadataIssues);
+    }
+    private static bool SameItems<T>(IReadOnlyList<T>? left,IReadOnlyList<T>? right)
+    {
+        if(ReferenceEquals(left,right)) return true;
+        if(left is null||right is null||left.Count!=right.Count) return false;
+        for(var i=0;i<left.Count;i++) if(!EqualityComparer<T>.Default.Equals(left[i],right[i])) return false;
+        return true;
+    }
     public void Update(ProcessListRow projection)
     {
-        var before=Projection is null?null:Values();
-        if(Entity is not null&&!StringComparer.OrdinalIgnoreCase.Equals(ProcessIconSource.Key(Entity),ProcessIconSource.Key(projection.Entity)))
+        if(ReferenceEquals(Projection,projection)) return;
+        var before=displayedValues;
+        var cpuChanged=Projection?.CpuPercent!=projection.CpuPercent;
+        var memoryChanged=Projection?.MemoryBytes!=projection.MemoryBytes;
+        var metadataChanged=Entity is null||!SameMetadata(Entity,projection.Entity);
+        if(Entity is not null&&ProcessIconSource.Select(Entity)!=ProcessIconSource.Select(projection.Entity)&&
+            !StringComparer.OrdinalIgnoreCase.Equals(ProcessIconSource.Key(Entity),ProcessIconSource.Key(projection.Entity)))
         { Icon=null; Changed(nameof(Icon)); Changed(nameof(FallbackIconVisibility)); }
         if(Entity is not null&&Entity.Identity!=projection.Entity.Identity) analysis=null;
-        Projection=projection; Entity=projection.Entity; localValues=null; Notify(before);
+        if(metadataChanged) InvalidateMetadata();
+        Projection=projection; Entity=projection.Entity; Notify(before,cpuChanged,memoryChanged);
     }
     public event PropertyChangedEventHandler? PropertyChanged;
 }

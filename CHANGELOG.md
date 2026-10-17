@@ -147,6 +147,14 @@ in this repository; planned product features are documented in the design and ro
 
 ### Fixed
 
+- UI performance: shared column transforms avoid relayout during drag, large explicit sorts batch
+  native list updates while retaining selected lifetimes, and metadata-aware row caches reduce
+  repeated command/name processing. Stable tree projection indexes verified children once. Cached
+  native styles reduce repeated text-label XAML parsing. Memory heat updates when total RAM changes.
+- Local rules reuse an evidence index per evaluation and validate only predicate-matching rules,
+  preserving evidence validation and contribution semantics while reducing allocation pressure.
+  Added repeatable synthetic UI/rules benchmarks and recorded before/after measurements.
+
 - Column dragging moves the full header and visible column cells with the mouse while neighbors
   slide aside. Resize targets are wider and centered across dividers, with no visible grip in any
   pointer state; the existing separator and resize cursor remain the only pointer cues.

@@ -968,6 +968,10 @@ Legacy JSON remains valid without it. [Local evaluation](src/ProcSight.Core/Rule
 records all eligible matches separately from rules owning the final selected assessments; corrections,
 conflicts and cached copies cannot manufacture rule contribution. Bundled purpose contribution is
 recorded by [KnownTaskCatalog](src/ProcSight.Core/Rules/KnownTaskCatalog.cs).
+Local evaluation indexes stored/current evidence once (current records win duplicate IDs), filters
+predicate matches first and runs the unchanged full validator against that shared index for eligible
+rules. This avoids rebuilding the evidence map for unrelated rules; candidate-store reads and their
+existing invalidation semantics are unchanged.
 [RuleInspection](src/ProcSight.Application/Presentation/RuleInspection.cs) explains predicates,
 evidence, expiry, source and contribution; [native dialogs](src/ProcSight.App/MainWindow.Rules.cs)
 reuse it from the library and selected-process details. Private matching fingerprints remain hidden.
@@ -1066,13 +1070,13 @@ header drag/drop and the immediate chooser update only layout. Name cannot be hi
 Header gestures preview order changes in place, retain the row template and header control instances,
 and save only on a valid release. A small pointer threshold separates sorting from dragging.
 [Header dragging](src/ProcSight.App/MainWindow.HeaderDrag.cs) translates the actual full header and
-realized body cells together at the pointer's grab offset. Short native XAML transform animations
-slide neighboring cells into preview slots; they avoid the overlay layering of theme reposition
-transitions. Interrupted slides continue from their current offset, and layout changes/recycling
-clear obsolete animations. Dragged cells temporarily use an opaque surface resolved for the actual
-element theme; cleanup
-restores transforms, transitions, layering and resource-background bindings. Escape/cancel restores
-the original layout. Resize thumbs have transparent templates in all pointer states and a 20px hit
+realized body cells together at the pointer's grab offset. One shared native transform per column
+moves its header, resize target and body cells; neighboring columns use one short animation each.
+Preview does not rewrite widths or Grid.Column slots. Only a valid drop commits the new grid layout;
+Escape/cancel discards transforms without changing the original order. Recycled rows attach to the
+same active transforms. Dragged cells temporarily use an opaque surface resolved for the actual
+element theme; cleanup restores transforms, layering and resource-background bindings.
+Resize thumbs have transparent templates in all pointer states and a 20px hit
 area centered across each divider; they follow column identity after a move and inherit a horizontal
 resize cursor. Virtualized containers apply the latest cell order and active drag translation when
 realized. Template/width-slot reconstruction
@@ -1094,11 +1098,23 @@ classDiagram
     HeaderDrag --> NativeHeader : translate entire header at pointer grab offset
     HeaderDrag --> VirtualizedRows : translate matching realized cells
     HeaderDrag --> NativeColumns : preview order then commit or restore
+    HeaderDrag "1" --> "1..*" ColumnMotion : one shared transform per optional column
+    NativeHeader --> ColumnMotion : shared rendering offset
+    VirtualizedRows --> ColumnMotion : same offset including recycled rows
     RowContextMenu --> ProcessKey : lifetime check
     NativeExport --> TableValues : explicit local disclosure
     NativeExport --> InventoryExport : snapshot serialization
     NativeExport --> SavePicker : explicit destination
 ```
+
+The [row view model](src/ProcSight.App/ViewModels/ProcessRow.cs) keeps transient display caches
+across resource-only samples, invalidating them for changed identity, metadata or analysis. No cached
+command/path/caption values enter persistence, provider projection or logs. Projection indexes verified
+parent links once and retains existing sibling order without reevaluating sort labels on ordinary ticks.
+[LiveRowCollection](src/ProcSight.App/ViewModels/LiveRowCollection.cs) batches large explicit sorts/filters
+into one native list reset, reusing row objects and restoring selected lifetimes. Resource-only updates
+remain incremental and do not reset the list. Detail/rule text reuses app-owned native styles rather
+than parsing equivalent XAML for every label.
 
 [TableValues](src/ProcSight.Application/Presentation/TableValues.cs) projects transient local fields;
 it is separate from AnalysisProjection and must never feed providers, rules or activity history.

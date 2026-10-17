@@ -39,7 +39,7 @@ public sealed partial class MainWindow
         var analysis=new AnalysisUpdate(row.Entity.Identity,AnalysisState.Local,new([],null,[],[],[],"Synthetic assessed name","Worker"));
         row.SetAnalysis(analysis);
         Check(row.Name=="Synthetic assessed name"&&row.Owner.Contains("Worker"),"Analysis did not update name and role.");
-        row.Update(Project(Resolve(plain with { Executable=new("another.exe") })));
+        row.Update(Project(Resolve(plain with { Executable=new("another.exe",ContentHash:"synthetic-different-identity") })));
         Check(row.Name!="Synthetic assessed name"&&!row.Owner.Contains("Worker"),"Identity transition retained prior analysis.");
         var single=row.Projection; row.Update(single with { IsGroup=true,GroupName="Synthetic group",Members=[single.Entity,single.Entity],HasChildren=true });
         Check(row.Name=="Synthetic group (2)"&&row.CommandLine=="—","Group transition retained individual cells.");

@@ -6,6 +6,33 @@ were used for automated verification.
 
 ## Local checks
 
+### 2026-10-17 measured UI and local rules performance
+
+[PERFORMANCE.md](PERFORMANCE.md) records the broad synthetic baseline, implementation changes,
+repeatable commands and remaining limitations. Measurements covered 500/1000-row projection and
+refresh, sorting, searching, grouping, details selection, resizing, column motion, bundled-rule
+browsing and local rule evaluation/SQLite candidate reads. No provider calls or live inventory were
+used. Final optimized native UI measurements were repeated through scripts/measure-ui.ps1.
+
+At 1000 rows, column crossings averaged 47.70→0.29ms, sorting 298.26→28.85ms, ordinary refresh
+16.10→9.36ms (20.63→5.01MB allocated). Rule evaluation with 200 learned rules and 373 bundled
+definitions fell from 4307→135ms per 1000 entities, preserving matching-proof validation. SQLite
+catalog reads remain the main rules follow-up. These timings include native layout where documented,
+not actual GPU frame rate or physical mouse latency. Occasional refresh/sort stalls remain.
+
+Native row contracts first failed on missing memory-denominator heat notification, then passed
+metadata/command/window/identity/analysis/group transitions and CPU-only notification checks.
+Projection/rule allocation regressions also reproduced before fixes. The performance fixture verifies
+multiple selected lifetimes through bulk sorting, unchanged logical layout during drag preview and
+shared transform attachment after scrolling/recycling. Actual Escape/keyboard-focus, Narrator,
+high-contrast and scaling acceptance remain manual.
+
+Final verification passed 385 .NET tests (74 Core, 122 Application, 131 Infrastructure, 58 Windows),
+70 script checks and 24 native UI scenarios across 1200/700 effective pixels in Dark/Light. The new
+UI measurement script ran end-to-end; the committed Rules harness restored in locked mode, built and
+ran successfully. Independent review found no blocking correctness/privacy issue. All 29 Mermaid
+diagrams rendered, 162 relative documentation links resolved and whitespace checks passed.
+
 ### 2026-10-17 fluid full-column dragging and invisible resize targets
 
 A native fixture first reproduced the stock Thumb drawing extra resize chrome. The transparent

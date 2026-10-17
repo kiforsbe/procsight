@@ -12,7 +12,7 @@ public sealed partial class MainWindow : Window
 {
     private readonly CancellationTokenSource lifetime = new();
     private readonly WindowsSnapshotSource collector = new();
-    private readonly ObservableCollection<ProcessRow> rows = [];
+    private readonly LiveRowCollection rows = [];
     private readonly Dictionary<string, ProcessRow> knownRows = [];
     private IReadOnlyList<ResolvedEntity> entities = [];
     private string page = "Processes", search = "";
@@ -123,11 +123,14 @@ public sealed partial class MainWindow : Window
         var wanted = ordered.Select(r => r.Key).ToHashSet();
         refreshingRows=true;
         try {
-        for (var i = rows.Count-1; i >=0; i--) if (!wanted.Contains(rows[i].Key)) rows.RemoveAt(i);
-        for (var i = 0; i < ordered.Count; i++)
-        {
-            var index = rows.IndexOf(ordered[i]);
-            if (index < 0) rows.Insert(i,ordered[i]); else if (index != i) rows.Move(index,i);
+        if(reorder&&Math.Max(rows.Count,ordered.Count)>64&&!rows.SequenceEqual(ordered)) rows.ReplaceOrder(ordered);
+        else {
+            for (var i = rows.Count-1; i >=0; i--) if (!wanted.Contains(rows[i].Key)) rows.RemoveAt(i);
+            for (var i = 0; i < ordered.Count; i++) {
+                if(i<rows.Count&&ReferenceEquals(rows[i],ordered[i])) continue;
+                var index = rows.IndexOf(ordered[i]);
+                if (index < 0) rows.Insert(i,ordered[i]); else if (index != i) rows.Move(index,i);
+            }
         }
         var live = entities.Select(ProcessListProjection.RowKey).Concat(projected.Rows.Select(r=>r.Key)).ToHashSet();
         foreach (var key in knownRows.Keys.Where(k => !live.Contains(k)).ToArray()) knownRows.Remove(key);

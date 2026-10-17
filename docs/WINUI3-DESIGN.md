@@ -94,6 +94,13 @@ Verify both real pointer gestures and synthetic regression scenarios. Calling th
 alone does not prove that dragging works. Preserve the current sort during reorder/resize; the
 recording's resource-header summaries and sorted Memory indicator illustrate that distinction.
 
+Performance convention: share one rendering transform across a column's header and realized body
+cells, animate neighbors per column, and defer grid relayout until drop. Recycled rows must adopt
+the active motion. Do not recreate per-cell animations, rewrite width bindings or relayout the list
+for every pointer crossing. Preserve the approved full-column appearance while optimizing it.
+Use the [synthetic performance measurements](PERFORMANCE.md) to separate handler/layout cost from
+actual desktop frame rate; timing a helper alone is not proof of pointer responsiveness.
+
 Use CommandBar for page and selection commands. Put frequent actions first; place secondary
 actions in overflow. Native AppBarButton controls supply labels, icons and responsive
 overflow behavior. Search and filters should have accessible names and form a coherent group.

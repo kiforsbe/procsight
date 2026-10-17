@@ -18,12 +18,15 @@ public sealed partial class MainWindow
             detailSectionChoices[key]=((Expander)sender).IsExpanded);
         return section;
     }
+    private static readonly Dictionary<(string Style,bool Secondary),Style> ruleTextStyles=[];
     private static TextBlock RuleText(string text,string style="BodyTextBlockStyle",bool secondary=false)
     {
-        var foreground=secondary?"Foreground=\"{ThemeResource TextFillColorSecondaryBrush}\"":"";
-        var block=(TextBlock)XamlReader.Load($"<TextBlock xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" Style=\"{{StaticResource {style}}}\" {foreground} TextWrapping=\"Wrap\" IsTextSelectionEnabled=\"True\"/>");
-        block.Text=text;
-        return block;
+        if(!ruleTextStyles.TryGetValue((style,secondary),out var nativeStyle)) {
+            var foreground=secondary?"<Setter Property=\"Foreground\" Value=\"{ThemeResource TextFillColorSecondaryBrush}\"/>":"";
+            nativeStyle=(Style)XamlReader.Load($"<Style xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" TargetType=\"TextBlock\" BasedOn=\"{{StaticResource {style}}}\">{foreground}</Style>");
+            ruleTextStyles[(style,secondary)]=nativeStyle;
+        }
+        return new TextBlock { Text=text,Style=nativeStyle,TextWrapping=TextWrapping.Wrap,IsTextSelectionEnabled=true };
     }
     private static Expander RuleSection(string title,UIElement content,bool expanded=false)=>new() {
         Header=title,Content=new Border { Padding=new Thickness(16),Child=content },IsExpanded=expanded,HorizontalAlignment=HorizontalAlignment.Stretch,HorizontalContentAlignment=HorizontalAlignment.Stretch };
