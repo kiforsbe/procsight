@@ -7,6 +7,8 @@ plans, implementation details and validation records belong in the project docum
 
 ### Added
 
+- Bounded local ChatGPT sign-in diagnostics covering callback, validation, storage and dialog stages,
+  without credentials, account details or raw transport data.
 - Drag-and-drop development-certificate trust helper with validation, administrator approval and
   signed MSIX installation instructions.
 - Native Windows 11 process/service explorer with live CPU/memory sampling, ownership grouping,

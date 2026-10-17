@@ -24,7 +24,10 @@ public sealed partial class MainWindow
     private PreferencesStore preferences=null!;
     private readonly CredentialStore credentials=new();
     private ChatGptSessionService? chatGpt;
-    private ChatGptSessionService ChatGpt=>chatGpt ??=new(credentials);
+    private ChatGptAuthenticationLog? chatGptAuthenticationLog;
+    private void TraceChatGpt(ChatGptAuthEvent entry) => (chatGptAuthenticationLog ??=
+        new(Path.Combine(dataFolder,"diagnostics","chatgpt-auth.log"))).Write(entry);
+    private ChatGptSessionService ChatGpt=>chatGpt ??=new(credentials,diagnostics:TraceChatGpt);
     private SqliteKnowledgeStore knowledge=null!,usage=null!;
     private AnalysisCoordinator coordinator=null!;
     private readonly Dictionary<AnalysisIdentity,AnalysisUpdate> analysis=[];
@@ -33,6 +36,7 @@ public sealed partial class MainWindow
     private readonly HttpClient providerHttp=ProviderHttp.Create();
     private void LoadRuntime()
     {
+        TraceChatGpt(new(ChatGptAuthStage.AppStarted,ChatGptAuthOutcome.Succeeded));
         preferences=new(Path.Combine(dataFolder,"settings.json"));
         try {
             (policy,presentation)=preferences.Load();

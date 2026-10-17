@@ -17,6 +17,7 @@ public sealed partial class MainWindow
         var args=Environment.GetCommandLineArgs();
         if(args.Length is <3 or >6 || args[1]!="--visual-fixture") return false;
         var output=Path.GetFullPath(args[2]);
+        chatGptAuthenticationLog=new(output+".auth.log");
         if(args.Length>5&&args[5].StartsWith("settings",StringComparison.Ordinal)) {
             elevated=args[5]=="settings-admin";
             var fixtureCredentials=new FixtureCredentials();

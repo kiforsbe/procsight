@@ -74,6 +74,10 @@ assessed names. Preserve useful local window captions and keep explanatory text 
   account ID, protect tokens and account catalog, and validate state/PKCE/nonce/JWKS and granted scopes.
   Serialize rotating refreshes across app instances. Never use ChatGPT private backend endpoints,
   log authorization URLs/tokens, or silently fall back to API-key charges. Sign-in does not enable analysis.
+- Manual ChatGPT sign-in diagnostics may persist only the typed ChatGptAuthEvent contract: app-owned
+  stages/outcomes, UTC time, PID, numeric HRESULT/HTTP status and counts. Keep the queue/file rotation
+  bounded and off-thread, failure-isolated, and separate from AI activity. No free text, credentials,
+  account IDs or callback/authorization parameters. The user performs live sign-in; read only this log.
 - ChatGPT plan completion events may have empty output arrays. Preserve streamed text in that case;
   never accept it without successful completion and validation, and honor nonempty final output/refusals.
 - AI activity is a product-level, memory-only history of actual provider attempts and projected

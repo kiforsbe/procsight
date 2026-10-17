@@ -8,6 +8,7 @@ public sealed partial class MainWindow
     private string? settingsChatGptModel;
     private FrameworkElement BuildChatGptSettings(ComboBox provider,TextBox model,Action signedOut,ProcSight.Core.Models.ProviderSettings? configured=null,Action? reauthorized=null)
     {
+        TraceChatGpt(new(ChatGptAuthStage.DialogOpened,ChatGptAuthOutcome.Succeeded));
         var accounts=new ComboBox { Header="Saved ChatGPT accounts",DisplayMemberPath="Label",HorizontalAlignment=HorizontalAlignment.Stretch };
         var models=new ComboBox { Header="Models available to this account",PlaceholderText="Choose a model",DisplayMemberPath="DisplayName",HorizontalAlignment=HorizontalAlignment.Stretch };
         var info=new TextBlock { Text="Use your eligible ChatGPT plan. Usage is shared with other apps; API-key billing remains separate. Connecting does not enable automatic analysis.",TextWrapping=TextWrapping.Wrap };
@@ -20,8 +21,9 @@ public sealed partial class MainWindow
         {
             updating=true;
             try { accounts.ItemsSource=ChatGpt.Accounts; accounts.SelectedItem=ChatGpt.Accounts.FirstOrDefault(a=>a.Id==(configured?.AccountId??(policy.Provider?.Id=="chatgpt"?policy.Provider.AccountId:ChatGpt.ActiveAccountId)));
-                settingsChatGptAccountId=(accounts.SelectedItem as ChatGptAccount)?.Id; settingsChatGptModel=null; }
-            catch { feedback.Text="Protected ChatGPT account storage is unavailable."; }
+                settingsChatGptAccountId=(accounts.SelectedItem as ChatGptAccount)?.Id; settingsChatGptModel=null;
+                TraceChatGpt(new(ChatGptAuthStage.AccountPickerUpdated,ChatGptAuthOutcome.Succeeded,Count:accounts.Items.Count)); }
+            catch { TraceChatGpt(new(ChatGptAuthStage.AccountPickerUpdated,ChatGptAuthOutcome.Failed)); feedback.Text="Protected ChatGPT account storage is unavailable."; }
             finally { updating=false; }
         }
         async Task LoadModelsAsync()
@@ -31,14 +33,16 @@ public sealed partial class MainWindow
             modelLoad?.Cancel(); modelLoad?.Dispose(); modelLoad=CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
             modelLoad.CancelAfter(TimeSpan.FromSeconds(30)); var requestToken=modelLoad.Token;
             feedback.Text="Loading models for the selected ChatGPT account…";
+            TraceChatGpt(new(ChatGptAuthStage.Models,ChatGptAuthOutcome.Started));
             try {
                 var list=await ChatGpt.ListModelsAsync(account.Id,requestToken);
                 if(unloaded||version!=modelLoadVersion||accounts.SelectedItem is not ChatGptAccount selected||selected.Id!=account.Id) return;
                 models.ItemsSource=list; models.SelectedItem=list.FirstOrDefault(m=>m.Slug==model.Text);
+                TraceChatGpt(new(ChatGptAuthStage.Models,ChatGptAuthOutcome.Succeeded,Count:list.Count));
                 feedback.Text=list.Count==0?"No eligible models returned. Reconnect this account or review its ChatGPT plan permissions.":"";
-            } catch(ChatGptAuthenticationException e) { if(!unloaded&&version==modelLoadVersion) feedback.Text=e.Message; }
-            catch(OperationCanceledException) { if(!unloaded&&version==modelLoadVersion) feedback.Text="Model discovery timed out or was cancelled. Select Refresh models to try again."; }
-            catch { if(!unloaded&&version==modelLoadVersion) feedback.Text="Could not load models. Reconnect this account or check its permissions and connection."; }
+            } catch(ChatGptAuthenticationException e) { TraceChatGpt(new(ChatGptAuthStage.Models,ChatGptAuthOutcome.Failed,e.Kind)); if(!unloaded&&version==modelLoadVersion) feedback.Text=e.Message; }
+            catch(OperationCanceledException) { TraceChatGpt(new(ChatGptAuthStage.Models,ChatGptAuthOutcome.Cancelled)); if(!unloaded&&version==modelLoadVersion) feedback.Text="Model discovery timed out or was cancelled. Select Refresh models to try again."; }
+            catch { TraceChatGpt(new(ChatGptAuthStage.Models,ChatGptAuthOutcome.Failed)); if(!unloaded&&version==modelLoadVersion) feedback.Text="Could not load models. Reconnect this account or check its permissions and connection."; }
             finally { if(version==modelLoadVersion) { refresh.IsEnabled=true; models.IsEnabled=true; } }
         }
         accounts.SelectionChanged+=async(_,_)=> {
@@ -53,6 +57,7 @@ public sealed partial class MainWindow
         models.SelectionChanged+=(_,_)=> { if(unloaded) return; settingsChatGptModel=(models.SelectedItem as ChatGptModel)?.Slug;
             if(models.SelectedItem is ChatGptModel selected) { model.Text=selected.Slug; provider.SelectedIndex=2; } };
         connect.Click+=async(_,_)=> {
+            TraceChatGpt(new(ChatGptAuthStage.SignInClicked,ChatGptAuthOutcome.Started));
             signingIn=CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token); connect.IsEnabled=false; signOut.IsEnabled=false; accounts.IsEnabled=false; cancel.Visibility=Visibility.Visible;
             feedback.Text="Complete sign-in and plan-use consent in your browser.";
             try {
@@ -62,9 +67,10 @@ public sealed partial class MainWindow
                 if(unloaded) return;
                 updating=true; accounts.ItemsSource=ChatGpt.Accounts; accounts.SelectedItem=ChatGpt.Accounts.FirstOrDefault(a=>a.Id==ChatGpt.ActiveAccountId);
                 settingsChatGptAccountId=(accounts.SelectedItem as ChatGptAccount)?.Id; updating=false;
+                TraceChatGpt(new(ChatGptAuthStage.DialogAccountUpdate,ChatGptAuthOutcome.Succeeded,Count:accounts.Items.Count));
                 reauthorized?.Invoke(); provider.SelectedIndex=2; await LoadModelsAsync();
-            } catch(OperationCanceledException) { feedback.Text="Sign-in cancelled. Existing provider settings are unchanged."; }
-            catch { feedback.Text="ChatGPT sign-in could not be completed. Check browser consent and network access, then try again."; }
+            } catch(OperationCanceledException) { TraceChatGpt(new(ChatGptAuthStage.DialogAccountUpdate,ChatGptAuthOutcome.Cancelled)); feedback.Text="Sign-in cancelled. Existing provider settings are unchanged."; }
+            catch { TraceChatGpt(new(ChatGptAuthStage.DialogAccountUpdate,ChatGptAuthOutcome.Failed)); feedback.Text="ChatGPT sign-in could not be completed. Check browser consent and network access, then try again."; }
             finally { signingIn.Dispose(); signingIn=null; connect.IsEnabled=true; signOut.IsEnabled=true; accounts.IsEnabled=true; cancel.Visibility=Visibility.Collapsed; }
         };
         cancel.Click+=(_,_)=>signingIn?.Cancel();
@@ -122,8 +128,8 @@ public sealed partial class MainWindow
         usage.Padding=new Thickness(0); usage.HorizontalAlignment=HorizontalAlignment.Left;
         var panel=new StackPanel { Spacing=16,HorizontalAlignment=HorizontalAlignment.Stretch };
         foreach(var control in new FrameworkElement[]{info,selectors,feedback,buttons,usage}) panel.Children.Add(control);
-        panel.Loaded+=async(_,_)=> { unloaded=false; await LoadModelsAsync(); };
-        panel.Unloaded+=(_,_)=> { unloaded=true; signingIn?.Cancel(); modelLoad?.Cancel(); ++modelLoadVersion; };
+        panel.Loaded+=async(_,_)=> { TraceChatGpt(new(ChatGptAuthStage.PanelLoaded,ChatGptAuthOutcome.Succeeded)); unloaded=false; await LoadModelsAsync(); };
+        panel.Unloaded+=(_,_)=> { TraceChatGpt(new(ChatGptAuthStage.PanelUnloaded,ChatGptAuthOutcome.Succeeded)); unloaded=true; signingIn?.Cancel(); modelLoad?.Cancel(); ++modelLoadVersion; };
         return panel;
     }
 }

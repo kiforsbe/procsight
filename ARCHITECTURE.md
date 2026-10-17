@@ -41,6 +41,33 @@ verify the diagram source and rendering. Avoid diagrams that merely repeat a fil
 
 ## Component boundaries
 
+### Authentication operational diagnostics
+
+[ChatGptAuthenticationLog](src/ProcSight.Infrastructure/Authentication/ChatGptAuthenticationLog.cs)
+receives a closed typed event contract from
+[OAuth stages](src/ProcSight.Infrastructure/Authentication/ChatGptSessionService.cs) and
+[the account dialog](src/ProcSight.App/MainWindow.ChatGpt.cs). It queues at most 256 events and writes
+off-thread to the package-scoped data folder, rotating a 128 KiB file to one previous file. This
+diagnostic flow contains no credential/account/URL/payload text and is independent of AI activity.
+Failures are isolated; shutdown or saturation may drop events. Live sign-in is performed by the user.
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Dialog as Account dialog
+    participant OAuth as Session service
+    participant Queue as Bounded typed-event queue
+    participant File as Local authentication log
+    User->>Dialog: Start manual sign-in
+    Dialog->>Queue: Dialog stage and outcome
+    Dialog->>OAuth: Sign in through browser callback
+    OAuth->>Queue: Callback, validation and storage stages
+    Note over OAuth,Queue: No tokens, account IDs, URLs or free text cross this boundary
+    Queue->>File: Background write and bounded rotation
+    OAuth-->>Dialog: Validated account or failure
+    Dialog->>Queue: Account/model presentation outcome
+```
+
 ### MSIX distribution and release preparation
 
 Local MSIX generation is implemented. The [packaging design](docs/superpowers/specs/2026-10-17-msix-packaging-design.md)

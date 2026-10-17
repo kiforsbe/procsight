@@ -37,6 +37,7 @@
 *.coverage
 *.coveragexml
 *.log
+*.log.previous
 *.dmp
 *.etl
 *.png.checks

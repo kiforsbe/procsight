@@ -24,6 +24,11 @@ public sealed class ChatGptSessionService
     private const string Scope = "openid profile email offline_access resource.invoke chatgpt.tokens.use.direct";
     private readonly ChatGptProtectedStore store;
     private readonly HttpClient http;
+    private readonly Action<ChatGptAuthEvent>? diagnostics;
+    private void Trace(ChatGptAuthStage stage, ChatGptAuthOutcome outcome = ChatGptAuthOutcome.Started,
+        ProviderErrorKind? error = null, int? httpStatus = null) {
+        try { diagnostics?.Invoke(new(stage, outcome, error, httpStatus)); } catch { }
+    }
     // Shared across service instances in this process. The desktop owns one session service.
     private static readonly SemaphoreSlim Gate = new(1, 1);
     private sealed record Catalog(string HostId, string? ActiveAccountId, List<ChatGptAccount> Accounts);
@@ -32,17 +37,22 @@ public sealed class ChatGptSessionService
     public IReadOnlyList<ChatGptAccount> Accounts => catalog.Accounts.ToArray();
     public string? ActiveAccountId => catalog.ActiveAccountId;
     public string HostId => catalog.HostId;
-    public ChatGptSessionService(ICredentialStore credentials, HttpClient? httpClient = null)
+    public ChatGptSessionService(ICredentialStore credentials, HttpClient? httpClient = null, Action<ChatGptAuthEvent>? diagnostics = null)
     {
+        this.diagnostics = diagnostics;
         store = new(credentials);
         http = httpClient ?? new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(45) };
-        catalog = ChatGptSessionLock.Run("ProcSight.ChatGpt.Credentials", () =>
-        {
+        Trace(ChatGptAuthStage.CatalogRead);
+        try { catalog = ChatGptSessionLock.Run("ProcSight.ChatGpt.Credentials", () => {
             var saved = store.Get("catalog");
             if (saved is not null) return JsonSerializer.Deserialize<Catalog>(saved) ?? throw Error("Protected account catalog is invalid.");
             var created = new Catalog("urn:uuid:" + Guid.NewGuid(), null, []);
             store.Set("catalog", JsonSerializer.Serialize(created)); return created;
-        });
+        }); Trace(ChatGptAuthStage.CatalogRead, ChatGptAuthOutcome.Succeeded); }
+        catch (Exception e) {
+            try { diagnostics?.Invoke(new(ChatGptAuthStage.CatalogRead, ChatGptAuthOutcome.Failed, HResult:e.HResult)); } catch { }
+            throw;
+        }
     }
     private static ChatGptAuthenticationException Error(string text) => new(text);
     private void SaveCatalog() => store.Set("catalog", JsonSerializer.Serialize(catalog));
@@ -51,8 +61,23 @@ public sealed class ChatGptSessionService
     private void SaveSession(string id, Session session) => store.Set("account:" + id, JsonSerializer.Serialize(session));
     private ChatGptAccount Account(string id) => catalog.Accounts.FirstOrDefault(a => a.Id == id) ?? throw new ArgumentException("Unknown ChatGPT account.", nameof(id));
     public void SelectAccount(string accountId) => ChatGptSessionLock.Run("ProcSight.ChatGpt.Sessions", () => { ReloadCatalog(); Account(accountId); catalog = catalog with { ActiveAccountId = accountId }; SaveCatalog(); return true; });
-    public Task<ChatGptAccount> SignInAsync(Func<Uri, Task> launchBrowser, CancellationToken cancellationToken = default) => ChatGptSessionLock.RunAsync(() => SignInCore(null, launchBrowser, cancellationToken), cancellationToken);
-    public Task<ChatGptAccount> ReauthorizeAsync(string accountId, Func<Uri, Task> launchBrowser, CancellationToken cancellationToken = default) => ChatGptSessionLock.RunAsync(() => { ReloadCatalog(); return SignInCore(Account(accountId), launchBrowser, cancellationToken); }, cancellationToken);
+    public Task<ChatGptAccount> SignInAsync(Func<Uri, Task> launchBrowser, CancellationToken cancellationToken = default) => SignInLogged(null, launchBrowser, cancellationToken);
+    public Task<ChatGptAccount> ReauthorizeAsync(string accountId, Func<Uri, Task> launchBrowser, CancellationToken cancellationToken = default) => SignInLogged(accountId, launchBrowser, cancellationToken);
+    private async Task<ChatGptAccount> SignInLogged(string? accountId, Func<Uri, Task> launchBrowser, CancellationToken ct)
+    {
+        Trace(ChatGptAuthStage.SessionLock);
+        try {
+            var result = await ChatGptSessionLock.RunAsync(() => {
+                Trace(ChatGptAuthStage.SessionLock, ChatGptAuthOutcome.Succeeded);
+                if (accountId is null) return SignInCore(null, launchBrowser, ct);
+                ReloadCatalog(); return SignInCore(Account(accountId), launchBrowser, ct);
+            }, ct);
+            Trace(ChatGptAuthStage.SignIn, ChatGptAuthOutcome.Succeeded);
+            return result;
+        } catch (OperationCanceledException) { Trace(ChatGptAuthStage.SignIn, ChatGptAuthOutcome.Cancelled); throw; }
+        catch (ChatGptAuthenticationException e) { Trace(ChatGptAuthStage.SignIn, ChatGptAuthOutcome.Failed, e.Kind); throw; }
+        catch { Trace(ChatGptAuthStage.SignIn, ChatGptAuthOutcome.Failed); throw; }
+    }
     private async Task<ChatGptAccount> SignInCore(ChatGptAccount? returning, Func<Uri, Task> launch, CancellationToken ct)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -60,38 +85,58 @@ public sealed class ChatGptSessionService
         await Gate.WaitAsync(timeout.Token);
         try
         {
+            Trace(ChatGptAuthStage.CatalogRead);
             ReloadCatalog();
+            Trace(ChatGptAuthStage.CatalogRead, ChatGptAuthOutcome.Succeeded);
             var previous = returning is null ? null : ReadSession(returning.Id);
             var state = Random(); var nonce = Random(); var verifier = Random();
             using var listener = new TcpListener(IPAddress.Loopback, 0);
             listener.Start(4);
+            Trace(ChatGptAuthStage.CallbackListener, ChatGptAuthOutcome.Succeeded);
             var redirect = $"http://127.0.0.1:{((IPEndPoint)listener.LocalEndpoint).Port}/auth/callback";
             var parameters = new Dictionary<string, string> { ["client_id"] = returning?.ClientId ?? "dynamic_agent_client", ["ext_agent_host_id"] = HostId, ["response_type"] = "code", ["redirect_uri"] = redirect, ["scope"] = Scope, ["resource"] = Resource, ["state"] = state, ["nonce"] = nonce, ["code_challenge_method"] = "S256", ["code_challenge"] = Base64(SHA256.HashData(Encoding.ASCII.GetBytes(verifier))) };
             if (returning is null) parameters["agent_name_hint"] = "ProcSight";
             else if (previous?.IdToken is { } hint) parameters["id_token_hint"] = hint;
             var callbackTask = ReceiveCallback(listener, timeout.Token);
+            Trace(ChatGptAuthStage.BrowserLaunch);
             await launch(new Uri(Issuer + "/api/accounts/authorize?" + string.Join("&", parameters.Select(p => Uri.EscapeDataString(p.Key) + "=" + Uri.EscapeDataString(p.Value))))).WaitAsync(timeout.Token);
+            Trace(ChatGptAuthStage.BrowserLaunch, ChatGptAuthOutcome.Succeeded);
+            Trace(ChatGptAuthStage.CallbackReceived);
             var callback = await callbackTask;
+            Trace(ChatGptAuthStage.CallbackReceived, ChatGptAuthOutcome.Succeeded);
+            Trace(ChatGptAuthStage.CallbackValidation);
             if (!callback.TryGetValue("state", out var returnedState) || !FixedEqual(state, returnedState)) throw Error("ChatGPT callback state was invalid.");
             if (callback.ContainsKey("error")) throw Error("ChatGPT authorization was declined or unavailable.");
             if (!callback.TryGetValue("code", out var code) || string.IsNullOrWhiteSpace(code)) throw Error("ChatGPT authorization code was missing.");
             var client = callback.GetValueOrDefault("client_id") ?? returning?.ClientId;
             if (string.IsNullOrWhiteSpace(client) || client == "dynamic_agent_client" || client.Length > 512 || returning is not null && client != returning.ClientId) throw Error("ChatGPT registration did not match the requested account.");
+            Trace(ChatGptAuthStage.CallbackValidation, ChatGptAuthOutcome.Succeeded);
+            Trace(ChatGptAuthStage.TokenExchange);
             using var token = await Post("/api/accounts/oauth/token", new() { ["grant_type"] = "authorization_code", ["client_id"] = client, ["code"] = code, ["code_verifier"] = verifier, ["redirect_uri"] = redirect, ["resource"] = Resource }, timeout.Token);
+            Trace(ChatGptAuthStage.TokenExchange, ChatGptAuthOutcome.Succeeded);
+            Trace(ChatGptAuthStage.IdentityValidation);
             var idToken = Required(token.RootElement, "id_token");
             var identity = await ValidateIdentity(idToken, client, nonce, timeout.Token);
             if (previous is not null && (previous.Issuer != Issuer || previous.Subject != identity.Subject)) throw Error("ChatGPT identity did not match the saved account.");
             var session = Tokens(token.RootElement, client, identity.Subject, idToken, null);
+            Trace(ChatGptAuthStage.IdentityValidation, ChatGptAuthOutcome.Succeeded);
             var id = returning?.Id ?? Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Issuer + "\n" + identity.Subject + "\n" + client))).ToLowerInvariant();
             var account = new ChatGptAccount(id, (identity.Email ?? "ChatGPT account") + " (" + id[..8] + ")", client);
+            Trace(ChatGptAuthStage.SessionWrite);
             SaveSession(id, session);
+            Trace(ChatGptAuthStage.SessionWrite, ChatGptAuthOutcome.Succeeded);
             catalog.Accounts.RemoveAll(a => a.Id == id); catalog.Accounts.Add(account);
+            Trace(ChatGptAuthStage.CatalogWrite);
             catalog = catalog with { ActiveAccountId = id }; SaveCatalog();
+            Trace(ChatGptAuthStage.CatalogWrite, ChatGptAuthOutcome.Succeeded);
             return account;
         }
         catch (OperationCanceledException) { throw; }
         catch (ChatGptAuthenticationException) { throw; }
-        catch { throw Error("ChatGPT sign-in failed. Try signing in again."); }
+        catch (Exception e) {
+            try { diagnostics?.Invoke(new(ChatGptAuthStage.SignIn, ChatGptAuthOutcome.Failed, HResult:e.HResult)); } catch { }
+            throw Error("ChatGPT sign-in failed. Try signing in again.");
+        }
         finally { Gate.Release(); }
     }
     public Task<string?> GetAccessTokenAsync(string accountId, CancellationToken cancellationToken = default) => ChatGptSessionLock.RunAsync(() => GetAccessTokenCore(accountId, cancellationToken), cancellationToken);
@@ -216,6 +261,7 @@ public sealed class ChatGptSessionService
         catch (HttpRequestException) { throw new ChatGptAuthenticationException("ChatGPT could not be reached. Try again later.", ProviderErrorKind.Transient); }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested) { throw new ChatGptAuthenticationException("ChatGPT request timed out. Try again later.", ProviderErrorKind.Transient); }
         using var ownedResponse = response;
+        Trace(ChatGptAuthStage.HttpResponse, response.IsSuccessStatusCode ? ChatGptAuthOutcome.Succeeded : ChatGptAuthOutcome.Failed, httpStatus: (int)response.StatusCode);
         if (!response.IsSuccessStatusCode)
         {
             if (response.StatusCode == HttpStatusCode.TooManyRequests) throw new ChatGptAuthenticationException("ChatGPT usage limit reached. Check ChatGPT Settings → Usage.", ProviderErrorKind.RateLimited);

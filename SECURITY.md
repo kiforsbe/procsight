@@ -176,6 +176,12 @@ Local command rules never execute code, decode encoded commands, or inspect inte
 
 ## Handling sensitive data during development
 
+Explicitly requested ChatGPT sign-in troubleshooting uses a bounded local operational log containing
+only app-owned stage/outcome enums, UTC time, process ID, numeric HRESULT/HTTP status and counts.
+No tokens, account IDs, emails, authorization URLs, callback parameters, HTTP bodies or exception text
+are accepted by the log contract. A bounded background queue and one rotated file limit retention;
+logging failures never affect authentication. This does not persist AI activity or provider payloads.
+
 The explicit `scripts/trust-package-certificate.cmd` drop target delegates to its PowerShell 7
 companion. It accepts only public, currently valid code-signing certificates, displays their identity,
 and requests UAC to add machine-wide LocalMachine/TrustedPeople trust. It never uses Trusted Root

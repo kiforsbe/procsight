@@ -446,7 +446,31 @@ Metadata-derived names are descriptive; hash predicates still govern a file-spec
 `rules-actions` is a synthetic native automation-peer fixture covering selection refresh,
 state changes, delete/cancel confirmation, source filtering and search/reset without provider calls.
 
+## ChatGPT sign-in diagnostics
+
+When diagnosing a manual sign-in, inspect `diagnostics/chatgpt-auth.log` under ProcSight's data
+folder: `%LOCALAPPDATA%\ProcSight` for unpackaged runs or
+`%LOCALAPPDATA%\Packages\<family>\LocalState\ProcSight` for installed MSIX runs. Only read this
+diagnostic file, not the account catalog, Credential Manager records or browser authorization URLs.
+The user performs real sign-in; do not automate authentication or inspect credentials to reproduce it.
+
+Records contain UTC time, process ID, app-owned stage/outcome enums, optional HTTP status, account/model
+counts and numeric HRESULTs. Follow browser launch, callback, token exchange, identity validation,
+session/catalog writes and dialog/model updates to locate the last completed stage. The logger never
+accepts free text, tokens, codes, state/nonce/PKCE values, account IDs, emails, paths or HTTP bodies.
+It writes off-thread through a bounded 256-event queue and rotates at 128 KiB to one `.previous`
+file. Logging failures do not change authentication. Abrupt termination or a full queue can lose
+pending entries. Debug visual fixtures redirect these logs alongside their synthetic captures.
+This is operational authentication diagnostics, separate from memory-only AI activity history.
+
+For manual debugging against an installed package's identity and settings, Windows supports
+`Invoke-CommandInDesktopPackage -PackageFamilyName '<installed-family>' -AppId 'App' -Command '<absolute-built-ProcSight.App.exe-path>'`.
+This launches a diagnostic executable without reinstalling or clearing the package. Its process token
+is similar to, but not identical to, normal activation; it does not establish full installed-package
+acceptance. See [Microsoft's debugging command](https://learn.microsoft.com/en-us/powershell/module/appx/invoke-commandindesktoppackage).
+
 ## Structured process details
+
 
 `ProcessDetails.Sections` produces transient, locally displayed field groups. Field values are
 JSON-ignored and diagnostic strings omit them; this is not a persistence or provider DTO.
