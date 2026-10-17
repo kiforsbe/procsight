@@ -117,6 +117,7 @@ plans, implementation details and validation records belong in the project docum
 ### Changed
 
 - Reuse bounded native chart geometry and process projection rows to reduce UI allocation churn.
+- Read process/service WMI metadata in forward-only batches while preserving local command collection.
 
 - Command lines are always available locally when Windows permits; online commands and identifying
   metadata remain excluded by default, with separate sharing controls.

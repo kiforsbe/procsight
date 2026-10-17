@@ -260,6 +260,9 @@ and never hold the monitor state lock across native shutdown. Unexpected process
 outside that guarantee. Ordinary mode retains unavailable reasons; it never prompts for elevation.
 Image-path reads rent a small cleared character buffer and grow only for insufficient capacity, with
 a 32,768-character bound; private path characters are cleared before returning buffers to the pool.
+Process command metadata and service WMI queries enumerate forward-only in 64-item blocks. Native
+collections and each item are disposed after that single pass. Queries, timeout settings and polling
+cadence are unchanged; this avoids rewindable provider state without caching or delaying commands.
 
 [SystemPerformanceSampler](src/ProcSight.Windows/Collection/SystemPerformanceSampler.cs) is a
 separate one-second, off-thread source for CPU, RAM, physical-disk busy/read/write rates,

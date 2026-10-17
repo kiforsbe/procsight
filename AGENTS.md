@@ -158,6 +158,8 @@ and never hold monitor state locks during blocking native stop. No forced exit o
 Performance charts reuse bounded trace figures/point collections across ticks; retain gap semantics,
 invalidate grid geometry for size/span/time-mode changes, and enforce the 60-sample limit at the chart
 boundary. Projection may reuse rows and per-build labels, never lifetime keys or names across stale metadata.
+WMI inventory queries use forward-only 64-item batches. Consume each collection once; never request
+Count, reset its enumerator or cache the native collection. Preserve timeouts and per-item disposal.
 
 Use `rg` for searches. Inspect the current Git state and preserve unrelated user changes.
 Verify documentation links and run `git diff --check` for documentation changes. Once code

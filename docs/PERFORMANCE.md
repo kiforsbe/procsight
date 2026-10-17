@@ -1,5 +1,24 @@
 # Local UI and rules performance
 
+## Batched metadata enumeration — 2026-10-17
+
+The command-reader baseline averaged 135.25 ms and 1.666 MiB allocations over ten local samples.
+An experimental forward-only, 64-item WMI enumeration averaged 120.63 ms; the production reader
+after applying those options averaged 123.32 ms and 1.632 MiB. This is a modest improvement, subject
+to live process/provider variation. No command cache, reduced cadence or reduced metadata coverage
+was introduced. Service enumeration uses the same options, without claiming an independently
+measured service-specific gain. Each item and collection is still disposed.
+
+Microsoft documents [block operations](https://learn.microsoft.com/en-us/dotnet/api/system.management.enumerationoptions.blocksize)
+and [forward-only enumeration](https://learn.microsoft.com/en-us/dotnet/api/system.management.enumerationoptions.rewindable).
+Reports stay under ignored `artifacts/sampling-performance/{second-baseline,experiment-batched,second-after}-metadata.json`.
+
+The user's separate administrator console run recorded 60 samples per mode: inventory capture
+averaged 268 ms including initialization, with the last ten averaging 198 ms. Inventory peaked at
+123 MiB working set/87 MiB private bytes and retained 0.36 MiB managed data after cleanup/GC.
+Monitoring Stop took 174.78 ms, followed by 1.19 ms disposal. Those files do not record continuous
+ETW health or full elevated UI state, so they neither reproduce nor explain the reported 500 MB.
+
 ## Native chart and projection reuse — 2026-10-17
 
 A new 200-update native chart fixture measured the previous 60-point trace at 1.25 ms mean and

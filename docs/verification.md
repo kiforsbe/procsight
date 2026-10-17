@@ -1,5 +1,15 @@
 # Development verification
 
+## Forward-only WMI enumeration — 2026-10-17
+
+Ten-sample before/experiment/production measurements used the same selected process/command
+fields, with only aggregate metrics written. Production average changed from 135.25 to 123.32 ms;
+allocations changed from 1.666 to 1.632 MiB. Services use the same single-pass options. The Release
+Windows suite passed 69 tests with expected partial metadata handling; full Release suites passed
+397 tests excluding ChatGptAuth. No live sign-in or provider calls ran. The administrator measurements
+supplied by the user are summarized in [PERFORMANCE.md](PERFORMANCE.md), with their UI/ETW-health
+coverage limits stated explicitly.
+
 ## Chart geometry and projection reuse — 2026-10-17
 
 The native reuse fixture first failed because both geometry objects were replaced each tick; it now

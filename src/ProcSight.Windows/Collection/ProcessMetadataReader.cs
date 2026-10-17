@@ -34,6 +34,7 @@ public sealed class ProcessMetadataReader
         {
             using var searcher = new ManagementObjectSearcher("SELECT ProcessId, CommandLine FROM Win32_Process");
             searcher.Options.Timeout = TimeSpan.FromSeconds(3);
+            searcher.Options.Rewindable=false; searcher.Options.BlockSize=64;
             using var objects = searcher.Get();
             foreach (ManagementObject item in objects)
                 using (item)

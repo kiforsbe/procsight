@@ -77,6 +77,8 @@ in profiling fixtures to distinguish retention from churn, never in the producti
 `chart-performance` measures 200 synthetic native chart updates. `chart-reuse` additionally verifies
 trace/grid identity retention, missing-data gaps and restoration, log/resize invalidation, oversized
 history bounds and clearing empty history. Numeric reports use `.chart.json` beside the ignored capture.
+The sampling harness's `metadata` mode measures the production command reader, including its
+forward-only batched WMI enumeration. It still collects fresh local command lines on every pass.
 
 Table UI fixtures `columns`, `columns-services`, `row-menu`, `column-chooser` and `inventory-export`
 exercise dynamic native templates, shared row/header widths, optional-column sorting, selection,

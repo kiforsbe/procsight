@@ -11,6 +11,7 @@ public static class ServiceEnumerator
         {
             using var searcher = new ManagementObjectSearcher("SELECT Name, DisplayName, State, StartMode, ProcessId, PathName FROM Win32_Service");
             searcher.Options.Timeout = TimeSpan.FromSeconds(3);
+            searcher.Options.Rewindable=false; searcher.Options.BlockSize=64;
             using var objects = searcher.Get();
             foreach (ManagementObject service in objects)
                 using (service) if(ReadRow(property=>service[property], reader) is { } row) services.Add(row);
