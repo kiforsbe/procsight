@@ -47,6 +47,19 @@ changed binaries/paths, rejected proposals and older entry-only identity labels.
 entries are not globally migrated: Analyze again to generate an exact rule when their identity no
 longer matches. Supported older entry-level names are restored for their original validated scope.
 
+ProcSight requires .NET Runtime 10.0.13+ within the 10.0 series (including Debug), independently
+of SDK selection. The app's `Microsoft.NETCore.App` FrameworkReference sets the minimum and
+self-contained runtime-pack version. This fixes the upstream COM-wrapper registration leak without
+disabling debugger support. Check `dotnet --list-runtimes` and generated runtimeconfig after builds.
+Install the current [Windows x64 runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+and restart existing app instances; a running process continues using its loaded runtime.
+
+`dotnet run --project benchmarks/ComWrappers -c Release` runs a synthetic balanced COM marshal/release
+probe with no inventory or accounts. After building, compare installed runtimes using
+`dotnet exec --fx-version 10.0.13 benchmarks/ComWrappers/bin/Release/net10.0/ComWrappers.dll`.
+The probe deliberately keeps one object alive and reports retained bytes after diagnostic full GCs;
+production code never forces GC. It is a runtime regression probe, not a whole-app memory benchmark.
+
 For local UI profiling, run `./scripts/measure-ui.ps1 -Label comparison`. It builds an optimized
 Debug fixture app (retaining SDK bootstrap constants) and reports synthetic 500/1000-row projection,
 updates, sorting, search, details, resizing, grouping, column motion and bundled-rule browsing.

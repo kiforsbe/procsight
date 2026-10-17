@@ -60,7 +60,7 @@ public sealed partial class ProcessRow : INotifyPropertyChanged
     public long? TotalMemoryBytes { get=>totalMemoryBytes; set {
         if(totalMemoryBytes==value) return;
         totalMemoryBytes=value;
-        if(Projection is not null) Changed(nameof(MemoryBrush));
+        if(Projection is not null) NotifyUsage();
     } }
     public string ServiceState=>Entity.Service?.State ?? "—";
     public string Startup=>Entity.Service?.StartMode ?? "—";
@@ -68,20 +68,32 @@ public sealed partial class ProcessRow : INotifyPropertyChanged
     private int maximumShadingPercent=50;
     private Func<byte,Brush>? usagePalette;
     private bool usageHighContrast;
+    private byte? notifiedCpuOpacity,notifiedMemoryOpacity;
     public void ConfigureUsageShading(int minimumPercent,bool highContrast,int maximumPercent=50,Func<byte,Brush>? palette=null) {
         if(minimumShadingPercent==minimumPercent&&usageHighContrast==highContrast&&maximumShadingPercent==maximumPercent&&ReferenceEquals(usagePalette,palette)) return;
+        var colorChanged=!ReferenceEquals(usagePalette,palette);
         minimumShadingPercent=minimumPercent; usageHighContrast=highContrast; maximumShadingPercent=maximumPercent; usagePalette=palette;
-        Changed(nameof(CpuBrush)); Changed(nameof(MemoryBrush));
+        if(Projection is not null) NotifyUsage(colorChanged);
     }
     public Brush CpuBrush=>Heat(Projection.CpuPercent,Projection.Members.Any(m=>m.Process?.Resources.CpuPercent.Value is not null));
     public Brush MemoryBrush=>Heat(TotalMemoryBytes is >0?Projection.MemoryBytes/(double)TotalMemoryBytes.Value*100:0,
         TotalMemoryBytes is >0&&Projection.Members.Any(m=>m.Process?.Resources.WorkingSetBytes.Value is not null));
-    private Brush Heat(double percent,bool available)
-    {
+    private byte UsageOpacity(double percent,bool available) {
         var floor=255*minimumShadingPercent/100d;
         var roof=255*maximumShadingPercent/100d;
-        var alpha=available&&!usageHighContrast&&double.IsFinite(percent)?
+        return available&&!usageHighContrast&&double.IsFinite(percent)?
             (byte)Math.Clamp(Math.Round(floor+(roof-floor)*Math.Clamp(percent,0,100)/100),0,255):(byte)0;
+    }
+    private void NotifyUsage(bool force=false) {
+        var cpu=UsageOpacity(Projection.CpuPercent,Projection.Members.Any(m=>m.Process?.Resources.CpuPercent.Value is not null));
+        var memory=UsageOpacity(TotalMemoryBytes is >0?Projection.MemoryBytes/(double)TotalMemoryBytes.Value*100:0,
+            TotalMemoryBytes is >0&&Projection.Members.Any(m=>m.Process?.Resources.WorkingSetBytes.Value is not null));
+        if(force||notifiedCpuOpacity!=cpu) { notifiedCpuOpacity=cpu; Changed(nameof(CpuBrush)); }
+        if(force||notifiedMemoryOpacity!=memory) { notifiedMemoryOpacity=memory; Changed(nameof(MemoryBrush)); }
+    }
+    private Brush Heat(double percent,bool available)
+    {
+        var alpha=UsageOpacity(percent,available);
         if(usagePalette is not null) return usagePalette(alpha);
         var color=new global::Windows.UI.ViewManagement.UISettings().GetColorValue(global::Windows.UI.ViewManagement.UIColorType.Accent);
         return new SolidColorBrush(global::Windows.UI.Color.FromArgb(alpha,color.R,color.G,color.B));
@@ -118,14 +130,16 @@ public sealed partial class ProcessRow : INotifyPropertyChanged
     public string Classification => analysis is null ? "Unknown" : string.Join(" / ",analysis.Result.Assessments.Select(a=>a.Value));
     private static readonly string[] Fields=[nameof(Name),nameof(Owner),nameof(Pid),nameof(Cpu),nameof(Memory),nameof(Status),nameof(ServiceState),nameof(Startup),nameof(ExpansionGlyph),nameof(ExpansionAction),nameof(ExpanderVisibility),nameof(Indent),nameof(NativeName),nameof(CommandLine),nameof(Path),nameof(ParentPid),nameof(Publisher),nameof(Signature),nameof(Started),nameof(Ownership),nameof(Windows),nameof(ServiceName),nameof(Availability),nameof(Disk),nameof(Network),nameof(DiskDetails),nameof(NetworkDetails),nameof(Gpu),nameof(GpuDetails),nameof(StartedDetails)];
     private string[] Values()=>[Name,Owner,Pid,Cpu,Memory,Status,ServiceState,Startup,ExpansionGlyph,ExpansionAction,ExpanderVisibility.ToString(),Indent.ToString(),NativeName,CommandLine,Path,ParentPid,Publisher,Signature,Started,Ownership,Windows,ServiceName,Availability,Disk,Network,DiskDetails,NetworkDetails,Gpu,GpuDetails,StartedDetails];
-    private void Changed(string field)=>PropertyChanged?.Invoke(this,new(field));
+    private static readonly IReadOnlyDictionary<string,PropertyChangedEventArgs> ChangeEvents=Fields.Concat([
+        nameof(TableColumns),nameof(CpuBrush),nameof(MemoryBrush),nameof(DiskBrush),nameof(NetworkBrush),nameof(GpuBrush),nameof(Icon),nameof(FallbackIconVisibility)])
+        .ToDictionary(field=>field,field=>new PropertyChangedEventArgs(field),StringComparer.Ordinal);
+    private void Changed(string field)=>PropertyChanged?.Invoke(this,ChangeEvents[field]);
     private string[]? displayedValues;
-    private void Notify(string[]? before,bool cpuChanged=false,bool memoryChanged=false) {
+    private void Notify(string[]? before) {
         var after=Values();
         displayedValues=after;
         for(var i=0;i<Fields.Length;i++) if(before is null||before[i]!=after[i]) Changed(Fields[i]);
-        if(before is null||cpuChanged||before[3]!=after[3]) Changed(nameof(CpuBrush));
-        if(before is null||memoryChanged||before[4]!=after[4]) Changed(nameof(MemoryBrush));
+        NotifyUsage();
     }
     private void InvalidateMetadata() { name=null; owner=null; status=null; localRole=null; localValues=null; startedDisplay=null; }
     public void SetAnalysis(AnalysisUpdate value) {
@@ -171,8 +185,6 @@ public sealed partial class ProcessRow : INotifyPropertyChanged
     {
         if(ReferenceEquals(Projection,projection)) return;
         var before=displayedValues;
-        var cpuChanged=Projection?.CpuPercent!=projection.CpuPercent;
-        var memoryChanged=Projection?.MemoryBytes!=projection.MemoryBytes;
         var metadataChanged=Entity is null||!SameMetadata(Entity,projection.Entity);
         if(Projection is null||!SameResourceReadings(Projection,projection))
             diskText=networkText=diskDetails=networkDetails=gpuText=gpuDetails=null;
@@ -181,7 +193,7 @@ public sealed partial class ProcessRow : INotifyPropertyChanged
         { Icon=null; Changed(nameof(Icon)); Changed(nameof(FallbackIconVisibility)); }
         if(Entity is not null&&Entity.Identity!=projection.Entity.Identity) analysis=null;
         if(metadataChanged) InvalidateMetadata();
-        Projection=projection; Entity=projection.Entity; Notify(before,cpuChanged,memoryChanged);
+        Projection=projection; Entity=projection.Entity; Notify(before);
     }
     public event PropertyChangedEventHandler? PropertyChanged;
     private static bool SameResourceReadings(ProcessListRow left,ProcessListRow right) {

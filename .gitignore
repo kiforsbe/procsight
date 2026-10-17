@@ -71,6 +71,8 @@ appsettings.*.Local.json
 *.sqlite3-shm
 
 # OS and temporary files
+*.gcdump
+*.nettrace
 Thumbs.db
 Desktop.ini
 .DS_Store

@@ -4,6 +4,8 @@ using System.ComponentModel;
 namespace ProcSight.App.ViewModels;
 public sealed class LiveRowCollection : ObservableCollection<ProcessRow>
 {
+    private static readonly PropertyChangedEventArgs CountChanged=new(nameof(Count)),ItemsChanged=new("Item[]");
+    private static readonly NotifyCollectionChangedEventArgs ResetChanged=new(NotifyCollectionChangedAction.Reset);
     protected override void MoveItem(int oldIndex,int newIndex)
     {
         if(oldIndex==newIndex) return;
@@ -18,8 +20,8 @@ public sealed class LiveRowCollection : ObservableCollection<ProcessRow>
         CheckReentrancy();
         Items.Clear();
         foreach(var row in ordered) Items.Add(row);
-        OnPropertyChanged(new PropertyChangedEventArgs(nameof(Count)));
-        OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
-        OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+        OnPropertyChanged(CountChanged);
+        OnPropertyChanged(ItemsChanged);
+        OnCollectionChanged(ResetChanged);
     }
 }

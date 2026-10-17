@@ -7,6 +7,9 @@ Direct user instructions take precedence over repository guidance.
 
 ## Current project state
 
+The app requires .NET Runtime 10.0.13+ within 10.0 for the upstream COM-wrapper leak fix;
+preserve debugger support and the app FrameworkReference runtime floor for development and packaging.
+
 ProcSight is an unreleased Windows 11/WinUI 3 development preview. Collection, ownership,
 privacy projection, persistent knowledge/rules, provider/research adapters, coordinator,
 and native investigation UI exist. Run `scripts/verify.ps1` for locked restore, Release

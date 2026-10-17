@@ -18,6 +18,15 @@ public sealed partial class MainWindow
         ProcessListRow Project(ResolvedEntity e)=>new("synthetic",e,false,[e],null,e.Process!.Resources.WorkingSetBytes.Value??0,true,
             e.Process.Resources.CpuPercent.Value??0,true);
         var row=new ProcessRow { Key="synthetic" };
+        var notifications=new List<System.ComponentModel.PropertyChangedEventArgs>();
+        var notificationRow=new ProcessRow(); notificationRow.Update(Project(Resolve(process)));
+        notificationRow.PropertyChanged+=(_,args)=>notifications.Add(args);
+        notificationRow.Update(notificationRow.Projection with { CpuPercent=3.11 });
+        var firstCpuEvent=notifications.Single(e=>e.PropertyName==nameof(ProcessRow.Cpu)); notifications.Clear();
+        notificationRow.Update(notificationRow.Projection with { CpuPercent=3.12 });
+        Check(notifications.All(e=>e.PropertyName!=nameof(ProcessRow.CpuBrush)),"Sub-shade CPU changes crossed the native notification boundary.");
+        notifications.Clear(); notificationRow.Update(notificationRow.Projection with { CpuPercent=4.11 });
+        Check(ReferenceEquals(firstCpuEvent,notifications.Single(e=>e.PropertyName==nameof(ProcessRow.Cpu))),"Property notifications allocate new native wrapper identities.");
         byte Alpha(Microsoft.UI.Xaml.Media.Brush brush)=>((Microsoft.UI.Xaml.Media.SolidColorBrush)brush).Color.A;
         row.TotalMemoryBytes=10485760;
         row.Update(Project(Resolve(process with { Resources=process.Resources with {

@@ -244,6 +244,14 @@ sequenceDiagram
 
 ### Performance monitoring
 
+The app's `Microsoft.NETCore.App` FrameworkReference requires runtime 10.0.13, including
+self-contained packaging, to prevent duplicate COM-wrapper diagnostic registration during WinUI
+binding notifications. Debugging remains enabled. [ProcessRow](src/ProcSight.App/ViewModels/ProcessRow.cs)
+reuses fixed immutable notification arguments and suppresses CPU/memory brush notifications when
+the rendered opacity is unchanged; palette changes force refresh. Numeric/text observations are
+independent of that visual suppression. See [live profiling](docs/PERFORMANCE.md) for evidence and
+the remaining full-process memory acceptance.
+
 [ProcessIoMonitor](src/ProcSight.Windows/Collection/ProcessIoMonitor.cs) starts an owned kernel
 ETW session off-thread only in explicit administrator mode. Enable precedes Source creation;
 the parser tracks thread/PID relationships without filename tracking. Disk read/write and

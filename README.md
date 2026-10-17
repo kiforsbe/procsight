@@ -9,13 +9,19 @@ knowledge, provider adapters, optional research, and the investigation interface
 implemented. Automated checks use synthetic metadata and fake providers. Targeted live inference
 smoke checks passed; full provider acceptance and desktop accessibility/scaling remain unverified.
 
-On Windows 11 with .NET SDK 10.0.301, Windows App Runtime 2.2 and PowerShell 7+ (`pwsh`) installed:
+On Windows 11 with .NET SDK 10.0.301, **.NET Runtime 10.0.13 or later in the 10.0 series**,
+Windows App Runtime 2.2 and PowerShell 7+ (`pwsh`) installed:
 
 ```powershell
 ./scripts/build.ps1
 ./scripts/start.ps1
 ./scripts/verify.ps1
 ```
+
+Install the current [Windows x64 .NET Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+and restart ProcSight after updating. Runtime 10.0.13 fixes a WinUI COM-wrapper memory leak;
+having the SDK alone does not ensure that this servicing update is installed. Self-contained MSIX
+packages carry the required runtime.
 
 In VS Code, open this repository folder and install the recommended Microsoft C#
 extension. Select **ProcSight (Debug)** in Run and Debug, then press **F5** to build

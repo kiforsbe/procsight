@@ -1,5 +1,21 @@
 # Development verification
 
+## Live GUI memory and notification regression — 2026-10-17
+
+The running administrator app was sampled using numeric counters, managed stacks and a retained
+type/reference graph, without AI calls or credential access. See [measurements](PERFORMANCE.md).
+The synthetic balanced COM probe reproduced 8.38 MB retained growth on .NET 10.0.9 versus about
+2 KB on 10.0.13. Generated Debug/Release runtimeconfig selects 10.0.13; self-contained framework
+resolution also selects it. No machine-wide runtime installation or user-app restart was performed.
+
+Native row checks first failed on sub-shade CPU changes unnecessarily notifying the brush, then
+passed with opacity-aware notifications. Row, resource-shading and columns fixtures passed on the
+local 10.0.13 runtime. Live-sort assertions/capture completed, but three of five runs exited with
+native stowed exception 0xC000027B; two exited normally. This intermittent teardown/render failure
+remains unresolved, so live-sort desktop acceptance is not claimed. Release build passed without
+warnings/errors and 397 tests passed (74 Core, 138 Application, 116 Infrastructure, 69 Windows),
+excluding all ChatGptAuth tests. Whole-app memory/CPU comparison after runtime update remains pending.
+
 ## Equivalent unavailable metadata cache regression — 2026-10-17
 
 The native row fixture first reproduced an unchanged invocation-name cache being invalidated by

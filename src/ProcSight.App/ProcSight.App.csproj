@@ -10,6 +10,8 @@
 </PropertyGroup>
 <Import Project="$(ProcSightPackageProfile)" Condition="'$(ProcSightPackaging)'=='true' and Exists('$(ProcSightPackageProfile)')" />
 <ItemGroup>
+<!-- .NET 10.0.13 fixes unbounded ComWrappers diagnostic registration in WinUI bindings. -->
+<FrameworkReference Update="Microsoft.NETCore.App" RuntimeFrameworkVersion="10.0.13" />
 <AppxManifest Include="$(ProcSightPackageManifest)" Condition="'$(ProcSightPackaging)'=='true' and '$(ProcSightPackageManifest)'!=''" />
 <Content Include="Assets/Package/**" CopyToOutputDirectory="PreserveNewest" />
 <Content Include="../../LICENSE" Link="ProcSight-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />

@@ -1,5 +1,38 @@
 # Local UI and rules performance
 
+## Live administrator GUI and runtime leak — 2026-10-17
+
+A 35-second capture of the user's running administrator Processes page, excluding AI work,
+averaged 21.1 MB/s managed allocation, 0.91% runtime-normalized CPU and 2.89% time in GC.
+Working set during counters/stack sampling was 415–426 MB (decimal). Twelve stack snapshots
+caught WMI enumeration, identity observation and native PropertyChanged dispatch. These are
+samples, not exclusive CPU attribution; profiler activity also perturbs memory.
+
+A successful subsequent gcdump retained-type graph reported 65.1 MB managed heap / 208,620 objects.
+Large `ManagedObjectWrapperHolder[]` buckets accounted for roughly 39 MiB. Two earlier small-buffer
+EventPipe captures lost events and were discarded as incomplete evidence. The graph contains object
+types/references, not a full process dump; no raw commands, credentials or field values were collected.
+Diagnostic graph capture forces a full GC and uses additional buffers; post-capture working set is
+not an uninstrumented baseline. Most total process memory is outside this retained managed graph;
+this finding does not explain the entire 411 MB screenshot or establish Task Manager parity.
+
+This shape matches [.NET issue 129191](https://github.com/dotnet/runtime/issues/129191): repeated
+COM marshaling added duplicate diagnostic holder entries for long-lived objects. The fix is included
+in [runtime 10.0.13](https://github.com/dotnet/runtime/releases/tag/v10.0.13). A synthetic million-call
+balanced marshal/release probe retained 8,382,384 bytes on installed 10.0.9 versus 1,968 bytes on
+10.0.13 after full GC. This isolates the runtime defect; it is not a whole-app before/after result.
+
+ProcSight now requires runtime 10.0.13 in development and packaging, retaining debugger support.
+Rows reuse immutable change-event arguments and CPU/memory brushes notify only when their rendered
+alpha changes (or the palette changes). Width/collection notifications also reuse fixed event arguments.
+Those caches must run on the fixed runtime: on affected runtimes, repeatedly marshaled long-lived
+arguments can themselves accumulate holder entries. Availability, memory denominator, high contrast,
+floor/roof and color changes still update shading. Resource text/export readings remain fresh.
+
+The running user instance has not been replaced. Whole-GUI long-running allocation/working-set
+and interaction measurements after updating the runtime and restarting remain outstanding.
+Local traces stay under ignored artifacts; never commit live inventories or heap graphs.
+
 ## Batched metadata enumeration — 2026-10-17
 
 The command-reader baseline averaged 135.25 ms and 1.666 MiB allocations over ten local samples.
