@@ -95,9 +95,9 @@ public sealed partial class MainWindow
             var header=tableHeader!.Children.OfType<Border>().Single(b=>b.Tag as string=="Pid");
             draggedColumnId="Pid";
             PositionDraggedHeader(header,"Pid",390,30);
-            ApplyColumns(TableColumns.ReorderPreview(original,"Pid",390),false,true);
+            PreviewDraggedColumns(original,"Pid",390);
             PositionDraggedHeader(header,"Pid",390,30);
-            if(columnSlides.Count==0) throw new InvalidOperationException("Neighboring columns did not start sliding.");
+            if(!columnMotions.Values.Any(m=>m.Animation is not null)) throw new InvalidOperationException("Neighboring columns did not start sliding.");
             await Task.Delay(60);
             var x=header.TransformToVisual(WindowRoot).TransformPoint(new(0,0)).X;
             foreach(var row in rows) if(table.ContainerFromItem(row) is ListViewItem { ContentTemplateRoot:Grid grid }) {

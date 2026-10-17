@@ -7,6 +7,41 @@ namespace ProcSight.Application.Tests;
 public sealed class LiveListTests
 {
     private static ProcessListState Project(MachineSnapshot s,ViewOptions o)=>ProcessListProjection.Build(s,new IdentityResolver().Resolve(s,[]),[],o);
+    [Fact] public void ExistingSiblingsKeepSlotsWhileNewSiblingsAppendInRequestedOrder()
+    {
+        var root=Samples.Process(1,name:"root.exe",started:Samples.Now.AddMinutes(-1));
+        var a=Samples.Process(2,parent:1,name:"a.exe"); var z=Samples.Process(3,parent:1,name:"z.exe");
+        var initial=Project(Samples.Snapshot(root,z,a),new(Descending:true));
+        var next=Project(Samples.Snapshot(root,a,z, Samples.Process(4,parent:1,name:"c.exe"),Samples.Process(5,parent:1,name:"b.exe")),
+            new(PreviousOrder:initial.Rows.Select(r=>r.Key).ToArray()));
+        Assert.Equal(new[]{1,3,2,5,4},next.Rows.Select(r=>r.Entity.Process!.Key.Pid));
+        Assert.Equal(new[]{0,1,1,1,1},next.Rows.Select(r=>r.Depth));
+    }
+    [Fact] public void CollapsedTreeDoesNotLeakDescendantsOrAttachAnUnverifiedParent()
+    {
+        var root=Samples.Process(1,started:Samples.Now.AddMinutes(-2));
+        var child=Samples.Process(2,parent:1,started:Samples.Now.AddMinutes(-1));
+        var grandchild=Samples.Process(3,parent:2);
+        var reusedParent=Samples.Process(4,parent:1,started:Samples.Now.AddMinutes(-3));
+        var snapshot=Samples.Snapshot(root,child,grandchild,reusedParent);
+        var rows=Project(snapshot,new(CollapsedTree:[ProcessListProjection.RowKey(new IdentityResolver().Resolve(snapshot,[])[0])])).Rows;
+        Assert.Equal(new[]{1,4},rows.Select(r=>r.Entity.Process!.Key.Pid));
+        Assert.All(rows,r=>Assert.Equal(0,r.Depth));
+        Assert.True(rows[0].HasChildren); Assert.False(rows[0].Expanded);
+    }
+    [Fact] public void StableOrderRefreshDoesNotRebuildEveryWorkloadSortLabel()
+    {
+        var snapshot=Samples.Snapshot(Enumerable.Range(1,1000).Select(i=>Samples.Process(i,name:"python.exe") with {
+            CommandLine=new("python.exe synthetic_workload.py --synthetic",Samples.Now) }).ToArray());
+        var entities=new IdentityResolver().Resolve(snapshot,[]);
+        var prior=ProcessListProjection.Build(snapshot,entities,[],new()).Rows.Select(r=>r.Key).ToArray();
+        ProcessListProjection.Build(snapshot,entities,[],new(PreviousOrder:prior));
+        var before=GC.GetAllocatedBytesForCurrentThread();
+        var refreshed=ProcessListProjection.Build(snapshot,entities,[],new(PreviousOrder:prior));
+        var allocated=GC.GetAllocatedBytesForCurrentThread()-before;
+        Assert.Equal(prior,refreshed.Rows.Select(r=>r.Key));
+        Assert.True(allocated<3_000_000,$"Stable refresh allocated {allocated} bytes for 1000 synthetic rows.");
+    }
     [Fact] public void MetricRefreshPreservesSiblingOrder()
     {
         var a=Samples.Process(1); var b=Samples.Process(2);

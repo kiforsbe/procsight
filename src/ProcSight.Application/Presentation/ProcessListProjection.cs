@@ -41,6 +41,18 @@ public static class ProcessListProjection
         }
         var prior=(options.PreviousOrder ?? []).Select((key,index)=>(key,index)).ToDictionary(p=>p.key,p=>p.index);
         List<ProcessListRow> Sort(IEnumerable<ProcessListRow> rows) {
+            var candidates=rows.ToList();
+            if(candidates.Count<2) return candidates;
+            if(prior.Count==0) return SortNew(candidates);
+            // Established siblings retain their slots, independently of changed resource/name values.
+            // Only newly visible siblings need the selected sort and potentially expensive local labels.
+            var existing=new List<ProcessListRow>(candidates.Count); var added=new List<ProcessListRow>();
+            foreach(var row in candidates) (prior.ContainsKey(row.Key)?existing:added).Add(row);
+            existing.Sort((left,right)=>prior[left.Key].CompareTo(prior[right.Key]));
+            existing.AddRange(added.Count<2?added:SortNew(added));
+            return existing;
+        }
+        List<ProcessListRow> SortNew(IEnumerable<ProcessListRow> rows) {
             string Display(ProcessListRow row)=>row.GroupName ?? ProcessRoleLabels.DisplayName(row.Entity,findings.GetValueOrDefault(row.Entity.Identity)?.Result.IdentityLabel);
             string Assessment(ProcessListRow row) {
                 var finding=findings.GetValueOrDefault(row.Entity.Identity);
@@ -69,7 +81,7 @@ public static class ProcessListProjection
                 ProcessSort.Network=>row.Members.All(m=>m.Process?.Resources.NetworkBytesPerSecond.Value is null),
                 _=>false };
             var sorted=ordered.ThenBy(Display,StringComparer.CurrentCultureIgnoreCase).ThenBy(r=>r.Key,StringComparer.Ordinal).OrderBy(Missing).ToList();
-            return prior.Count==0?sorted:sorted.OrderBy(r=>prior.GetValueOrDefault(r.Key,int.MaxValue)).ToList();
+            return sorted;
         }
         if(options.Grouped&&!options.Services)
         {
@@ -96,12 +108,13 @@ public static class ProcessListProjection
         var byPid=visible.ToDictionary(e=>e.Process!.Key.Pid);
         bool HasParent(ResolvedEntity e)=>e.Process!.ParentPid is { } pid && byPid.TryGetValue(pid,out var parent)&&
             ParentLinkValidator.IsVerified(e.Process,parent.Process!);
+        // Verify each lifetime relationship once rather than scan the full inventory at each node.
+        var childrenByParent=visible.Where(HasParent).ToLookup(e=>e.Process!.ParentPid!.Value);
         var seen=new HashSet<int>(); var tree=new List<ProcessListRow>();
         void Add(ResolvedEntity entity,int depth)
         {
             if(!seen.Add(entity.Process!.Key.Pid)) return;
-            var children=Sort(visible.Where(e=>e.Process!.ParentPid==entity.Process.Key.Pid &&
-                ParentLinkValidator.IsVerified(e.Process,entity.Process)).Select(e=>Row(e)));
+            var children=Sort(childrenByParent[entity.Process.Key.Pid].Select(e=>Row(e)));
             var expanded=options.CollapsedTree?.Contains(RowKey(entity))!=true;
             tree.Add(Row(entity) with { Depth=depth,HasChildren=children.Count>0,Expanded=expanded });
             foreach(var child in children)
@@ -109,7 +122,7 @@ public static class ProcessListProjection
         }
         void Hide(ResolvedEntity entity) {
             if(!seen.Add(entity.Process!.Key.Pid)) return;
-            foreach(var child in visible.Where(e=>e.Process!.ParentPid==entity.Process.Key.Pid&&ParentLinkValidator.IsVerified(e.Process,entity.Process))) Hide(child);
+            foreach(var child in childrenByParent[entity.Process.Key.Pid]) Hide(child);
         }
         foreach(var root in Sort(visible.Where(e=>!HasParent(e)).Select(e=>Row(e)))) Add(root.Entity,0);
         foreach(var rest in visible.Where(e=>!seen.Contains(e.Process!.Key.Pid))) Add(rest,0);

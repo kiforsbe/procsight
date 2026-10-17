@@ -18,8 +18,10 @@ public sealed class RuleValidator
         [AssessmentAxis.Security]=["NoConcernObserved","Suspicious","KnownThreat","Unknown"],
         [AssessmentAxis.Optionality]=["Essential","Optional","PotentiallyUnwanted","PossibleLeftover","Unknown"] };
     public RuleValidationResult Validate(RuleDefinition rule,IReadOnlyList<EvidenceRecord> evidence,DateTimeOffset now)
+        =>Validate(rule,evidence.GroupBy(e=>e.Id).ToDictionary(g=>g.Key,g=>g.Last()),now);
+    internal RuleValidationResult Validate(RuleDefinition rule,IReadOnlyDictionary<string,EvidenceRecord> byId,DateTimeOffset now)
     {
-        var reasons=new List<string>(); var byId=evidence.GroupBy(e=>e.Id).ToDictionary(g=>g.Key,g=>g.Last());
+        var reasons=new List<string>();
         if(rule.Version<1 || rule.Predicates.Count is <1 or >64 || rule.Assessments.Count==0) reasons.Add("Invalid structure");
         var fields=rule.Predicates.Select(p=>p.Field).ToHashSet();
         if((rule.Origin is DataOrigin.LocalCommandLine or DataOrigin.OnlineCommandLine) &&

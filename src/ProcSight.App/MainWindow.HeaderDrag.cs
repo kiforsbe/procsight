@@ -10,86 +10,85 @@ public sealed partial class MainWindow
 {
     private bool headerGestureConsumed;
     private string? draggedColumnId;
-    private double draggedColumnOffset;
-    private readonly Dictionary<FrameworkElement,(Transform Transform,TransitionCollection Transitions,int Z,Brush? Background,Microsoft.UI.Xaml.Data.Binding? BackgroundBinding)> draggedCells=[];
-    private Brush? draggedColumnBackground;
-    private readonly Dictionary<FrameworkElement,(Storyboard Story,Transform Original)> columnSlides=[];
-
-    private void SlideColumnCells(Grid grid,IReadOnlyDictionary<string,double> previous)
+    private sealed class ColumnMotion
     {
-        double left=0;
-        var current=tableColumnLayout.ToDictionary(c=>c.Id,c=> { var x=left; left+=c.Width; return x; });
-        foreach(var cell in grid.Children.OfType<Border>()) {
-            if(cell.Tag is not string id||id==draggedColumnId||!previous.TryGetValue(id,out var oldLeft)) continue;
-            var offset=oldLeft-current[id];
-            if(columnSlides.ContainsKey(cell)&&cell.RenderTransform is TranslateTransform running) offset+=running.X;
-            StopColumnSlide(cell);
-            if(Math.Abs(offset)<.1) continue;
-            var original=cell.RenderTransform;
-            var translation=new TranslateTransform(); cell.RenderTransform=translation;
-            var animation=new DoubleAnimation { From=offset,To=0,Duration=new(TimeSpan.FromMilliseconds(180)),
-                EasingFunction=new CubicEase { EasingMode=EasingMode.EaseOut } };
-            Storyboard.SetTarget(animation,translation); Storyboard.SetTargetProperty(animation,"X");
-            var story=new Storyboard(); story.Children.Add(animation); columnSlides[cell]=(story,original);
-            story.Completed+=(_,_)=> { if(columnSlides.TryGetValue(cell,out var value)&&ReferenceEquals(value.Story,story)) StopColumnSlide(cell); };
-            story.Begin();
+        public TranslateTransform Transform { get; }=new();
+        public Storyboard? Animation { get; set; }
+        public double Target { get; set; }
+    }
+    private readonly Dictionary<string,ColumnMotion> columnMotions=[];
+    private readonly Dictionary<FrameworkElement,(Transform Transform,int Z,Brush? Background,Microsoft.UI.Xaml.Data.Binding? BackgroundBinding)> draggedCells=[];
+    private Brush? draggedColumnBackground;
+    private TableColumnPreference[] dragOriginalLayout=[],dragPreviewLayout=[];
+
+    private void BeginColumnMotion(string id)
+    {
+        draggedColumnId=id; dragOriginalLayout=tableColumnLayout.ToArray(); dragPreviewLayout=dragOriginalLayout;
+        foreach(var column in dragOriginalLayout) if(column.Id!="Name") columnMotions[column.Id]=new();
+        var surface=(Border)XamlReader.Load("""<Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"/>""");
+        surface.RequestedTheme=WindowRoot.ActualTheme; draggedColumnBackground=surface.Background;
+        if(tableHeader is not null) foreach(var cell in tableHeader.Children.OfType<FrameworkElement>()) AttachColumnMotion(cell);
+        foreach(var grid in RealizedColumnRows()) PositionDraggedRow(grid,id);
+    }
+    private void AttachColumnMotion(FrameworkElement cell)
+    {
+        if(cell.Tag is not string id||!columnMotions.TryGetValue(id,out var motion)||draggedCells.ContainsKey(cell)) return;
+        draggedCells[cell]=(cell.RenderTransform,Canvas.GetZIndex(cell),(cell as Border)?.Background,
+            (cell as Border)?.GetBindingExpression(Border.BackgroundProperty)?.ParentBinding);
+        cell.RenderTransform=motion.Transform;
+        if(id==draggedColumnId) {
+            Canvas.SetZIndex(cell,10);
+            if(cell is Border border) border.Background=draggedColumnBackground;
         }
     }
-    private void StopColumnSlide(FrameworkElement cell)
+    private void PreviewDraggedColumns(IReadOnlyList<TableColumnPreference> original,string id,double pointerX)
     {
-        if(columnSlides.Remove(cell,out var active)) { active.Story.Stop(); cell.RenderTransform=active.Original; }
+        var preview=ProcSight.Application.Presentation.TableColumns.ReorderPreview(original,id,pointerX);
+        if(preview.Select(c=>c.Id).SequenceEqual(dragPreviewLayout.Select(c=>c.Id))) return;
+        double left=0;
+        var originalPositions=dragOriginalLayout.ToDictionary(c=>c.Id,c=> { var x=left; left+=c.Width; return x; });
+        left=0;
+        foreach(var column in preview) {
+            var target=left-originalPositions[column.Id]; left+=column.Width;
+            if(column.Id==id||!columnMotions.TryGetValue(column.Id,out var motion)||Math.Abs(motion.Target-target)<.1) continue;
+            var from=motion.Transform.X;
+            motion.Animation?.Stop(); motion.Transform.X=target; motion.Target=target;
+            var animation=new DoubleAnimation { From=from,To=target,Duration=new(TimeSpan.FromMilliseconds(180)),
+                EasingFunction=new CubicEase { EasingMode=EasingMode.EaseOut } };
+            Storyboard.SetTarget(animation,motion.Transform); Storyboard.SetTargetProperty(animation,"X");
+            var story=new Storyboard(); story.Children.Add(animation); motion.Animation=story;
+            story.Completed+=(_,_)=> { if(ReferenceEquals(motion.Animation,story)) { motion.Animation=null; story.Stop(); } };
+            story.Begin();
+        }
+        dragPreviewLayout=preview;
     }
-    private void StopColumnSlides()
-    {
-        foreach(var cell in columnSlides.Keys.ToArray()) StopColumnSlide(cell);
-    }
-
     private void PositionDraggedHeader(Border header,string id,double pointerX,double grabOffset)
     {
-        var index=Array.FindIndex(tableColumnLayout,c=>c.Id==id);
+        if(columnMotions.Count==0) BeginColumnMotion(id);
+        var index=Array.FindIndex(dragOriginalLayout,c=>c.Id==id);
         if(index<1) return;
-        var left=tableColumnLayout.Take(index).Sum(c=>c.Width);
-        var minimum=tableColumnLayout[0].Width;
-        var maximum=Math.Max(minimum,TableMinimumWidth-tableColumnLayout[index].Width);
-        draggedColumnOffset=Math.Clamp(pointerX-grabOffset,minimum,maximum)-left;
-        PositionDraggedCell(header);
-        foreach(var grid in RealizedColumnRows()) PositionDraggedRow(grid,id);
+        var left=dragOriginalLayout.Take(index).Sum(c=>c.Width);
+        var minimum=dragOriginalLayout[0].Width;
+        var maximum=Math.Max(minimum,dragOriginalLayout.Sum(c=>c.Width)-dragOriginalLayout[index].Width);
+        // One native property write moves the entire column, including newly realized rows.
+        columnMotions[id].Transform.X=Math.Clamp(pointerX-grabOffset,minimum,maximum)-left;
     }
     private void PositionDraggedRow(Grid grid,string id)
     {
-        if(grid.Children.OfType<FrameworkElement>().FirstOrDefault(c=>c.Tag as string==id) is { } cell) PositionDraggedCell(cell);
-    }
-    private void PositionDraggedCell(FrameworkElement cell)
-    {
-        if(!draggedCells.ContainsKey(cell)) {
-            StopColumnSlide(cell);
-            draggedCells[cell]=(cell.RenderTransform,cell.Transitions,Canvas.GetZIndex(cell),(cell as Border)?.Background,
-                (cell as Border)?.GetBindingExpression(Border.BackgroundProperty)?.ParentBinding);
-            cell.Transitions=new TransitionCollection();
-            cell.RenderTransform=new TranslateTransform();
-            Canvas.SetZIndex(cell,10);
-            // Full-height opaque cells move together rather than a floating label covering other text.
-            if(cell is Border border) {
-                if(draggedColumnBackground is null) {
-                    var surface=(Border)XamlReader.Load("""<Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"/>""");
-                    surface.RequestedTheme=WindowRoot.ActualTheme;
-                    draggedColumnBackground=surface.Background;
-                }
-                border.Background=draggedColumnBackground;
-            }
-        }
-        ((TranslateTransform)cell.RenderTransform).X=draggedColumnOffset;
+        foreach(var cell in grid.Children.OfType<FrameworkElement>()) AttachColumnMotion(cell);
     }
     private void RestoreDraggedColumn()
     {
+        foreach(var motion in columnMotions.Values) motion.Animation?.Stop();
         foreach(var (cell,state) in draggedCells) {
-            cell.RenderTransform=state.Transform; cell.Transitions=state.Transitions; Canvas.SetZIndex(cell,state.Z);
-            if(cell is Border border) {
+            cell.RenderTransform=state.Transform; Canvas.SetZIndex(cell,state.Z);
+            if(cell is Border border&&cell.Tag as string==draggedColumnId) {
                 if(state.BackgroundBinding is { } binding) border.SetBinding(Border.BackgroundProperty,binding);
                 else border.Background=state.Background;
             }
         }
-        draggedCells.Clear(); draggedColumnId=null; draggedColumnOffset=0; draggedColumnBackground=null;
+        draggedCells.Clear(); columnMotions.Clear(); draggedColumnId=null; draggedColumnBackground=null;
+        dragOriginalLayout=[]; dragPreviewLayout=[];
     }
     private void AttachHeaderDrag(Button button,string id)
     {
@@ -102,8 +101,7 @@ public sealed partial class MainWindow
             return original.Length-1;
         }
         void Cancel() {
-            pointer=null; RestoreDraggedColumn();
-            if(dragging) { dragging=false; ApplyColumns(original,false); }
+            pointer=null; RestoreDraggedColumn(); dragging=false;
             DispatcherQueue.TryEnqueue(()=>headerGestureConsumed=false);
         }
         button.AddHandler(UIElement.PointerPressedEvent,new PointerEventHandler((_,e)=> {
@@ -120,15 +118,9 @@ public sealed partial class MainWindow
             if(pointer!=e.Pointer.PointerId||tableHeader is null||movingHeader is null||!e.GetCurrentPoint(button).Properties.IsLeftButtonPressed) return;
             var x=e.GetCurrentPoint(tableHeader).Position.X;
             if(!dragging&&Math.Abs(x-start)<6) return;
-            headerGestureConsumed=true; draggedColumnId=id;
-            if(!dragging) {
-                dragging=true;
-                // Disable easing on dragged cells before rearranging their layout slots.
-                PositionDraggedHeader(movingHeader,id,x,grabOffset);
-            }
-            var preview=ProcSight.Application.Presentation.TableColumns.ReorderPreview(original,id,x);
-            if(!preview.Select(c=>c.Id).SequenceEqual(tableColumnLayout.Select(c=>c.Id))) ApplyColumns(preview,false,true);
+            headerGestureConsumed=true; dragging=true;
             PositionDraggedHeader(movingHeader,id,x,grabOffset);
+            PreviewDraggedColumns(original,id,x);
         }),true);
         button.AddHandler(UIElement.PointerReleasedEvent,new PointerEventHandler((_,e)=> {
             if(pointer!=e.Pointer.PointerId||tableHeader is null) return;
@@ -136,10 +128,8 @@ public sealed partial class MainWindow
             var index=Target(position.X); pointer=null; RestoreDraggedColumn();
             if(!dragging) return;
             dragging=false; headerGestureConsumed=true;
-            if(index>0&&position.Y>=0&&position.Y<=tableHeader.ActualHeight&&position.X<=tableHeader.ActualWidth) {
-                ApplyColumns(ProcSight.Application.Presentation.TableColumns.ReorderPreview(original,id,position.X),false);
-                ApplyColumns(tableColumnLayout,true);
-            } else ApplyColumns(original,false);
+            if(index>0&&position.Y>=0&&position.Y<=tableHeader.ActualHeight&&position.X<=tableHeader.ActualWidth)
+                ApplyColumns(ProcSight.Application.Presentation.TableColumns.ReorderPreview(original,id,position.X),true);
             DispatcherQueue.TryEnqueue(()=>headerGestureConsumed=false);
         }),true);
         button.PointerCanceled+=(_,_)=>Cancel();

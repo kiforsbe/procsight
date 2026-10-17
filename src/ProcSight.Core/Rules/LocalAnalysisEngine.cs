@@ -4,11 +4,14 @@ public sealed class LocalAnalysisEngine
 {
     public LocalAnalysis Evaluate(ResolvedEntity entity,KnowledgeEntry knowledge,DateTimeOffset now)
     {
-        var evidence=knowledge.Evidence.Concat(entity.Evidence).GroupBy(e=>e.Id).Select(g=>g.Last()).ToList();
+        var evidence=new Dictionary<string,EvidenceRecord>();
+        foreach(var record in knowledge.Evidence) evidence[record.Id]=record;
+        foreach(var record in entity.Evidence) evidence[record.Id]=record;
+        var validator=new RuleValidator();
         var matches=knowledge.Rules.Where(r=>r.State==RuleState.Active && r.ReviewAt>now && r.ExpiresAt>now &&
             (r.Origin is not (DataOrigin.LocalCommandLine or DataOrigin.OnlineCommandLine) || entity.Origins.Contains(r.Origin)) &&
-            new RuleValidator().Validate(r,evidence,now).Accepted && r.Predicates.All(p=>
-                entity.Facts.TryGetValue(p.Field,out var value) && PredicateMatcher.Matches(p,value))).ToList();
+            r.Predicates.All(p=>entity.Facts.TryGetValue(p.Field,out var value) && PredicateMatcher.Matches(p,value)) &&
+            validator.Validate(r,evidence,now).Accepted).ToList();
         var outputs=matches.SelectMany(r=>r.Assessments.Where(a=>a.ExpiresAt>now)).ToList();
         var dependencies=knowledge.RuleDependencies ?? [];
         bool SupportsCache(string id)

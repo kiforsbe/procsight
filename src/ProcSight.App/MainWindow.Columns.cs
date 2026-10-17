@@ -22,7 +22,6 @@ public sealed partial class MainWindow
     private void BindRowChevron(ListViewBase sender,ContainerContentChangingEventArgs args)
     {
         if(args.ItemContainer.ContentTemplateRoot is Grid existing) {
-            if(args.Phase==0) foreach(var cell in existing.Children.OfType<FrameworkElement>()) StopColumnSlide(cell);
             if(!args.InRecycleQueue) {
                 ArrangeColumnCells(existing);
                 if(draggedColumnId is { } id) PositionDraggedRow(existing,id);
@@ -41,7 +40,7 @@ public sealed partial class MainWindow
     }
     private void InitializeColumns()
     {
-        StopColumnSlides();
+        RestoreDraggedColumn();
         tableColumnLayout=TableColumns.Normalize(page=="Services"?presentation.ServiceColumns:presentation.ProcessColumns,page=="Services");
         tableColumnWidths=tableColumnLayout.Select(c=>new TableColumnWidth(c.Width)).ToArray();
     }
@@ -52,21 +51,18 @@ public sealed partial class MainWindow
             if(index>=0&&Grid.GetColumn(cell)!=index) Grid.SetColumn(cell,index);
         }
     }
-    private void ApplyColumns(IEnumerable<TableColumnPreference> columns,bool persist=true,bool animate=false)
+    private void ApplyColumns(IEnumerable<TableColumnPreference> columns,bool persist=true)
     {
-        if(!animate) StopColumnSlides();
+        if(columnMotions.Count>0) RestoreDraggedColumn();
         var normalized=TableColumns.Normalize(columns,page=="Services");
         var sameColumns=normalized.Length==tableColumnLayout.Length&&normalized.Select(c=>c.Id).ToHashSet().SetEquals(tableColumnLayout.Select(c=>c.Id));
-        double previousLeft=0;
-        var previous=tableColumnLayout.ToDictionary(c=>c.Id,c=> { var x=previousLeft; previousLeft+=c.Width; return x; });
         tableColumnLayout=normalized;
         if(sameColumns&&tableHeader is not null&&table is not null) {
             // Permutations retain the native controls, bindings, icons and row template.
             for(var i=0;i<normalized.Length;i++) tableColumnWidths[i].Width=new(normalized[i].Width);
             tableHeader.MinWidth=TableMinimumWidth; ArrangeColumnCells(tableHeader);
-            if(animate) SlideColumnCells(tableHeader,previous);
             foreach(var grid in RealizedColumnRows()) {
-                ArrangeColumnCells(grid); if(animate) SlideColumnCells(grid,previous);
+                ArrangeColumnCells(grid);
             }
         } else {
             // Detach old index bindings before changing the number of width slots.
@@ -83,7 +79,6 @@ public sealed partial class MainWindow
     }
     private void ResizeColumn(int index,double width,bool save)
     {
-        StopColumnSlides();
         width=Math.Clamp(width,48,2000);
         tableColumnLayout=tableColumnLayout.ToArray();
         tableColumnLayout[index]=tableColumnLayout[index] with { Width=width };
