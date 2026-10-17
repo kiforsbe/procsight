@@ -1,11 +1,12 @@
 using Microsoft.Win32.SafeHandles;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Buffers;
 namespace ProcSight.Windows.Collection;
 internal static class WindowsNativeMethods
 {
     [DllImport("kernel32.dll", SetLastError = true)] private static extern SafeFileHandle OpenProcess(uint access, bool inherit, int pid);
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] private static extern bool QueryFullProcessImageName(SafeFileHandle process, uint flags, StringBuilder buffer, ref int size);
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] private static extern bool QueryFullProcessImageName(SafeFileHandle process, uint flags, [Out] char[] buffer, ref int size);
     [DllImport("kernel32.dll", SetLastError = true)] private static extern SafeFileHandle CreateToolhelp32Snapshot(uint flags, uint pid);
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)] private static extern bool Process32First(SafeFileHandle snapshot, ref ProcessEntry entry);
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)] private static extern bool Process32Next(SafeFileHandle snapshot, ref ProcessEntry entry);
@@ -36,9 +37,23 @@ internal static class WindowsNativeMethods
     {
         using var handle = OpenProcess(0x1000, false, pid);
         if (handle.IsInvalid) return (null, MetadataAccess.NativeReason(Marshal.GetLastWin32Error()));
-        var buffer = new StringBuilder(32768); var size = buffer.Capacity;
-        return QueryFullProcessImageName(handle, 0, buffer, ref size) ? (buffer.ToString(), null)
-            : (null, MetadataAccess.NativeReason(Marshal.GetLastWin32Error()));
+        return ReadImagePathBuffer(buffer=> {
+            var size=buffer.Length;
+            var success=QueryFullProcessImageName(handle,0,buffer,ref size);
+            return(success,size,success?0:Marshal.GetLastWin32Error());
+        });
+    }
+    internal static (string? Path,ProcSight.Core.Models.MetadataUnavailableReason? Reason) ReadImagePathBuffer(
+        Func<char[],(bool Success,int Length,int Error)> query) {
+        for(var capacity=512;capacity<=32768;capacity*=2) {
+            var buffer=ArrayPool<char>.Shared.Rent(capacity);
+            try {
+                var result=query(buffer);
+                if(result.Success&&result.Length>=0&&result.Length<=buffer.Length) return(new string(buffer,0,result.Length),null);
+                if(result.Error!=122||capacity==32768) return(null,MetadataAccess.NativeReason(result.Error));
+            } finally { ArrayPool<char>.Shared.Return(buffer,clearArray:true); }
+        }
+        return(null,ProcSight.Core.Models.MetadataUnavailableReason.NotProvided);
     }
     public static Dictionary<int, int?> ReadParents()
     {

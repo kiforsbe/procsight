@@ -22,7 +22,7 @@ public sealed partial class MainWindow
             if(tray is null) {
                 tray=new(WinRT.Interop.WindowNative.GetWindowHandle(this));
                 tray.Command+=command=> {
-                    if(command==TrayCommand.Exit) { Close(); return; }
+                    if(command==TrayCommand.Exit) { RequestShutdown(); return; }
                     if(command==TrayCommand.Open) RestoreFromTray();
                     else if(command==TrayCommand.Settings) { RestoreFromTray(); Navigation.SelectedItem=Navigation.SettingsItem; }
                     else if((int)command>=10) { presentation=presentation with { TrayMetric=(TrayMetric)((int)command-10) }; SavePresentation(); }

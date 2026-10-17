@@ -57,6 +57,23 @@ The local rules harness is `dotnet run --project benchmarks/Rules -c Release`; i
 SQLite data only. Allocation-regression tests complement timings; desktop accessibility and actual
 pointer/frame-rate acceptance remain separate.
 
+`./scripts/measure-sampling.ps1 -Samples 15 -Label comparison` profiles real system/GPU sampling,
+command metadata reads and full inventory collection in separate Release console processes. It writes
+only numeric timing, allocations, managed heap, private bytes, working set, handle/thread counts and
+disposal measurements under ignored `artifacts/sampling-performance`; commands and identities are
+never exported. It loads no app settings/accounts and calls no AI. Run sequential comparisons with
+the same Windows privilege context; administrator ETW measurements require explicitly launching the
+shell as administrator. Do not abruptly kill a live ETW benchmark: allow owned-session cleanup.
+
+The native optimized Debug fixture modes `ui-memory`, `local-sampling` and `shutdown-check` extend
+the existing `--visual-fixture <absolute-output.png> Dark 1200 <mode>` entry point. `ui-memory` uses
+synthetic rows and repeated dashboard/page navigation with weak-reference retention checks.
+`local-sampling` explicitly reads local processes/services for 25 samples and feeds the actual native
+table, records only aggregate numbers and restores synthetic rows before capturing. It loads no saved
+accounts or provider configuration. `shutdown-check` sends the native close message while cleanup is
+deliberately blocked and checks dispatcher survival and single execution. GC collections occur only
+in profiling fixtures to distinguish retention from churn, never in the production sampling loop.
+
 Table UI fixtures `columns`, `columns-services`, `row-menu`, `column-chooser` and `inventory-export`
 exercise dynamic native templates, shared row/header widths, optional-column sorting, selection,
 menus and native configuration dialogs. Column checks also cover invisible centered resize targets,

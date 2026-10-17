@@ -15,6 +15,10 @@ when necessary. Each tile opens the corresponding subsystem detail page with a l
 graph and structured readings. Keep selected subsystem for the window session.
 Keep the sidebar, its items/charts and compact selector attached when switching subsystems.
 Replace only right-hand page content; replaying list entrance transitions makes navigation bounce.
+Closing should hide the window promptly. Keep native monitoring shutdown and disposal off the UI
+thread, while retaining the hidden window's dispatcher until cleanup completes. Window close, tray
+Exit and application handoff must use the same path. Do not force process exit or fake responsiveness
+by abandoning the owned system monitoring session.
 
 On narrow windows replace the sidebar with a native ComboBox and keep the content vertically
 scrollable. Use theme resources for series colors, including high-contrast resources, with text

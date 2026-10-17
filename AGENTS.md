@@ -148,6 +148,14 @@ Once source exists, link important architecture claims to their actual code owne
 
 ## Verification and scope
 
+Profile allocation churn separately from retained managed heap, private bytes and working set. Use
+bounded buffer pooling with private contents cleared on return; cache presentation only against its
+complete lifetime/value/availability inputs. Candidate batching must keep a fresh read transaction per
+batch and guard evaluation/fingerprint stamps against knowledge invalidation and explicit retry.
+Native close, tray Exit and elevation handoff share asynchronous cleanup: hide promptly, retain the
+dispatcher until worker cleanup finishes, stop only the owned ETW session using its original source,
+and never hold monitor state locks during blocking native stop. No forced exit or production GC loop.
+
 Use `rg` for searches. Inspect the current Git state and preserve unrelated user changes.
 Verify documentation links and run `git diff --check` for documentation changes. Once code
 exists, run the relevant local tests/build checks and report their actual results and any

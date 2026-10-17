@@ -10,7 +10,7 @@ public sealed partial class MainWindow
         setEnabled(false); feedback("Waiting for Windows elevation consent and application startup…");
         try {
             var result=await new ElevationLauncher().RestartAsync(lifetime.Token);
-            if(result==ElevationResult.Ready) { Close(); return; }
+            if(result==ElevationResult.Ready) { RequestShutdown(); return; }
             feedback(result switch { ElevationResult.Cancelled=>"Elevation cancelled. This instance is still available.",
                 ElevationResult.TimedOut=>"The administrator instance did not confirm startup in time. This instance remains available; check whether another window opened.",
                 _=>"Administrator startup failed. This instance is still available. Check the Windows App Runtime installation and executable access." });

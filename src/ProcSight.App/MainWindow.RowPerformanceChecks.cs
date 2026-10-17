@@ -42,6 +42,9 @@ public sealed partial class MainWindow
         row.Update(Project(Resolve(process with { Resources=process.Resources with { CpuPercent=Observation<double>.Available(2) } })));
         Check(row.Name==originalName&&row.Owner==originalOwner&&row.CommandLine==originalCommand,"Resource refresh changed local metadata.");
         Check(changed.Order().SequenceEqual(new[]{"Cpu","CpuBrush"}),"Resource refresh notified unrelated cells.");
+        var allocationStart=GC.GetAllocatedBytesForCurrentThread();
+        for(var iteration=0;iteration<100;iteration++) row.Update(row.Projection with { CpuPercent=iteration%7 });
+        Check(GC.GetAllocatedBytesForCurrentThread()-allocationStart<200000,"CPU-only updates repeatedly allocated unrelated resource formatting.");
         changed.Clear(); row.TotalMemoryBytes=10485760;
         Check(changed.Contains(nameof(ProcessRow.MemoryBrush)),"Memory denominator changes must notify the heat cell.");
         changed.Clear(); row.TotalMemoryBytes=10485760;

@@ -32,6 +32,7 @@ public sealed class WindowsSnapshotSource : IWindowsSnapshotSource,IAsyncDisposa
                 var remaining=16;
                 foreach (var process in snapshot.Processes)
                 {
+                    ct.ThrowIfCancellationRequested();
                     var executable=process.Executable;
                     if(enricher.TryGetCached(executable,out var cached)) executable=cached;
                     else if(executable.FullPath is not null && remaining-->0) executable=await enricher.EnrichAsync(executable,ct);
@@ -39,6 +40,7 @@ public sealed class WindowsSnapshotSource : IWindowsSnapshotSource,IAsyncDisposa
                 }
                 var serviceRows=snapshot.Services.ToArray(); var budget=8;
                 for(var offset=0;offset<serviceRows.Length;offset++) {
+                    ct.ThrowIfCancellationRequested();
                     var index=(serviceCursor+offset)%serviceRows.Length; var service=serviceRows[index];
                     async Task<ExecutableMetadata?> Enrich(ExecutableMetadata? file) {
                         if(file is null) return null;

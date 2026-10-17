@@ -7,6 +7,20 @@ public sealed class KnowledgeStoreTests : IDisposable
 {
     private readonly string folder=Path.Combine(Path.GetTempPath(),Guid.NewGuid().ToString());
     private SqliteKnowledgeStore Store() => new(Path.Combine(folder,"knowledge.db"));
+    [Fact] public async Task CandidateBatchReusesRecordsButNotListsAndObservesOtherStoreWrites() {
+        var store=Store(); var now=DateTimeOffset.UtcNow;
+        ResolvedEntity Entity(string id)=>new(new(id),id,null,null,null,new(){["hash"]="synthetic"},[],[DataOrigin.ShareableMetadata]);
+        var evidence=new EvidenceRecord("shared",DataOrigin.ShareableMetadata,now,null,"LocalMetadata",new(){["hash"]="synthetic"});
+        await store.SaveAsync(KnowledgeEntry.Empty(new("seed")) with { Evidence=[evidence] },default);
+        var entries=await store.ReadCandidateBatchAsync([Entity("first"),Entity("second")],default);
+        Assert.Same(entries[new("first")].Evidence[0],entries[new("second")].Evidence[0]);
+        Assert.NotSame(entries[new("first")].Evidence,entries[new("second")].Evidence);
+        entries[new("first")].Evidence.Clear(); Assert.Single(entries[new("second")].Evidence);
+        await Store().SaveAsync(KnowledgeEntry.Empty(new("other")) with { Evidence=[evidence with { Id="second-evidence" }] },default);
+        Assert.Equal(2,(await store.ReadCandidateBatchAsync([Entity("first")],default))[new("first")].Evidence.Count);
+        using var cancelled=new CancellationTokenSource(); cancelled.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(()=>store.ReadCandidateBatchAsync([Entity("first")],cancelled.Token));
+    }
     [Fact] public async Task RestartPreservesCorrections()
     {
         var id=new AnalysisIdentity("fixture");

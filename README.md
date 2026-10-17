@@ -91,6 +91,9 @@ The process-page overflow menu and Appearance settings offer **Automatically sor
 It is off by default: rows retain their order until you sort a header or refresh. Enabling it follows
 the selected sort column while retaining process selection and using incremental row moves.
 
+Closing hides the window promptly and finishes monitoring cleanup in the background before exit.
+Local sampling uses reusable path buffers; rule evaluation reads shared candidate data once per batch.
+
 Local MSIX packaging is available with `./scripts/package.ps1 -Profile Direct`. It produces an
 inspected, self-contained **unsigned development package** under artifacts/packages; it does not
 install the app or change certificate trust. See [packaging instructions](DEVELOPERS.md#msix-packaging).

@@ -66,6 +66,10 @@ plans, implementation details and validation records belong in the project docum
 
 ### Fixed
 
+- Responsive shutdown with background monitoring cleanup across window close, tray Exit and elevation handoff.
+- Lower sampling and table allocation churn through pooled buffers and cached resource labels.
+- Batch local rule reads avoid repeated catalog deserialization while preserving edit/retry invalidation.
+
 - Resource cells share a configurable minimum tint, defaulting to a subtler 5%; unavailable values stay clear.
 
 - Removed native list resets during automatic sorting that caused the process table to flash.

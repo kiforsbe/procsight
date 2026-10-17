@@ -251,9 +251,15 @@ TCP/UDP IPv4/IPv6 byte events feed a bounded
 [accumulator](src/ProcSight.Windows/Collection/ProcessIoAccumulator.cs). Confirmed snapshot
 `ProcessKey` lifetimes gate attribution; process events invalidate buckets. Startup, event loss
 and PID reuse require fresh baselines. Session loss-query failure also invalidates readings.
-Only byte totals survive callbacks. Window shutdown synchronously stops the owned session before
-the first await, including tray Exit and programmatic close. Unexpected process termination is
+Only byte totals survive callbacks. [Window shutdown](src/ProcSight.App/MainWindow.Shutdown.cs)
+intercepts native close, tray Exit and administrator handoff, cancels polling, removes the tray icon
+and hides the window immediately. [ShutdownWork](src/ProcSight.Application/Lifecycle/ShutdownWork.cs)
+runs cleanup once off-thread while the dispatcher remains alive for pending loop continuations.
+It stops the owned ETW session before final window destruction; stop calls retain the original source
+and never hold the monitor state lock across native shutdown. Unexpected process termination is
 outside that guarantee. Ordinary mode retains unavailable reasons; it never prompts for elevation.
+Image-path reads rent a small cleared character buffer and grow only for insufficient capacity, with
+a 32,768-character bound; private path characters are cleared before returning buffers to the pool.
 
 [SystemPerformanceSampler](src/ProcSight.Windows/Collection/SystemPerformanceSampler.cs) is a
 separate one-second, off-thread source for CPU, RAM, physical-disk busy/read/write rates,
@@ -317,8 +323,11 @@ sequenceDiagram
         IO-->>Collector: Unavailable: administrator permission required
     end
     Collector-->>UI: Process observations and safe availability reasons
-    UI->>IO: Synchronous Stop before first shutdown await
+    UI->>UI: Cancel polling and hide, retaining dispatcher
+    UI->>IO: Await off-thread cleanup before final close
     IO->>Kernel: Stop owned session
+    IO-->>UI: Cleanup complete
+    UI->>UI: Destroy final window
 ```
 
 ### System tray and app identity
@@ -1204,6 +1213,13 @@ Legacy JSON remains valid without it. [Local evaluation](src/ProcSight.Core/Rule
 records all eligible matches separately from rules owning the final selected assessments; corrections,
 conflicts and cached copies cannot manufacture rule contribution. Bundled purpose contribution is
 recorded by [KnownTaskCatalog](src/ProcSight.Core/Rules/KnownTaskCatalog.cs).
+Collection observation reads candidate records in one fresh SQLite read transaction per changed-entity
+batch via [IKnowledgeStore](src/ProcSight.Application/Knowledge/IKnowledgeStore.cs). Rules and evidence
+are deserialized once, with independently mutable per-entry lists referencing the same read-only
+records. No connection or catalog survives the batch. Explicit single-process analysis still reads
+fresh candidates. An invalidation generation prevents a concurrent rule edit or connection retry
+from accepting stale batch results or restoring cleared fingerprints. Invalidation and fingerprint
+stamping share the policy lock. Failed reads do not mark entities evaluated.
 Local evaluation indexes stored/current evidence once (current records win duplicate IDs), filters
 predicate matches first and runs the unchanged full validator against that shared index for eligible
 rules. This avoids rebuilding the evidence map for unrelated rules; candidate-store reads and their
@@ -1345,7 +1361,9 @@ classDiagram
 
 The [row view model](src/ProcSight.App/ViewModels/ProcessRow.cs) keeps transient display caches
 across resource-only samples, invalidating them for changed identity, metadata or analysis. No cached
-command/path/caption values enter persistence, provider projection or logs. Projection indexes verified
+command/path/caption values enter persistence, provider projection or logs. Disk/Network/GPU labels
+compare complete member lifetimes and observations, including availability/reason, before reuse;
+CPU-only changes do not reformat them. Rate aggregation avoids intermediate arrays. Projection indexes verified
 parent links once and retains existing sibling order without reevaluating sort labels on ordinary ticks.
 [LiveRowCollection](src/ProcSight.App/ViewModels/LiveRowCollection.cs) batches large explicit sorts/filters
 into one native list reset, reusing row objects and restoring selected lifetimes. Resource-only updates

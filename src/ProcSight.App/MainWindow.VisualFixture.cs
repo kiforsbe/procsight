@@ -119,11 +119,14 @@ public sealed partial class MainWindow
             try
             {
                 await Task.Delay(500);
+                if(args.Length>5&&args[5]=="shutdown-check") { await CheckShutdownAsync(output); return; }
                 if(args.Length>5&&args[5]=="row-performance-checks") {
                     CheckProcessRowPerformanceContracts();
                     File.WriteAllText(output+".checks","Row notification and metadata invalidation contracts pass.");
                 }
                 if(args.Length>5&&args[5]=="ui-performance") await CheckUiPerformanceAsync(output);
+                if(args.Length>5&&args[5]=="ui-memory") await CheckMemoryPerformanceAsync(output);
+                if(args.Length>5&&args[5]=="local-sampling") await CheckLocalSamplingAsync(output);
                 if(args.Length>5&&args[5]=="ui-performance-rules") await CheckUiPerformanceAsync(output,true);
                 if(args.Length>5&&args[5]=="process-io") {
                     var measured=rows.Single(r=>r.Entity.Process?.Key.Pid==1001);

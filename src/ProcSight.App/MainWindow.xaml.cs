@@ -48,17 +48,9 @@ public sealed partial class MainWindow : Window
         if(elevated) { Title="ProcSight (Administrator)"; AppTitleBar.Title="ProcSight (Administrator)"; }
         ConfigureTray();
         performanceLoop=RunPerformanceAsync();
-        Closed += async (_, _) => {
-            lifetime.Cancel(); resourceShadeTimer?.Stop();
-            // Stop the owned kernel session before the first await and final dispatcher exit.
-            collector.Stop(); tray?.Dispose();
-            if(trayLoop is not null) await trayLoop;
-            if(performanceLoop is not null) await performanceLoop;
-            traySampler.Dispose(); await performanceSampler.DisposeAsync(); await collector.DisposeAsync();
-            await coordinator.DisposeAsync(); providerHttp.Dispose();
-        };
+        ConfigureShutdown(CleanupResourcesAsync);
         RenderPage();
-        _ = CollectAsync();
+        collectionLoop = CollectAsync();
         _ = ReadAnalysisAsync();
         if(elevated) ProcSight.Windows.Security.ElevationLauncher.MarkReady(WinRT.Interop.WindowNative.GetWindowHandle(this));
     }
@@ -96,7 +88,8 @@ public sealed partial class MainWindow : Window
                 var mode=policy.CommandLineMode;
                 var snapshot = await collector.CaptureAsync(mode, lifetime.Token);
                 var resolved = coordinator.ResolveEntities(snapshot,EffectivePolicy);
-                DispatcherQueue.TryEnqueue(() => { lastSnapshot=snapshot; entities = resolved; RefreshRows(); });
+                if(lifetime.IsCancellationRequested) break;
+                DispatcherQueue.TryEnqueue(() => { if(lifetime.IsCancellationRequested) return; lastSnapshot=snapshot; entities = resolved; RefreshRows(); });
                 try { await knowledgeMaintenance.WaitAsync(lifetime.Token);
                     try { await Task.Run(async()=>
                     {
@@ -109,7 +102,8 @@ public sealed partial class MainWindow : Window
                 await Task.Delay(1000, lifetime.Token);
             }
             catch (OperationCanceledException) { break; }
-            catch { DispatcherQueue.TryEnqueue(() => { if (status is not null) status.Text = "Collection temporarily unavailable; retrying."; }); await Task.Delay(2000); }
+            catch { if(lifetime.IsCancellationRequested) break; DispatcherQueue.TryEnqueue(() => { if (status is not null) status.Text = "Collection temporarily unavailable; retrying."; });
+                try { await Task.Delay(2000,lifetime.Token); } catch(OperationCanceledException) { break; } }
         }
     }
     private void RefreshRows(bool reorder=false)

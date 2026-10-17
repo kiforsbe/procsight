@@ -1,5 +1,26 @@
 # Development verification
 
+## Sampling, memory, local rules and shutdown — 2026-10-17
+
+The short-path allocation regression failed before pooling, then passed with synthetic long-path
+growth and access-denied checks. The CPU-only row allocation fixture likewise failed before resource
+format caching, then passed. Held candidate-batch invalidation/retry tests each failed before the
+generation guard and passed afterward. Filtered Infrastructure tests passed 116; Application 137,
+Windows 69 and Core 74 passed (396 total), excluding `FullyQualifiedName!~ChatGptAuth`.
+Release and optimized Debug builds passed with zero warnings/errors. Native WM_CLOSE returned
+in 8.18 ms during deliberately blocked background cleanup; repeated close shared one cleanup.
+Synthetic shading/column/row fixtures and UI performance harness passed. Live local sampling fed
+the native table for 25 observations, writing only numeric aggregates and restoring synthetic rows
+before capture. No saved accounts, credentials or providers were accessed. Sampling console runs
+covered system/GPU counters, WMI metadata and full inventory; synthetic SQLite batch comparisons
+showed substantially lower allocations. See [measurements and limits](PERFORMANCE.md).
+Independent review caught an ETW lazy-source race and stale batch fingerprint race; both were
+corrected. Final light/narrow row, shading, columns, performance-navigation and native close fixtures
+passed; native close returned in 8.34 ms on that repeat. The sampling script's four one-sample modes,
+PowerShell syntax, locked restore, local Markdown links and updated Mermaid sequence rendering passed.
+Active elevated ETW stop, prolonged user-session memory, scaling and accessibility still
+require desktop acceptance. Private/working-set memory must not be presented as retained GC heap.
+
 ## Resource shading roof and color — 2026-10-17
 
 Debug/Release builds passed with zero warnings/errors. Selected Release suites passed Core 74,

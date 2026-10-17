@@ -36,15 +36,16 @@ public sealed partial class ProcessRow : INotifyPropertyChanged
     public string ServiceName=>LocalValue("ServiceName");
     private IEnumerable<Observation<double>> Io(bool network)=>Projection.Members.Where(e=>e.Process is not null)
         .Select(e=>network?e.Process!.Resources.NetworkBytesPerSecond:e.Process!.Resources.DiskBytesPerSecond);
-    public string Disk=>ResourceRatePresentation.Text(Io(false));
-    public string Network=>ResourceRatePresentation.Text(Io(true),true);
-    public string DiskDetails=>ResourceRatePresentation.Details(Io(false));
-    public string NetworkDetails=>ResourceRatePresentation.Details(Io(true));
+    private string? diskText,networkText,diskDetails,networkDetails,gpuText,gpuDetails;
+    public string Disk=>diskText??=ResourceRatePresentation.Text(Io(false));
+    public string Network=>networkText??=ResourceRatePresentation.Text(Io(true),true);
+    public string DiskDetails=>diskDetails??=ResourceRatePresentation.Details(Io(false));
+    public string NetworkDetails=>networkDetails??=ResourceRatePresentation.Details(Io(true));
     private IEnumerable<Observation<double>> GpuObservations=>Projection.Members.Where(e=>e.Process is not null)
         .Select(e=>e.Process!.Resources.GpuPercent??Observation<double>.Missing("GPU sample unavailable"));
-    public string Gpu=>ResourceRatePresentation.GpuText(GpuObservations);
-    public string GpuDetails=>GpuObservations.Any(v=>v.State!=ObservationState.Available)?ResourceRatePresentation.Details(GpuObservations):
-        "Busiest reported GPU engine. Application groups show the busiest member, not a sum across unrelated engines.";
+    public string Gpu=>gpuText??=ResourceRatePresentation.GpuText(GpuObservations);
+    public string GpuDetails=>gpuDetails??=(GpuObservations.Any(v=>v.State!=ObservationState.Available)?ResourceRatePresentation.Details(GpuObservations):
+        "Busiest reported GPU engine. Application groups show the busiest member, not a sum across unrelated engines.");
     public string Availability=>LocalValue("Availability");
     private IReadOnlyDictionary<string,string?>? localValues;
     private string LocalValue(string id)=>IsGroup?"—":(localValues??=TableValues.Read(Entity,analysis)).GetValueOrDefault(id) is { Length:>0 } text?text:"—";
@@ -157,6 +158,8 @@ public sealed partial class ProcessRow : INotifyPropertyChanged
         var cpuChanged=Projection?.CpuPercent!=projection.CpuPercent;
         var memoryChanged=Projection?.MemoryBytes!=projection.MemoryBytes;
         var metadataChanged=Entity is null||!SameMetadata(Entity,projection.Entity);
+        if(Projection is null||!SameResourceReadings(Projection,projection))
+            diskText=networkText=diskDetails=networkDetails=gpuText=gpuDetails=null;
         if(Entity is not null&&ProcessIconSource.Select(Entity)!=ProcessIconSource.Select(projection.Entity)&&
             !StringComparer.OrdinalIgnoreCase.Equals(ProcessIconSource.Key(Entity),ProcessIconSource.Key(projection.Entity)))
         { Icon=null; Changed(nameof(Icon)); Changed(nameof(FallbackIconVisibility)); }
@@ -165,4 +168,13 @@ public sealed partial class ProcessRow : INotifyPropertyChanged
         Projection=projection; Entity=projection.Entity; Notify(before,cpuChanged,memoryChanged);
     }
     public event PropertyChangedEventHandler? PropertyChanged;
+    private static bool SameResourceReadings(ProcessListRow left,ProcessListRow right) {
+        if(left.Members.Count!=right.Members.Count) return false;
+        for(var i=0;i<left.Members.Count;i++) {
+            var a=left.Members[i].Process; var b=right.Members[i].Process;
+            if(a?.Key!=b?.Key||a?.Resources.DiskBytesPerSecond!=b?.Resources.DiskBytesPerSecond||
+                a?.Resources.NetworkBytesPerSecond!=b?.Resources.NetworkBytesPerSecond||a?.Resources.GpuPercent!=b?.Resources.GpuPercent) return false;
+        }
+        return true;
+    }
 }

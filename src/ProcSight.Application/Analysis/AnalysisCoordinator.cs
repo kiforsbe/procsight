@@ -35,13 +35,16 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
     private bool policyEstablished;
     private Task? worker;
     private int outstanding;
+    private long knowledgeGeneration;
     private readonly ConcurrentDictionary<string,ProviderSettings> authPaused=[];
     public async Task ObserveAsync(MachineSnapshot snapshot,AnalysisPolicy newPolicy,CancellationToken ct)
     {
         if(newPolicy!=policy) await ChangePolicyAsync(newPolicy,ct);
         if(newPolicy!=policy) return; // A collected snapshot cannot restore an older permission.
         var entities=ResolveEntities(snapshot,newPolicy);
+        var generation=Volatile.Read(ref knowledgeGeneration);
         var live=entities.Select(e=>e.Identity).ToHashSet();
+        var changed=new Dictionary<AnalysisIdentity,(ResolvedEntity Entity,string Fingerprint)>();
         foreach(var id in current.Keys.Where(id=>!live.Contains(id))) { current.TryRemove(id,out _); fingerprints.TryRemove(id,out _); reviewTimes.TryRemove(id,out _); }
         foreach(var entity in entities.OrderBy(e=>e.Owner is null?0:1))
         {
@@ -52,8 +55,18 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
                 newPolicy.Revision+entity.Process?.Executable.Signature).Value;
             if(fingerprints.TryGetValue(entity.Identity,out var previous)&&previous==fingerprint &&
                 (!reviewTimes.TryGetValue(entity.Identity,out var reviewAt)||reviewAt>time.GetUtcNow())) continue;
-            fingerprints[entity.Identity]=fingerprint;
-            await EvaluateAsync(entity,newPolicy,false,ct);
+            changed[entity.Identity]=(entity,fingerprint);
+        }
+        if(changed.Count==0) return;
+        var candidates=await store.ReadCandidateBatchAsync(changed.Values.Select(c=>c.Entity).ToArray(),ct);
+        foreach(var (entity,fingerprint) in changed.Values) {
+            ct.ThrowIfCancellationRequested(); Task evaluation;
+            lock(policyLock) {
+                if(newPolicy!=policy||generation!=knowledgeGeneration) return;
+                evaluation=EvaluateAsync(entity,newPolicy,false,ct,candidates[entity.Identity]);
+            }
+            await evaluation;
+            lock(policyLock) { if(newPolicy!=policy||generation!=knowledgeGeneration) return; fingerprints[entity.Identity]=fingerprint; }
         }
     }
     public IReadOnlyList<ResolvedEntity> ResolveEntities(MachineSnapshot snapshot,AnalysisPolicy config)=>
@@ -70,9 +83,9 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
             Evidence=[..entity.Evidence,new("command:"+digest,origin,time.GetUtcNow(),null,"CommandRole",new(){["commandRole"]=role})],
             Origins=[..entity.Origins,origin] };
     }
-    private async Task EvaluateAsync(ResolvedEntity entity,AnalysisPolicy config,bool manual,CancellationToken ct)
+    private async Task EvaluateAsync(ResolvedEntity entity,AnalysisPolicy config,bool manual,CancellationToken ct,KnowledgeEntry? candidates=null)
     {
-        var knowledge=await store.ReadCandidatesAsync(entity,ct);
+        var knowledge=candidates??await store.ReadCandidatesAsync(entity,ct);
         if(config!=policy) return;
         var local=EvaluateLocal(entity,knowledge);
         ScheduleReview(entity,local,knowledge);
@@ -265,8 +278,8 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
         }
         return Task.CompletedTask;
     }
-    public void InvalidateKnowledge() { fingerprints.Clear(); reviewTimes.Clear(); }
-    public void RetryConnection(string profileId) { authPaused.TryRemove(profileId,out _); fingerprints.Clear(); }
+    public void InvalidateKnowledge() { lock(policyLock) { Interlocked.Increment(ref knowledgeGeneration); fingerprints.Clear(); reviewTimes.Clear(); } }
+    public void RetryConnection(string profileId) { lock(policyLock) { authPaused.TryRemove(profileId,out _); Interlocked.Increment(ref knowledgeGeneration); fingerprints.Clear(); } }
     public async IAsyncEnumerable<AnalysisUpdate> Updates([EnumeratorCancellation] CancellationToken ct)
     { await foreach(var update in updates.Reader.ReadAllAsync(ct)) yield return update; }
     public async ValueTask DisposeAsync()

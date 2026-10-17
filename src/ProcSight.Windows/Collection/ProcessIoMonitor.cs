@@ -7,6 +7,7 @@ public sealed class ProcessIoMonitor : IAsyncDisposable
 {
     private readonly ProcessIoAccumulator accumulator=new(); private readonly object gate=new();
     private TraceEventSession? session; private Task? worker; private bool disposed;
+    private Microsoft.Diagnostics.Tracing.ETWTraceEventSource? source;
     private volatile bool running; private volatile string reason="Starting resource monitoring"; private int losses;
     public IReadOnlyDictionary<ProcessKey,ProcessIoRates> Sample(IReadOnlyList<ProcessKey> keys,DateTimeOffset now) {
         lock(gate) {
@@ -27,12 +28,14 @@ public sealed class ProcessIoMonitor : IAsyncDisposable
             if(TraceEventSession.IsElevated()!=true) { reason="Administrator permission required for process disk/network monitoring"; return; }
             using var owned=new TraceEventSession("ProcSight.IO."+Environment.ProcessId+"."+Guid.NewGuid().ToString("N")) { StopOnDispose=true,BufferSizeMB=8 };
             KernelTraceEventParser kernel;
+            Microsoft.Diagnostics.Tracing.ETWTraceEventSource stream;
             lock(gate) {
                 if(disposed) return;
                 session=owned;
                 // Enabling must precede Source: accessing Source starts the session.
                 owned.EnableKernelProvider(KernelTraceEventParser.Keywords.DiskIO|KernelTraceEventParser.Keywords.NetworkTCPIP);
-                kernel=new KernelTraceEventParser(owned.Source,KernelTraceEventParser.ParserTrackingOptions.ThreadToProcess);
+                source=stream=owned.Source;
+                kernel=new KernelTraceEventParser(stream,KernelTraceEventParser.ParserTrackingOptions.ThreadToProcess);
             }
             static DateTimeOffset At(DateTime timestamp)=>new DateTimeOffset(timestamp).ToUniversalTime();
             kernel.DiskIORead+=e=>accumulator.Add(e.ProcessID,At(e.TimeStamp),e.TransferSize,0);
@@ -48,19 +51,23 @@ public sealed class ProcessIoMonitor : IAsyncDisposable
             kernel.ProcessStart+=e=>accumulator.Invalidate(e.ProcessID,At(e.TimeStamp));
             kernel.ProcessStop+=e=>accumulator.Invalidate(e.ProcessID,At(e.TimeStamp));
             lock(gate) { if(disposed) return; running=true; }
-            owned.Source.Process();
+            stream.Process();
             reason="Resource event stream ended";
         } catch(UnauthorizedAccessException) { reason="Administrator permission required for process disk/network monitoring"; }
         catch { reason="Process resource event monitoring unavailable"; }
-        finally { running=false; lock(gate) session=null; accumulator.Reset(); }
+        finally { running=false; lock(gate) { session=null; source=null; } accumulator.Reset(); }
     }
-    // Called synchronously before the last window is destroyed: ETW outlives its owner process.
+    // Blocking native cleanup runs off the window thread, before final window destruction.
     public void Stop() {
+        TraceEventSession? owned;
+        Microsoft.Diagnostics.Tracing.ETWTraceEventSource? stream;
         lock(gate) {
             disposed=true; running=false;
-            try { session?.Source.StopProcessing(); } catch { }
-            try { session?.Stop(); } catch { }
+            owned=session; stream=source;
         }
+        // Do not hold the state lock across native ETW shutdown or callback completion.
+        try { stream?.StopProcessing(); } catch { }
+        try { owned?.Stop(); } catch { }
     }
     public async ValueTask DisposeAsync() {
         Stop();

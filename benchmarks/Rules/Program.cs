@@ -21,4 +21,9 @@ var engine=new LocalAnalysisEngine();
 void Measure(string name,int n,Action<int> body){ for(var i=0;i<20;i++)body(i); GC.Collect();var alloc=GC.GetAllocatedBytesForCurrentThread();var sw=Stopwatch.StartNew();for(var i=0;i<n;i++)body(i);sw.Stop();Console.WriteLine($"{name} n={n}: {sw.Elapsed.TotalMilliseconds:F1} ms, {(GC.GetAllocatedBytesForCurrentThread()-alloc)/1048576d:F2} MiB");}
 Console.WriteLine($"Catalog={KnownTaskCatalog.Definitions.Count}, learned={count}");
 foreach(var n in new[]{500,1000}) {Measure("engine",n,i=>KnownTaskCatalog.Supplement(entities[i],engine.Evaluate(entities[i],entry,now),entry,now));Measure("catalog",n,i=>KnownTaskCatalog.Evaluate(entities[i],now));Measure("read",n,i=>store.ReadCandidatesAsync(entities[i],default).GetAwaiter().GetResult());Measure("read+engine",n,i=>{var e=entities[i];var k=store.ReadCandidatesAsync(e,default).GetAwaiter().GetResult();KnownTaskCatalog.Supplement(e,engine.Evaluate(e,k,now),k,now);});}
+foreach(var n in new[]{500,1000}) {
+ var batch=entities.Take(n).ToArray();
+ Measure("batch-read+engine-"+n,1,_=> { var entries=store.ReadCandidateBatchAsync(batch,default).GetAwaiter().GetResult();
+ foreach(var e in batch) { var k=entries[e.Identity]; KnownTaskCatalog.Supplement(e,engine.Evaluate(e,k,now),k,now); } });
+}
 Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();File.Delete(path);

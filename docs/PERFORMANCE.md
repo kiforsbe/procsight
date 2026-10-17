@@ -1,5 +1,57 @@
 # Local UI and rules performance
 
+## Sampling, memory and shutdown follow-up — 2026-10-17
+
+This pass excludes AI transport/authentication. Measurements cover live system/GPU counters, WMI
+command metadata, full inventory capture, native tables, dashboard/page navigation and synthetic
+SQLite rules. Reports remain ignored under `artifacts/sampling-performance` and `artifacts/ui-performance`.
+Only aggregate live counts/timing/memory leave the collector; no real inventory is exported.
+
+| Workload | Before | After |
+| --- | ---: | ---: |
+| Steady full inventory allocations | about 27–28 MiB/sample | about 5 MiB/sample |
+| 1,000-row CPU-change allocations | 5.17 MB/update | 1.67 MB/update |
+| 1,000-row table refresh allocations | 9.38 MB/update | 5.88 MB/update |
+| 1,000-entity SQLite read + local evaluation | 1,020 ms / 984 MiB | 108 ms / 34 MiB |
+
+Image lookup previously allocated a 32,768-character StringBuilder per process. It now rents 512
+characters, retries with bounded growth only on insufficient buffer, and clears arrays before return.
+Rows reuse unchanged resource labels; aggregation avoids intermediate arrays. Candidate batching
+deserializes shared rule/evidence records once per fresh SQLite read transaction, with separate
+per-entry lists and generation-guarded invalidation. There is no long-lived stale catalog cache.
+
+System sampling alone averaged about 10 ms after initialization; its console process ended around
+19 MiB private bytes with 0.3 MiB retained managed data. GPU counter reads were about 1–2 ms.
+Command metadata alone was about 119–135 ms with 1.6–1.7 MiB allocations. Cold full collection
+had enrichment spikes above two seconds; pooling reduces allocations, not those native trust calls.
+Do not confuse allocation totals over many iterations with simultaneously retained RAM.
+
+The native live-collection run used approximately 508 processes/305 services over 25 samples,
+without saved accounts/provider configuration. Working set peaked at 322 MiB, private bytes at
+253 MiB, and managed data at 65 MiB before collection. With live rows retained after diagnostic GC,
+managed data was 11.4 MiB, private bytes 248 MiB and working set 318 MiB. Forced GC is diagnostic
+only; production does not force collection or trim working sets. This did not reproduce 500 MB and
+does not establish a memory ceiling for the user's longer-running/elevated session.
+
+Three 60-switch dashboard navigation passes retained about 2.4–2.6 MiB managed data. Twenty
+round trips between process/dashboard pages left zero surviving retired root views in weak-reference
+checks after GC. Native memory/cache retention still exceeded the managed heap. UI timing tails
+remain: explicit sorts/search/details can exceed a frame budget. The first UI comparison shared some
+desktop load with memory profiling, so timing differences are exploratory; allocation changes are
+the stronger evidence. No sustained frame-rate or broad memory-leak absence claim is made.
+
+Shutdown formerly ran synchronous ETW stop in the Closed callback, after native destruction began.
+Native close, tray Exit and elevation handoff now cancel/hide immediately, run one cleanup operation
+off-thread, retain the dispatcher until completion and then close. ETW stop retains its original source
+and releases the state lock before native calls. The WM_CLOSE fixture returned in 8.18 ms while
+cleanup was deliberately blocked and verified the dispatcher remained responsive and cleanup ran
+once. Non-elevated live collector disposal took 1.05 ms; active administrator ETW stop latency has
+not been measured in this session.
+
+Repeat sampling with `./scripts/measure-sampling.ps1 -Samples 15 -Label comparison`. Native fixture
+modes and privacy boundaries are documented in [DEVELOPERS.md](../DEVELOPERS.md). Keep privilege,
+process count, viewport, build optimization and desktop load comparable between runs.
+
 Measured on 2026-10-17 using synthetic processes, metadata and rules. No provider requests,
 credentials, real inventory dumps or machine-specific rules were used. The accepted native column
 interaction remains the visual requirement; these changes optimize its implementation.
@@ -88,16 +140,14 @@ evidence once per evaluation, tests predicate eligibility first and retains full
 matching rules. Expiry, command scopes, correction precedence and applied-rule attribution remain
 unchanged. Tests cover allocation growth, duplicate evidence precedence and expired supporting proof.
 
-SQLite still reads/deserializes the stored candidate catalog per entity: roughly 1.45 seconds and
-955 MiB for 1000 reads in this workload. This remains the clearest local-rules follow-up. A future
-indexed/cached candidate store needs explicit invalidation and privacy/scope design; no unsafe shared
-mutable cache or weakened validation was introduced. Bundled catalog matching itself was about 1ms
-per 1000 processes and did not warrant optimization.
+The original per-entity SQLite read path allocated roughly 955 MiB for 1,000 reads. The follow-up
+above replaces collection observation's repeated catalog reads with fresh batched snapshots, keeping
+single-process reads available. Bundled catalog matching itself was about 1 ms per 1,000 processes.
 
 ## Remaining acceptance
 
 Synthetic fixtures exercise shared-transform attachment during row recycling, drag cancellation
 cleanup, resource-background restoration, and multiple selected lifetimes through bulk sorting.
 Actual mouse/frame presentation, Escape while moving, keyboard focus after large sorts, Narrator,
-high contrast and scaling still need desktop acceptance. Collection API timings, SQLite redesign and
-provider/network performance are outside these measured UI changes.
+high contrast and scaling still need desktop acceptance. Active administrator ETW shutdown latency
+and longer-running user-session memory remain unverified; provider/network performance is excluded.

@@ -40,13 +40,15 @@ public sealed class SqliteKnowledgeStore(string path) : IKnowledgeStore,IUsageLe
     }
     private static void Execute(SqliteConnection connection,SqliteTransaction? transaction,string sql,params (string Name,object? Value)[] args)
     {
-        using var command=connection.CreateCommand(); command.Transaction=transaction; command.CommandText=sql;
+        using var command=connection.CreateCommand(); if(transaction is not null) command.Transaction=transaction; command.CommandText=sql;
         foreach (var arg in args) command.Parameters.AddWithValue(arg.Name,arg.Value ?? DBNull.Value);
         command.ExecuteNonQuery();
     }
     private static List<T> Read<T>(SqliteConnection connection,string sql,params (string Name,object? Value)[] args)
+        =>Read<T>(connection,null,sql,args);
+    private static List<T> Read<T>(SqliteConnection connection,SqliteTransaction? transaction,string sql,params (string Name,object? Value)[] args)
     {
-        using var command=connection.CreateCommand(); command.CommandText=sql;
+        using var command=connection.CreateCommand(); command.Transaction=transaction; command.CommandText=sql;
         foreach (var arg in args) command.Parameters.AddWithValue(arg.Name,arg.Value ?? DBNull.Value);
         using var reader=command.ExecuteReader(); var values=new List<T>();
         while (reader.Read()) values.Add(JsonSerializer.Deserialize<T>(reader.GetString(0)) ?? throw new InvalidDataException("Invalid knowledge record"));
@@ -68,6 +70,28 @@ public sealed class SqliteKnowledgeStore(string path) : IKnowledgeStore,IUsageLe
                 CorrectionScope.InvocationContext=>c.ScopeValue==entity.Identity.Value,
                 CorrectionScope.Executable=>c.ScopeValue==entity.Facts.GetValueOrDefault("hash"),
                 _=>c.ScopeValue==entity.Owner }).ToList() };
+    }
+    public Task<IReadOnlyDictionary<AnalysisIdentity,KnowledgeEntry>> ReadCandidateBatchAsync(IReadOnlyList<ResolvedEntity> entities,CancellationToken ct) {
+        var result=new Dictionary<AnalysisIdentity,KnowledgeEntry>();
+        if(entities.Count==0) return Task.FromResult<IReadOnlyDictionary<AnalysisIdentity,KnowledgeEntry>>(result);
+        using var db=Open(ct); using var transaction=db.BeginTransaction(deferred:true);
+        var rules=Read<RuleDefinition>(db,transaction,"SELECT payload FROM rules WHERE state=$state",("$state",(int)RuleState.Active));
+        ct.ThrowIfCancellationRequested();
+        var evidence=Read<EvidenceRecord>(db,transaction,"SELECT payload FROM evidence");
+        var corrections=Read<UserCorrection>(db,transaction,"SELECT payload FROM corrections");
+        using var command=db.CreateCommand(); command.Transaction=transaction;
+        command.CommandText="SELECT payload FROM entries WHERE identity=$id";
+        var identity=command.Parameters.Add("$id",SqliteType.Text); command.Prepare();
+        foreach(var entity in entities) {
+            ct.ThrowIfCancellationRequested(); identity.Value=entity.Identity.Value;
+            var entry=command.ExecuteScalar() is string json?JsonSerializer.Deserialize<KnowledgeEntry>(json)??throw new InvalidDataException("Invalid knowledge record"):KnowledgeEntry.Empty(entity.Identity);
+            // Share immutable record contents only; each result retains independently mutable lists.
+            result[entity.Identity]=entry with { Rules=new(rules),Evidence=new(evidence),Corrections=corrections.Where(c=>c.Scope switch {
+                CorrectionScope.InvocationContext=>c.ScopeValue==entity.Identity.Value,
+                CorrectionScope.Executable=>c.ScopeValue==entity.Facts.GetValueOrDefault("hash"),
+                _=>c.ScopeValue==entity.Owner }).ToList() };
+        }
+        transaction.Commit(); return Task.FromResult<IReadOnlyDictionary<AnalysisIdentity,KnowledgeEntry>>(result);
     }
     public Task SaveAsync(KnowledgeEntry entry,CancellationToken ct)
     {
@@ -93,7 +117,7 @@ public sealed class SqliteKnowledgeStore(string path) : IKnowledgeStore,IUsageLe
     public Task SetRuleStateAsync(Guid id,RuleState state,CancellationToken ct)
     {
         using var db=Open(ct); using var transaction=db.BeginTransaction();
-        var rule=Read<RuleDefinition>(db,"SELECT payload FROM rules WHERE id=$id",("$id",id.ToString())).FirstOrDefault();
+        var rule=Read<RuleDefinition>(db,transaction,"SELECT payload FROM rules WHERE id=$id",("$id",id.ToString())).FirstOrDefault();
         if(rule is not null && state==RuleState.Active && (rule.ReviewAt<=DateTimeOffset.UtcNow || rule.ExpiresAt<=DateTimeOffset.UtcNow))
             throw new InvalidDataException("Expired rules require fresh analysis before activation.");
         if (rule is not null) Execute(db,transaction,"UPDATE rules SET state=$state,payload=$payload WHERE id=$id",
@@ -121,20 +145,20 @@ public sealed class SqliteKnowledgeStore(string path) : IKnowledgeStore,IUsageLe
         using var db=Open(ct); using var transaction=db.BeginTransaction();
         var before=now.AddDays(-90);
         Execute(db,transaction,"DELETE FROM history WHERE updated < $before",("$before",before.ToString("O")));
-        var rules=Read<RuleDefinition>(db,"SELECT payload FROM rules");
-        var corrections=Read<UserCorrection>(db,"SELECT payload FROM corrections");
-        var entries=Read<KnowledgeEntry>(db,"SELECT payload FROM entries");
+        var rules=Read<RuleDefinition>(db,transaction,"SELECT payload FROM rules");
+        var corrections=Read<UserCorrection>(db,transaction,"SELECT payload FROM corrections");
+        var entries=Read<KnowledgeEntry>(db,transaction,"SELECT payload FROM entries");
         foreach(var entry in entries.Where(e=>e.UpdatedAt<before && !corrections.Any(c=>c.ScopeValue==e.Identity.Value ||
             e.Evidence.Any(record=>record.Facts.Values.Contains(c.ScopeValue)))))
             Execute(db,transaction,"DELETE FROM entries WHERE identity=$id",("$id",entry.Identity.Value));
         var activeRules=rules.Where(r=>r.State==RuleState.Active&&r.ReviewAt>now&&r.ExpiresAt>now).ToList();
         foreach(var rule in rules.Where(r=>r.CreatedAt<before&&!activeRules.Contains(r)))
             Execute(db,transaction,"DELETE FROM rules WHERE id=$id",("$id",rule.Id.ToString()));
-        var retainedEntries=Read<KnowledgeEntry>(db,"SELECT payload FROM entries");
+        var retainedEntries=Read<KnowledgeEntry>(db,transaction,"SELECT payload FROM entries");
         var referenced=activeRules.SelectMany(r=>r.EvidenceIds.Concat(r.Predicates.SelectMany(p=>p.EvidenceIds)))
             .Concat(retainedEntries.SelectMany(e=>e.Evidence.Select(record=>record.Id)))
             .Concat(corrections.SelectMany(c=>c.Assessment.EvidenceIds)).ToHashSet();
-        foreach(var record in Read<EvidenceRecord>(db,"SELECT payload FROM evidence").Where(e=>e.ObservedAt<before&&!referenced.Contains(e.Id)))
+        foreach(var record in Read<EvidenceRecord>(db,transaction,"SELECT payload FROM evidence").Where(e=>e.ObservedAt<before&&!referenced.Contains(e.Id)))
             Execute(db,transaction,"DELETE FROM evidence WHERE id=$id",("$id",record.Id));
         transaction.Commit(); return Task.CompletedTask;
     }
