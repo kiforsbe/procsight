@@ -6,6 +6,27 @@ were used for automated verification.
 
 ## Local checks
 
+### 2026-10-17 fluid full-column dragging and invisible resize targets
+
+A native fixture first reproduced the stock Thumb drawing extra resize chrome. The transparent
+replacement retains native input and the resize cursor; its 20px target spans 10px on each side of
+the existing divider. Native checks cover no grip geometry, continuous pointer offsets shared by
+header/body cells, fixed Name placement and restoration of CPU resource-background bindings.
+
+`columns`, `columns-services`, `column-drag` and `row-menu` passed at 1200/700 effective pixels in
+Dark/Light (16 captures). Mid-motion captures exposed neighboring theme-transition text drawing
+over the dragged column and a brush using the system theme instead of the app override. Short XAML
+transform animations and a theme-aware opaque surface corrected those captures. Existing header/row
+controls remain attached; only realized cells are visited during pointer movement. Native fixture
+coverage is separate from physical pointer acceptance, including Escape and rapid vertical scrolling
+while a neighbor animation is active, which remains manual. Narrator/high contrast/scaling were not
+revalidated.
+
+Locked Release verification passed 378 .NET tests and 70 script checks with zero build warnings or
+errors. Independent static review found a Services fixture incorrectly assuming a CPU column; it was
+corrected. No further blocking findings remained. Architecture diagrams parsed/rendered and relative
+documentation links and whitespace were checked. No real inventory or provider data was used.
+
 ### 2026-10-17 native columns, context actions and local export
 
 Locked Release verification passed 378 .NET tests (70 Core, 119 Application, 131 Infrastructure,

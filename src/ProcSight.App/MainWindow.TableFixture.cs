@@ -22,6 +22,32 @@ public sealed partial class MainWindow
         if(mode=="columns-services") { page="Services"; RenderPage(); await Task.Delay(200); }
         table!.SelectedItem=rows.First(r=>!r.IsGroup); var primary=(ProcessRow)table.SelectedItem;
         if(mode is "columns" or "columns-services") {
+            var resizeHandle=FixtureControls<ColumnResizeThumb>(PageContent).First();
+            if(FixtureControls<Border>(resizeHandle).Any()||FixtureControls<Microsoft.UI.Xaml.Shapes.Shape>(resizeHandle).Any())
+                throw new InvalidOperationException("Resize hit area renders extra grip chrome.");
+            if(resizeHandle.Width<20||resizeHandle.Margin.Right!=-resizeHandle.Width/2||Canvas.GetZIndex(resizeHandle)<1)
+                throw new InvalidOperationException("Resize target does not span both sides of the divider.");
+            var movingHeader=tableHeader!.Children.OfType<Border>().First(b=>b.Tag as string!="Name");
+            var movingId=(string)movingHeader.Tag;
+            PositionDraggedHeader(movingHeader,movingId,380,10);
+            var firstOffset=((TranslateTransform)movingHeader.RenderTransform).X;
+            PositionDraggedHeader(movingHeader,movingId,387,10);
+            if(Math.Abs(((TranslateTransform)movingHeader.RenderTransform).X-firstOffset-7)>0.01)
+                throw new InvalidOperationException("Dragged header snaps instead of following pointer continuously.");
+            foreach(var row in rows) if(table.ContainerFromItem(row) is ListViewItem { ContentTemplateRoot:Grid grid }) {
+                var cell=grid.Children.OfType<FrameworkElement>().Single(c=>c.Tag as string==movingId);
+                if(cell.RenderTransform is not TranslateTransform translation||Math.Abs(translation.X-((TranslateTransform)movingHeader.RenderTransform).X)>.01)
+                    throw new InvalidOperationException("Dragged column body does not follow the header.");
+            }
+            RestoreDraggedColumn();
+            if(tableHeader.Children.OfType<Border>().FirstOrDefault(b=>b.Tag as string=="Cpu") is { } resourceHeader) {
+                PositionDraggedHeader(resourceHeader,"Cpu",600,10); RestoreDraggedColumn();
+                foreach(var row in rows) if(table.ContainerFromItem(row) is ListViewItem { ContentTemplateRoot:Grid grid }) {
+                    var cell=grid.Children.OfType<Border>().Single(c=>c.Tag as string=="Cpu");
+                    if(cell.GetBindingExpression(Border.BackgroundProperty)?.ParentBinding.Path.Path!="CpuBrush")
+                        throw new InvalidOperationException("Drag cleanup lost the resource heat binding.");
+                }
+            }
             if(mode=="columns") {
                 var template=table.ItemTemplate; var headerButton=sortHeaders[ProcessSort.Disk].Button;
                 MoveColumn("Disk","Network");
@@ -64,6 +90,24 @@ public sealed partial class MainWindow
             if(exceptionKinds.Count>0) File.WriteAllLines(output+".exception-kinds",exceptionKinds.Select(p=>p.Key+": "+p.Value));
             if(bindingErrors.Count>0) { File.WriteAllLines(output+".bindings",bindingErrors); throw new InvalidOperationException("Column customization produced binding failures."); }
             File.WriteAllText(output+".checks","Name fixed first; add/hide/reorder/resize columns; row/header geometry; horizontal scroll; multiselection refresh; saved layout and optional sorting pass.");
+        } else if(mode=="column-drag") {
+            var original=tableColumnLayout.ToArray();
+            var header=tableHeader!.Children.OfType<Border>().Single(b=>b.Tag as string=="Pid");
+            draggedColumnId="Pid";
+            PositionDraggedHeader(header,"Pid",390,30);
+            ApplyColumns(TableColumns.ReorderPreview(original,"Pid",390),false,true);
+            PositionDraggedHeader(header,"Pid",390,30);
+            if(columnSlides.Count==0) throw new InvalidOperationException("Neighboring columns did not start sliding.");
+            await Task.Delay(60);
+            var x=header.TransformToVisual(WindowRoot).TransformPoint(new(0,0)).X;
+            foreach(var row in rows) if(table.ContainerFromItem(row) is ListViewItem { ContentTemplateRoot:Grid grid }) {
+                var cell=grid.Children.OfType<FrameworkElement>().Single(c=>c.Tag as string=="Pid");
+                if(Math.Abs(cell.TransformToVisual(WindowRoot).TransformPoint(new(0,0)).X-x)>1)
+                    throw new InvalidOperationException("Dragged column geometry differs between header and body.");
+            }
+            File.WriteAllText(output+".checks","Mid-drag full-column rendering and header/body geometry pass; no pointer injection.");
+            var holdDeadline=DateTime.UtcNow.AddSeconds(45);
+            while(File.Exists(output+".hold")&&DateTime.UtcNow<holdDeadline) await Task.Delay(100);
         } else if(mode=="columns-pointer") {
             Title="ProcSight - synthetic column drag test"; AppTitleBar.Title=Title;
             var deadline=DateTime.UtcNow.AddSeconds(90);

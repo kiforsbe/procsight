@@ -17,18 +17,31 @@ public sealed partial class MainWindow
     private Grid? tableHeader;
     private ContentDialog? tableConfigurationDialog;
     private double TableMinimumWidth=>tableColumnLayout.Sum(c=>c.Width);
+    private IEnumerable<Grid> RealizedColumnRows()=>table?.ItemsPanelRoot is Panel panel
+        ?panel.Children.OfType<ListViewItem>().Select(c=>c.ContentTemplateRoot).OfType<Grid>():[];
     private void BindRowChevron(ListViewBase sender,ContainerContentChangingEventArgs args)
     {
+        if(args.ItemContainer.ContentTemplateRoot is Grid existing) {
+            if(args.Phase==0) foreach(var cell in existing.Children.OfType<FrameworkElement>()) StopColumnSlide(cell);
+            if(!args.InRecycleQueue) {
+                ArrangeColumnCells(existing);
+                if(draggedColumnId is { } id) PositionDraggedRow(existing,id);
+            }
+        }
         if(args.InRecycleQueue) return;
         if(args.Phase==0) { args.RegisterUpdateCallback(1,BindRowChevron); return; }
         void Bind(DependencyObject parent) {
             if(parent is Button { Tag:string } button) { button.Click-=ToggleExpansion; button.Click+=ToggleExpansion; return; }
             for(var i=0;i<VisualTreeHelper.GetChildrenCount(parent);i++) Bind(VisualTreeHelper.GetChild(parent,i));
         }
-        if(args.ItemContainer.ContentTemplateRoot is Grid root) { ArrangeColumnCells(root); Bind(root); }
+        if(args.ItemContainer.ContentTemplateRoot is Grid root) {
+            ArrangeColumnCells(root); Bind(root);
+            if(draggedColumnId is { } id) PositionDraggedRow(root,id);
+        }
     }
     private void InitializeColumns()
     {
+        StopColumnSlides();
         tableColumnLayout=TableColumns.Normalize(page=="Services"?presentation.ServiceColumns:presentation.ProcessColumns,page=="Services");
         tableColumnWidths=tableColumnLayout.Select(c=>new TableColumnWidth(c.Width)).ToArray();
     }
@@ -36,19 +49,25 @@ public sealed partial class MainWindow
     {
         foreach(var cell in grid.Children.OfType<FrameworkElement>().Where(c=>c.Tag is string)) {
             var index=Array.FindIndex(tableColumnLayout,c=>c.Id==(string)cell.Tag);
-            if(index>=0) Grid.SetColumn(cell,index);
+            if(index>=0&&Grid.GetColumn(cell)!=index) Grid.SetColumn(cell,index);
         }
     }
-    private void ApplyColumns(IEnumerable<TableColumnPreference> columns,bool persist=true)
+    private void ApplyColumns(IEnumerable<TableColumnPreference> columns,bool persist=true,bool animate=false)
     {
+        if(!animate) StopColumnSlides();
         var normalized=TableColumns.Normalize(columns,page=="Services");
         var sameColumns=normalized.Length==tableColumnLayout.Length&&normalized.Select(c=>c.Id).ToHashSet().SetEquals(tableColumnLayout.Select(c=>c.Id));
+        double previousLeft=0;
+        var previous=tableColumnLayout.ToDictionary(c=>c.Id,c=> { var x=previousLeft; previousLeft+=c.Width; return x; });
         tableColumnLayout=normalized;
         if(sameColumns&&tableHeader is not null&&table is not null) {
             // Permutations retain the native controls, bindings, icons and row template.
             for(var i=0;i<normalized.Length;i++) tableColumnWidths[i].Width=new(normalized[i].Width);
             tableHeader.MinWidth=TableMinimumWidth; ArrangeColumnCells(tableHeader);
-            foreach(var row in rows) if(table.ContainerFromItem(row) is ListViewItem { ContentTemplateRoot:Grid grid }) ArrangeColumnCells(grid);
+            if(animate) SlideColumnCells(tableHeader,previous);
+            foreach(var grid in RealizedColumnRows()) {
+                ArrangeColumnCells(grid); if(animate) SlideColumnCells(grid,previous);
+            }
         } else {
             // Detach old index bindings before changing the number of width slots.
             if(table is not null) table.ItemTemplate=null;
@@ -64,6 +83,7 @@ public sealed partial class MainWindow
     }
     private void ResizeColumn(int index,double width,bool save)
     {
+        StopColumnSlides();
         width=Math.Clamp(width,48,2000);
         tableColumnLayout=tableColumnLayout.ToArray();
         tableColumnLayout[index]=tableColumnLayout[index] with { Width=width };
@@ -102,15 +122,17 @@ public sealed partial class MainWindow
             var sorting=Enum.Parse<ProcessSort>(preference.Id);
             sortHeaders[sorting]=(label,definition.Label,button); button.Click+=(_,_)=> { if(!headerGestureConsumed) SelectSort(sorting); };
             AttachHeaderDrag(button,preference.Id);
-            var thumb=new ColumnResizeThumb { Width=8,HorizontalAlignment=HorizontalAlignment.Right,Background=new SolidColorBrush(Microsoft.UI.Colors.Transparent),IsTabStop=true };
+            // Center a generous invisible hit target on the divider, above both adjacent buttons.
+            var thumb=new ColumnResizeThumb { Tag=preference.Id,Width=20,Margin=new(0,0,-10,0),HorizontalAlignment=HorizontalAlignment.Right,Background=new SolidColorBrush(Microsoft.UI.Colors.Transparent),IsTabStop=true };
             Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(thumb,"Resize "+definition.Label);
-            ToolTipService.SetToolTip(thumb,"Drag to resize; arrow keys adjust width");
             int CurrentIndex()=>Array.FindIndex(tableColumnLayout,c=>c.Id==preference.Id);
             thumb.DragDelta+=(_,e)=> { var current=CurrentIndex(); if(current>=0) ResizeColumn(current,tableColumnLayout[current].Width+e.HorizontalChange,false); };
             thumb.DragCompleted+=(_,_)=> { var current=CurrentIndex(); if(current>=0) ResizeColumn(current,tableColumnLayout[current].Width,true); };
             thumb.KeyDown+=(_,e)=> { var current=CurrentIndex(); if(current>=0&&e.Key is global::Windows.System.VirtualKey.Left or global::Windows.System.VirtualKey.Right) { ResizeColumn(current,tableColumnLayout[current].Width+(e.Key==global::Windows.System.VirtualKey.Right?8:-8),true); e.Handled=true; } };
-            var cell=new Grid(); cell.Children.Add(button); cell.Children.Add(thumb);
-            var border=new Border { Tag=preference.Id,Child=cell,BorderThickness=new(i==0?0:1,0,0,0),BorderBrush=header.BorderBrush }; Grid.SetColumn(border,i); header.Children.Add(border);
+            var cell=new Grid(); cell.Children.Add(button);
+            var border=new Border { Tag=preference.Id,Child=cell,BorderThickness=new(i==0?0:1,0,0,0),BorderBrush=header.BorderBrush };
+            Grid.SetColumn(border,i); header.Children.Add(border);
+            Canvas.SetZIndex(thumb,2); Grid.SetColumn(thumb,i); header.Children.Add(thumb);
         }
         // Fill unused viewport space without changing user-chosen column widths.
         header.ColumnDefinitions.Add(new() { Width=new(1,GridUnitType.Star) });

@@ -114,7 +114,7 @@ public sealed partial class MainWindow
                 if(args.Length>5&&args[5]=="services") {
                     Navigation.SelectedItem=Navigation.MenuItems.OfType<Microsoft.UI.Xaml.Controls.NavigationViewItem>().First(i=>i.Tag?.ToString()=="Services"); page="Services"; RenderPage(); await Task.Delay(350);
                 }
-                if(args.Length>5&&args[5] is "columns" or "columns-services" or "columns-pointer" or "row-menu" or "column-chooser" or "inventory-export" or "export-picker")
+                if(args.Length>5&&args[5] is "columns" or "columns-services" or "column-drag" or "columns-pointer" or "row-menu" or "column-chooser" or "inventory-export" or "export-picker")
                     await CheckTableCustomizationAsync(args[5],output);
                 if(args.Length>5&&args[5].StartsWith("rules",StringComparison.Ordinal)) {
                     if(args[5]!="rules-process") { Navigation.SelectedItem=Navigation.MenuItems.OfType<Microsoft.UI.Xaml.Controls.NavigationViewItem>().First(i=>i.Tag?.ToString()=="Knowledge"); page="Knowledge"; RenderPage(); }

@@ -64,12 +64,14 @@ being moved among neighboring headers and later shows column-edge resizing. Reco
 here; do not check the recording or its real process inventory into the repository.
 
 - **Header body:** clicking sorts; pressing and moving horizontally beyond a small drag threshold
-  begins reordering. The drag must not also change the sort. Show a lightweight dragged-header
-  visual and preview neighboring columns moving into their new positions while the pointer moves.
-  Header and body cells move together, with their existing values and sort indicator attached to
-  the same column identity. Releasing commits the arrangement. ProcSight's cancel convention is
+  begins reordering. The drag must not also change the sort. The entire column, including the full
+  header, resource summary, sort indicator and visible body cells, follows the pointer continuously
+  from its original grab point. Use the actual cells, not a floating label or badge. Neighboring
+  columns slide into their preview positions. Releasing commits the arrangement. ProcSight's cancel convention is
   Escape or a cancelled capture restoring the original order without saving a partial preview.
-- **Header edge:** show the horizontal double-arrow cursor over the resize hit area. Dragging
+- **Header edge:** use an invisible 20px hit area centered on the divider (10px on each side).
+  Draw no grip, handle, extra bar or hover/pressed indicator: the existing thin column separator
+  and horizontal double-arrow mouse cursor are the only pointer cues. Dragging
   changes that column's width continuously; neighboring columns shift accordingly. Do not turn
   an edge drag into a reorder or sort, and do not redistribute all column widths automatically.
 - **Stable list:** keep row identities, selection, group expansion, icons and resource data intact.

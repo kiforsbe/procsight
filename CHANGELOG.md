@@ -145,6 +145,10 @@ in this repository; planned product features are documented in the design and ro
 
 ### Fixed
 
+- Column dragging moves the full header and visible column cells with the mouse while neighbors
+  slide aside. Resize targets are wider and centered across dividers, with no visible grip in any
+  pointer state; the existing separator and resize cursor remain the only pointer cues.
+
 - Process, service and rule details retain each section's expanded/collapsed choice when selecting
   another list entry or rebuilding the page. Choices last for the window session; newly selected
   metadata and evidence remain independent of the previous item.

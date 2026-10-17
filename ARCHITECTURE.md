@@ -1064,10 +1064,18 @@ Presentation preferences store separate process/service layouts, never cell cont
 template from that same catalog, binding both to shared observable width objects. Native thumbs,
 header drag/drop and the immediate chooser update only layout. Name cannot be hidden or moved.
 Header gestures preview order changes in place, retain the row template and header control instances,
-and save only on a valid release. A small pointer threshold separates sorting from dragging; a popup
-shows the dragged label while cells move into their preview slots. Escape/cancel restores the original
-layout. Resize thumbs follow column identity after a move and inherit a horizontal resize cursor.
-Virtualized containers apply the latest cell order when realized. Template/width-slot reconstruction
+and save only on a valid release. A small pointer threshold separates sorting from dragging.
+[Header dragging](src/ProcSight.App/MainWindow.HeaderDrag.cs) translates the actual full header and
+realized body cells together at the pointer's grab offset. Short native XAML transform animations
+slide neighboring cells into preview slots; they avoid the overlay layering of theme reposition
+transitions. Interrupted slides continue from their current offset, and layout changes/recycling
+clear obsolete animations. Dragged cells temporarily use an opaque surface resolved for the actual
+element theme; cleanup
+restores transforms, transitions, layering and resource-background bindings. Escape/cancel restores
+the original layout. Resize thumbs have transparent templates in all pointer states and a 20px hit
+area centered across each divider; they follow column identity after a move and inherit a horizontal
+resize cursor. Virtualized containers apply the latest cell order and active drag translation when
+realized. Template/width-slot reconstruction
 is reserved for changed visible-column sets; old index bindings are detached before slot counts change.
 [Row actions](src/ProcSight.App/MainWindow.RowActions.cs) use context requests to target the clicked
 item while preserving existing multi-selection, and reject stale process lifetimes at invocation.
@@ -1083,6 +1091,9 @@ classDiagram
     NativeColumns "1" --> "1..*" TableColumnWidth : current observable widths
     NativeHeader --> TableColumnWidth : bind
     VirtualizedRows --> TableColumnWidth : bind
+    HeaderDrag --> NativeHeader : translate entire header at pointer grab offset
+    HeaderDrag --> VirtualizedRows : translate matching realized cells
+    HeaderDrag --> NativeColumns : preview order then commit or restore
     RowContextMenu --> ProcessKey : lifetime check
     NativeExport --> TableValues : explicit local disclosure
     NativeExport --> InventoryExport : snapshot serialization

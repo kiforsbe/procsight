@@ -4,7 +4,10 @@
 
 Table UI fixtures `columns`, `columns-services`, `row-menu`, `column-chooser` and `inventory-export`
 exercise dynamic native templates, shared row/header widths, optional-column sorting, selection,
-menus and native configuration dialogs. Fixtures never launch the actual Save picker or modify the
+menus and native configuration dialogs. Column checks also cover invisible centered resize targets,
+continuous column translation and restoration of resource-background bindings. `column-drag` captures
+the actual full-column mid-drag rendering and checks header/body geometry without injecting pointer
+input. Fixtures never launch the actual Save picker or modify the
 real clipboard. The opt-in `columns-pointer` probe waits for real pointer reordering before a
 `.finish` marker; `export-picker` waits for a synthetic CSV written through the real Save picker.
 Keep those opt-in probes distinct from unattended fixtures. Export uses the [Windows App SDK Save picker](https://learn.microsoft.com/en-us/windows/apps/develop/files/pickers-save-file)
