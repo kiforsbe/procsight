@@ -28,7 +28,12 @@ public sealed partial class MainWindow
             "Standard user · Administrator mode can reveal more process metadata. It elevates the entire app, including storage and network code. Only elevate a trusted build and its dependencies.",TextWrapping=TextWrapping.Wrap };
         panel.Children.Add(feedback);
         if(!elevated) {
-            var restart=new Button { Content=new StackPanel { Orientation=Orientation.Horizontal,Spacing=8,Children={new FontIcon { Glyph="\uEA18",FontSize=16 },new TextBlock { Text="Restart as administrator" } } } };
+            var package=PackageContext.Inspect();
+            if(!package.CanRestartElevated) panel.Children.Add(new InfoBar { IsOpen=true,IsClosable=false,Severity=InfoBarSeverity.Informational,
+                Title="Administrator restart unavailable",Message=package.InspectionSucceeded?
+                "This installed package does not declare permission to restart elevated. Normal process investigation remains available.":
+                "Package elevation permissions could not be verified. Restart is disabled for this session." });
+            var restart=new Button { IsEnabled=package.CanRestartElevated,Content=new StackPanel { Orientation=Orientation.Horizontal,Spacing=8,Children={new FontIcon { Glyph="\uEA18",FontSize=16 },new TextBlock { Text="Restart as administrator" } } } };
             restart.Click+=async(_,_)=> {
                 restart.IsEnabled=false; feedback.Text="Waiting for Windows elevation consent and application startup…";
                 try {

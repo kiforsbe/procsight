@@ -1,9 +1,11 @@
 using ProcSight.Application.Settings;
 using System.Runtime.InteropServices;
 using System.Text;
+using ProcSight.Windows.Security;
 namespace ProcSight.Windows.Storage;
 public sealed class CredentialStore : ICredentialStore
 {
+    private static string Target(string providerId)=>"ProcSight:"+(PackageContext.Inspect().CredentialScope??throw new InvalidOperationException("Package credential scope unavailable."))+providerId;
     [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)] private struct Credential
     {
         public uint Flags,Type; public string Target; public string? Comment; public long LastWritten;
@@ -16,7 +18,7 @@ public sealed class CredentialStore : ICredentialStore
     [DllImport("advapi32.dll")] private static extern void CredFree(IntPtr value);
     public string? Get(string providerId)
     {
-        if(!Read("ProcSight:"+providerId,1,0,out var pointer))
+        if(!Read(Target(providerId),1,0,out var pointer))
         { if(Marshal.GetLastWin32Error()==1168) return null; throw new System.ComponentModel.Win32Exception(); }
         try
         {
@@ -34,12 +36,12 @@ public sealed class CredentialStore : ICredentialStore
         try
         {
             Marshal.Copy(bytes,0,pointer,bytes.Length);
-            var credential=new Credential { Type=1,Target="ProcSight:"+providerId,BlobSize=(uint)bytes.Length,
+            var credential=new Credential { Type=1,Target=Target(providerId),BlobSize=(uint)bytes.Length,
                 Blob=pointer,Persist=2,UserName="ProcSight" };
             if(!Write(ref credential,0)) throw new System.ComponentModel.Win32Exception();
         }
         finally { Marshal.Copy(new byte[bytes.Length],0,pointer,bytes.Length); Marshal.FreeHGlobal(pointer); Array.Clear(bytes); }
     }
     public void Remove(string providerId)
-    { if(!Delete("ProcSight:"+providerId,1,0) && Marshal.GetLastWin32Error()!=1168) throw new System.ComponentModel.Win32Exception(); }
+    { if(!Delete(Target(providerId),1,0) && Marshal.GetLastWin32Error()!=1168) throw new System.ComponentModel.Win32Exception(); }
 }

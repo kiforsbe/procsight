@@ -17,7 +17,7 @@ using ProcSight.Infrastructure.Authentication;
 namespace ProcSight.App;
 public sealed partial class MainWindow
 {
-    private readonly string dataFolder=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"ProcSight");
+    private readonly string dataFolder=ProcSight.Windows.Security.PackageContext.DataFolder();
     private AnalysisPolicy savedPolicy=new();
     private AnalysisPolicy policy { get=>settingsController?.Desired??savedPolicy; set=>savedPolicy=value; }
     private PresentationPreferences presentation=new();

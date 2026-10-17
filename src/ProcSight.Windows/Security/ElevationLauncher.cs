@@ -30,6 +30,7 @@ public sealed class ElevationLauncher(Func<ElevationStart>? start=null,TimeSpan?
     public async Task<ElevationResult> RestartAsync(CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
+        if(!PackageContext.Inspect().CanRestartElevated) return ElevationResult.Failed;
         // Do not cancel/discard the shell task: its returned process handle must always be disposed.
         var launched=await Task.Run(start??StartNative);
         if(launched.Process is not { } process) return launched.Failure??ElevationResult.Failed;

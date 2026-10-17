@@ -56,6 +56,14 @@ command arguments and exceptions are excluded. Missing legacy causes must never 
 
 ### Explicit administrator mode
 
+Packaged instances inspect the current Windows package's installed manifest before enabling restart.
+Only the restricted allowElevation capability permits packaged restart; failed inspection disables it.
+This is a feature gate, not proof of Store approval. The launcher also enforces the gate. Packaged
+data uses its package family's LocalState folder and Credential Manager targets include that family,
+so installation does not implicitly import unpackaged settings or OAuth sessions. Unknown package
+inspection uses isolated session data and refuses credential access. Unpackaged paths/credential
+targets remain compatible. Windows uninstall is not assumed to erase Credential Manager entries.
+
 The manifest remains `asInvoker` with `uiAccess=false`. Explicit `runas` launches the actual
 absolute app executable, never a path from preferences, process arguments or model output.
 The original stays available until the returned process owns a visible ready-marked window;

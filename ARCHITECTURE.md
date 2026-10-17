@@ -41,13 +41,21 @@ verify the diagram source and rendering. Avoid diagrams that merely repeat a fil
 
 ## Component boundaries
 
-### Planned MSIX distribution
+### MSIX distribution and release preparation
 
-MSIX packaging is proposed, not implemented. The [packaging design](docs/superpowers/specs/2026-10-17-msix-packaging-design.md)
+Local MSIX generation is implemented. The [packaging design](docs/superpowers/specs/2026-10-17-msix-packaging-design.md)
 defines opt-in Direct/Store profiles, signing, package identity and elevation boundaries; the
 [implementation plan](docs/superpowers/plans/2026-10-17-msix-packaging.md) covers verification and
-installation lifecycle checks. The current executable remains unpackaged. Package trust, Store
-acceptance, packaged elevation and data virtualization have not been established by existing tests.
+installation lifecycle checks. Normal builds remain unpackaged; explicit Direct packaging bundles
+runtimes and Store packaging declares runtime dependencies. Package trust, Store acceptance and
+actual installed elevation/upgrade/uninstall behavior have not been established by synthetic tests.
+
+[PackageContext](src/ProcSight.Windows/Security/PackageContext.cs) reads identity/family/path from
+Windows and the installed manifest with bounded, DTD-disabled XML parsing. Package family scopes
+[credentials](src/ProcSight.Windows/Storage/CredentialStore.cs) and LocalState data; unpackaged state
+is not implicitly migrated. Unknown inspection refuses credential access and uses isolated session
+data. Packaged restart requires declared allowElevation, enforced in UI and launcher; asInvoker and
+administrator-session sharing restrictions remain unchanged.
 
 The proposed local release workflow derives all live product/assembly/package/feed versions from
 Version.props, prepares the dated changelog, verifies source consistency, commits release files and

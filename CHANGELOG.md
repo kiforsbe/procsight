@@ -17,6 +17,10 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Package-aware administrator restart gating and separate package-family data/credential namespaces,
+  preventing implicit reuse of unpackaged settings or OAuth sessions. Unknown package inspection
+  disables restart/credential access; ordinary unpackaged behavior is preserved.
+
 - Opt-in Direct/Store MSIX profiles, native package branding, isolated local packaging, package-content
   inspection, dependency/runtime notices, explicit certificate/signing commands and optional HTTPS
   App Installer update feeds. Direct self-contained unsigned package generation has been checked;

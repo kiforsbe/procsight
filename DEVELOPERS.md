@@ -44,6 +44,12 @@ stores. Actual install/update/uninstall, signed-package trust, OAuth return and 
 need separate disposable-system acceptance. A missing optional PDB conversion tool can cause an SDK
 warning about symbol packages; debug symbols are excluded and no symbols package is distributed.
 
+Installed packages use `%LOCALAPPDATA%\Packages\<family>\LocalState\ProcSight` and family-scoped
+Credential Manager targets. They do not import the unpackaged `%LOCALAPPDATA%\ProcSight` state.
+Same-family updates keep that namespace; uninstall/reinstall and credential retention require actual
+Windows lifecycle testing. Restart as administrator is disabled if package permission cannot be
+verified or allowElevation is absent. This does not certify Store eligibility.
+
 Run `scripts/generate-icons.ps1` on Windows to regenerate the tracked multi-resolution ICO and PNG
 assets from `Assets/ProcSight.svg` using built-in GDI+. SVG rect/line/circle primitives are supported;
 no network download or image dependency is required. Tray counters use English PDH paths, network
