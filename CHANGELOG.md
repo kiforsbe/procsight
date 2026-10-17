@@ -17,6 +17,9 @@ in this repository; planned product features are documented in the design and ro
 
 ### Added
 
+- Central product version properties and scoped version/changelog validation helpers, separate from
+  dependency pins and historical documentation.
+
 - Web search inside ChatGPT-plan/OpenAI analysis requests, with attributable source evidence,
   explicit research outcomes and no silent change of billing connection. Search-enabled requests
   exclude private command/path context. A different explicitly chosen research connection still

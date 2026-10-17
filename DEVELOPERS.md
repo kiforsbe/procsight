@@ -2,6 +2,11 @@
 
 ## Current state
 
+`Version.props` is the authoritative product version. MSBuild derives assembly/file and MSIX versions
+as `X.Y.Z.0`; dependencies remain pinned independently. Run `scripts/test-release.ps1` for synthetic
+version/manifest/changelog checks. Release orchestration and packaging are being implemented; do not
+manually bump individual product version fields or infer Store readiness from these tests.
+
 Run `scripts/generate-icons.ps1` on Windows to regenerate the tracked multi-resolution ICO and PNG
 assets from `Assets/ProcSight.svg` using built-in GDI+. SVG rect/line/circle primitives are supported;
 no network download or image dependency is required. Tray counters use English PDH paths, network
