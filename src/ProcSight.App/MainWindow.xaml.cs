@@ -157,6 +157,11 @@ public sealed partial class MainWindow : Window
         foreach(var id in analysis.Keys.Where(id=>!active.Contains(id)).ToArray()) analysis.Remove(id);
         ShowDetail(table?.SelectedItem as ProcessRow);
         RefreshResourceSummary();
+        if(page=="Processes"&&elevated&&processIoNotice is not null) {
+            var reason=lastSnapshot.Processes.FirstOrDefault()?.Resources.DiskBytesPerSecond.Reason;
+            processIoNotice.Title="Process disk/network monitoring";
+            processIoNotice.Message=reason??""; processIoNotice.IsOpen=reason is not null;
+        }
         if (status is not null) status.Text = $"{entities.Count(e=>page=="Processes"?e.Process is not null:e.Service is not null)} {page.ToLowerInvariant()} · {rows.Count} visible rows"+
             (page=="Processes"&&lastSnapshot.Processes.FirstOrDefault()?.Resources.DiskBytesPerSecond.Reason is { } ioReason?" · "+ioReason:"");
     }

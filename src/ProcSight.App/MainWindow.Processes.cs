@@ -14,6 +14,7 @@ public sealed partial class MainWindow
     private UIElement? tableHost;
     private AppBarButton? analyzeButton,detailsButton;
     private bool detailsOpen;
+    private InfoBar? processIoNotice;
     private readonly Dictionary<ProcessSort,(TextBlock Text,string Label,Button Button)> sortHeaders=[];
     [DllImport("user32.dll")] private static extern uint GetDpiForWindow(IntPtr window);
     private void ConfigureChrome()
@@ -38,6 +39,7 @@ public sealed partial class MainWindow
     {
         var root=new Grid();
         root.RowDefinitions.Add(new(){Height=new GridLength(48)});
+        root.RowDefinitions.Add(new(){Height=GridLength.Auto});
         root.RowDefinitions.Add(new(){Height=new GridLength(1,GridUnitType.Star)});
         root.RowDefinitions.Add(new(){Height=new GridLength(28)});
         var commands=new CommandBar { DefaultLabelPosition=CommandBarDefaultLabelPosition.Right,
@@ -74,8 +76,19 @@ public sealed partial class MainWindow
         }
         filter.Flyout=flyout; commands.SecondaryCommands.Add(filter); root.Children.Add(commands);
 
+        processIoNotice=new InfoBar { Name="ProcessIoAvailability",IsOpen=page=="Processes"&&!elevated,IsClosable=true,
+            Severity=InfoBarSeverity.Informational,Title="Process disk/network monitoring requires administrator mode",
+            Message="Restart elevates the entire app. Online analysis then requires administrator-session consent.",Margin=new Thickness(12,0,12,8) };
+        if(!elevated&&page=="Processes") {
+            var restart=new Button { Content="Restart as administrator",IsEnabled=ProcSight.Windows.Security.PackageContext.Inspect().CanRestartElevated };
+            var notice=processIoNotice;
+            restart.Click+=async(_,_)=>await RestartAdministratorAsync(value=>restart.IsEnabled=value,value=>notice.Message=value);
+            processIoNotice.ActionButton=restart;
+            if(!restart.IsEnabled) processIoNotice.Message="This package cannot restart elevated. See Settings → Advanced → Administrator access for details.";
+        }
+        Grid.SetRow(processIoNotice,1); root.Children.Add(processIoNotice);
         processBody=new Grid(); processBody.ColumnDefinitions.Add(new(){Width=new GridLength(1,GridUnitType.Star)});
-        processBody.ColumnDefinitions.Add(new(){Width=GridLength.Auto}); Grid.SetRow(processBody,1); root.Children.Add(processBody);
+        processBody.ColumnDefinitions.Add(new(){Width=GridLength.Auto}); Grid.SetRow(processBody,2); root.Children.Add(processBody);
         var surface=new Grid();
         surface.RowDefinitions.Add(new(){Height=new GridLength(52)}); surface.RowDefinitions.Add(new(){Height=new GridLength(1,GridUnitType.Star)});
         var header=new Grid { HorizontalAlignment=HorizontalAlignment.Left,BorderThickness=new Thickness(0,1,0,1),
@@ -151,7 +164,7 @@ public sealed partial class MainWindow
         Grid.SetColumn(detailsBorder,1); processBody.Children.Add(detailsBorder);
         processBody.SizeChanged+=(_,_)=>UpdateDetailsLayout();
         status=new TextBlock { Text="Collecting local metadata…",FontSize=11,Opacity=.65,Margin=new Thickness(16,0,8,0),VerticalAlignment=VerticalAlignment.Center,TextTrimming=TextTrimming.CharacterEllipsis };
-        Grid.SetRow(status,2); root.Children.Add(status); PageContent.Children.Add(root); UpdateDetailsLayout(); RefreshRows();
+        Grid.SetRow(status,3); root.Children.Add(status); PageContent.Children.Add(root); UpdateDetailsLayout(); RefreshRows();
     }
     private void SelectSort(ProcessSort column)
     {
@@ -193,6 +206,7 @@ public sealed partial class MainWindow
         if(memorySummary is not null) memorySummary.Text=lastSnapshot.SystemResources?.MemoryPercent is { } memory?$"{memory:F0}%":"—";
         var latest=performanceHistory.LastOrDefault();
         if(diskSummary is not null) diskSummary.Text=latest?.DiskBusy.Value is { } disk?$"{disk:F0}%":"—";
+        if(gpuSummary is not null) gpuSummary.Text=latest?.Gpu.Value is { } gpu?$"{gpu:F0}%":"—";
         if(networkSummary is not null) networkSummary.Text=latest?.NetworkBytes.Value is { } network?$"{network*8/1000000:F1} Mbps":"—";
         UpdateSelectionActions();
     }

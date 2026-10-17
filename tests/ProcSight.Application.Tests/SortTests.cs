@@ -6,6 +6,16 @@ using Xunit;
 namespace ProcSight.Application.Tests;
 public sealed class SortTests
 {
+    [Fact] public void GpuSortUsesMeasurementsKeepsUnavailableLastAndExportsPercent() {
+        var a=Samples.Process(1,name:"a.exe"); var b=Samples.Process(2,name:"b.exe"); var c=Samples.Process(3,name:"c.exe");
+        a=a with { Resources=a.Resources with { GpuPercent=Observation<double>.Available(90) } };
+        b=b with { Resources=b.Resources with { GpuPercent=Observation<double>.Available(10) } };
+        var snapshot=Samples.Snapshot(a,b,c); var entities=new IdentityResolver().Resolve(snapshot,[]);
+        Assert.Equal(new[]{2,1,3},ProcessListProjection.Build(snapshot,entities,[],new(Sort:ProcessSort.Gpu)).Rows.Select(r=>r.Entity.Process!.Key.Pid));
+        Assert.Equal(new[]{1,2,3},ProcessListProjection.Build(snapshot,entities,[],new(Sort:ProcessSort.Gpu,Descending:true)).Rows.Select(r=>r.Entity.Process!.Key.Pid));
+        Assert.Equal("90",TableValues.Read(entities.Single(e=>e.Process?.Key.Pid==1))["Gpu"]);
+        Assert.Null(TableValues.Read(entities.Single(e=>e.Process?.Key.Pid==3))["Gpu"]);
+    }
     [Theory] [InlineData(ProcessSort.Name)] [InlineData(ProcessSort.Pid)] [InlineData(ProcessSort.Cpu)] [InlineData(ProcessSort.Memory)]
     public void AscendingAndDescendingOrderAreOpposite(ProcessSort column)
     {

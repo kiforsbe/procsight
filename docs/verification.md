@@ -1,5 +1,26 @@
 # Development verification
 
+## Per-process GPU and I/O permission feedback — 2026-10-17
+
+A read-only token check confirmed the user's running instance was not elevated; `logman query -ets`
+reported no active tracing session. This explains the unavailable process disk/network readings.
+The process page now exposes the existing package-checked administrator restart action and safe
+monitoring failure reasons; no automated elevation or live ETW session was requested.
+
+Debug and solution Release builds passed with zero warnings/errors in isolated output. Release
+tests passed: Core 74, Application 127, Windows 66 and Infrastructure 113 (380 total), with
+`FullyQualifiedName!~ChatGptAuth` on Infrastructure. GPU projection tests cover busiest-engine
+aggregation, invalid counters, idle zero and reused lifetime warm-up; application checks cover
+partial groups, numeric ordering, selectable columns and invariant local export. Dark wide/light
+narrow `process-io` native fixtures passed GPU bindings and the permission notice; persistent
+Performance navigation also passed again. A local counter smoke check sampled only its own process,
+observing warm-up followed by an available 0% idle result. This does not prove active-workload GPU
+attribution across drivers. Elevated disk/network attribution, high contrast, Narrator and scaling
+remain pending. No authentication, credential access or live provider request ran.
+Independent review identified a PID-reuse gap; GPU collection now occurs before the final kernel
+lifetime confirmation, with rejected lifetimes removed from the next baseline. No other concrete
+GPU parsing, routing, export or restart-safety defect was reported.
+
 ## Stable Performance navigation — 2026-10-17
 
 The native navigation fixture first failed against the previous implementation because selecting

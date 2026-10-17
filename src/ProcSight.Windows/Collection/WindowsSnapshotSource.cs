@@ -3,8 +3,12 @@ namespace ProcSight.Windows.Collection;
 public sealed class WindowsSnapshotSource : IWindowsSnapshotSource,IAsyncDisposable
 {
     private readonly ProcessIoMonitor io=new();
+    private readonly ProcessGpuSampler gpu=new();
     public void Stop()=>io.Stop();
-    public ValueTask DisposeAsync()=>io.DisposeAsync();
+    public async ValueTask DisposeAsync() {
+        await io.DisposeAsync(); await captureGate.WaitAsync();
+        try { gpu.Dispose(); } finally { captureGate.Release(); }
+    }
     private readonly ProcessSampler sampler = new();
     private readonly ProcessLifetimeTracker lifetimes=new();
     private readonly SemaphoreSlim captureGate = new(1);
@@ -82,14 +86,18 @@ public sealed class WindowsSnapshotSource : IWindowsSnapshotSource,IAsyncDisposa
                         .Concat(started is null&&counters.StartReason is { } startReason?new[]{new MetadataIssue("Started",startReason)}:[])
                         .Concat(command is null ? new[] { new MetadataIssue("CommandLine",commandMetadata.Issues.GetValueOrDefault(pid,commandMetadata.MissingReason)) } : []).ToArray()));
         }
+        // Capture PID-indexed GPU counters within the initial/final kernel lifetime proof.
+        var gpuRates=gpu.Sample(rows.Select(r=>r.Key).ToArray());
         if(kernelTable is not null) {
             var confirmed=KernelProcessLifetimeReader.Read();
             rows=rows.Where(r=>KernelProcessLifetimeReader.ConfirmsLifetime(kernelTable[r.Key.Pid],confirmed?.GetValueOrDefault(r.Key.Pid))).ToList();
         }
         lifetimes.Prune(rows.Select(r=>r.Key.Pid).ToHashSet());
+        gpu.Retain(rows.Select(r=>r.Key).ToHashSet());
         var ioRates=io.Sample(rows.Select(r=>r.Key).ToArray(),DateTimeOffset.UtcNow);
         rows=rows.Select(r=>ioRates.TryGetValue(r.Key,out var rate)?r with { Resources=r.Resources with {
-            DiskBytesPerSecond=rate.Disk,NetworkBytesPerSecond=rate.Network } }:r).ToList();
+            DiskBytesPerSecond=rate.Disk,NetworkBytesPerSecond=rate.Network,
+            GpuPercent=gpuRates.GetValueOrDefault(r.Key,Observation<double>.Missing("GPU sample unavailable")) } }:r).ToList();
         sampler.Prune(rows.Select(r => r.Key).ToHashSet());
         var windows=WindowMetadataReader.Read(rows.Select(r=>r.Key).ToArray());
         rows=rows.Select(p=>p with { Windows=windows.GetValueOrDefault(p.Key.Pid) }).ToList();

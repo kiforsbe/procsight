@@ -57,7 +57,8 @@ public sealed partial class MainWindow
         if(args.Length>5&&args[5]=="process-io") {
             processes=processes.Select((p,index)=>p with { Resources=p.Resources with {
                 DiskBytesPerSecond=index==0?Observation<double>.Missing("Synthetic permission unavailable"):Observation<double>.Available(index*1000000),
-                NetworkBytesPerSecond=index==0?Observation<double>.Pending():Observation<double>.Available(index*125000) } }).ToList();
+                NetworkBytesPerSecond=index==0?Observation<double>.Pending():Observation<double>.Available(index*125000),
+                GpuPercent=index==0?Observation<double>.Pending():Observation<double>.Available(17) } }).ToList();
         }
         if(args.Length>5&&args[5]=="details-restricted") {
             processes[2]=processes[2] with { Key=fixtureLifetime.Resolve(1002,null,77,Guid.NewGuid()),Executable=new("restricted.exe"),CommandLine=null,
@@ -129,7 +130,9 @@ public sealed partial class MainWindow
                     var unavailable=rows.Single(r=>r.Entity.Process?.Key.Pid==1000);
                     if(measured.Disk!=ResourceRatePresentation.Text([Observation<double>.Available(1000000)])||
                         measured.Network!=ResourceRatePresentation.Text([Observation<double>.Available(125000)],true)||
-                        unavailable.Disk!="—"||unavailable.Network!="…"||!unavailable.DiskDetails.Contains("Synthetic permission"))
+                        unavailable.Disk!="—"||unavailable.Network!="…"||!unavailable.DiskDetails.Contains("Synthetic permission")||
+                        measured.Gpu!=ResourceRatePresentation.GpuText([Observation<double>.Available(17)])||unavailable.Gpu!="…"||
+                        tableColumnLayout.All(c=>c.Id!="Gpu")||processIoNotice is not { IsOpen:true,ActionButton:not null })
                         throw new InvalidOperationException("Process throughput values or availability did not bind to live rows.");
                 }
                 if(args.Length>5&&args[5]=="services") {

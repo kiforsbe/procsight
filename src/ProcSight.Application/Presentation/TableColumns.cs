@@ -7,6 +7,7 @@ public static class TableColumns
         new("Name","Name",280),new("Assessment","Assessment",140),new("Pid","PID",56),
         new("Cpu","CPU",80,Services:false),new("Memory","Memory",96,Services:false),
         new("Disk","Disk",96,Services:false),new("Network","Network",100,Services:false),
+        new("Gpu","GPU",80,Services:false),
         new("ServiceState","Status",108,Processes:false),new("Startup","Startup",108,Processes:false),
         new("NativeName","Native executable name",180),new("CommandLine","Command line",440,Private:true),
         new("Path","Executable path",320,Private:true),new("ParentPid","Parent PID",100,Services:false),
@@ -27,7 +28,7 @@ public static class TableColumns
     public static TableColumnPreference[] Normalize(IEnumerable<TableColumnPreference>? saved,bool services)
     {
         var available=Available(services).ToDictionary(c=>c.Id);
-        var defaults=services?new[]{"Name","Assessment","Pid","ServiceState","Startup"}:new[]{"Name","Assessment","Pid","Cpu","Memory","Disk","Network"};
+        var defaults=services?new[]{"Name","Assessment","Pid","ServiceState","Startup"}:new[]{"Name","Assessment","Pid","Cpu","Memory","Disk","Network","Gpu"};
         var source=saved?.Take(64).Where(c=>c is not null&&c.Id is not null&&available.ContainsKey(c.Id)).DistinctBy(c=>c.Id).ToList()
             ??defaults.Select(id=>new TableColumnPreference(id,available[id].Width)).ToList();
         var name=source.FirstOrDefault(c=>c.Id=="Name")??new("Name",280);

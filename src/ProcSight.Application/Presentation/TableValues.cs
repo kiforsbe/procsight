@@ -16,6 +16,7 @@ public static class TableValues
             ["Pid"]=(p?.Key.Pid??s?.HostPid)?.ToString(CultureInfo.InvariantCulture),
             ["Cpu"]=Numeric(p?.Resources.CpuPercent.Value),["Memory"]=Numeric(p?.Resources.WorkingSetBytes.Value),
             ["Disk"]=Numeric(p?.Resources.DiskBytesPerSecond.Value),["Network"]=Numeric(p?.Resources.NetworkBytesPerSecond.Value),
+            ["Gpu"]=Numeric(p?.Resources.GpuPercent?.Value),
             ["NativeName"]=exe?.Name,["CommandLine"]=commands?p?.CommandLine?.Raw??s?.BinaryPath:null,
             ["Path"]=identifying?exe?.FullPath:null,["ParentPid"]=p?.ParentPid?.ToString(CultureInfo.InvariantCulture),
             ["Publisher"]=exe?.Signature==SignatureStatus.Verified?exe.VerifiedSigner:null,["Signature"]=exe?.Signature.ToString(),

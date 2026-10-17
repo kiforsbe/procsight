@@ -6,6 +6,18 @@ using ProcSight.Windows.Security;
 namespace ProcSight.App;
 public sealed partial class MainWindow
 {
+    private async Task RestartAdministratorAsync(Action<bool> setEnabled,Action<string> feedback) {
+        setEnabled(false); feedback("Waiting for Windows elevation consent and application startup…");
+        try {
+            var result=await new ElevationLauncher().RestartAsync(lifetime.Token);
+            if(result==ElevationResult.Ready) { Close(); return; }
+            feedback(result switch { ElevationResult.Cancelled=>"Elevation cancelled. This instance is still available.",
+                ElevationResult.TimedOut=>"The administrator instance did not confirm startup in time. This instance remains available; check whether another window opened.",
+                _=>"Administrator startup failed. This instance is still available. Check the Windows App Runtime installation and executable access." });
+        } catch(OperationCanceledException) { feedback("Restart cancelled."); }
+        catch { feedback("Administrator startup could not be confirmed. This instance remains available."); }
+        finally { setEnabled(true); }
+    }
     private bool elevated=PrivilegeContext.IsElevated;
     private SessionConsent sessionConsent=new();
     private AnalysisPolicy? cachedSaved,cachedEffective;
@@ -34,18 +46,7 @@ public sealed partial class MainWindow
                 "This installed package does not declare permission to restart elevated. Normal process investigation remains available.":
                 "Package elevation permissions could not be verified. Restart is disabled for this session." });
             var restart=new Button { IsEnabled=package.CanRestartElevated,Content=new StackPanel { Orientation=Orientation.Horizontal,Spacing=8,Children={new FontIcon { Glyph="\uEA18",FontSize=16 },new TextBlock { Text="Restart as administrator" } } } };
-            restart.Click+=async(_,_)=> {
-                restart.IsEnabled=false; feedback.Text="Waiting for Windows elevation consent and application startup…";
-                try {
-                    var result=await new ElevationLauncher().RestartAsync(lifetime.Token);
-                    if(result==ElevationResult.Ready) { Close(); return; }
-                    feedback.Text=result switch { ElevationResult.Cancelled=>"Elevation cancelled. This instance is still available.",
-                        ElevationResult.TimedOut=>"The administrator instance did not confirm startup in time. This instance remains available; check whether another window opened.",
-                        _=>"Administrator startup failed. This instance is still available. Check the Windows App Runtime installation and executable access." };
-                } catch(OperationCanceledException) { feedback.Text="Restart cancelled."; }
-                catch { feedback.Text="Administrator startup could not be confirmed. This instance remains available."; }
-                finally { restart.IsEnabled=true; }
-            };
+            restart.Click+=async(_,_)=>await RestartAdministratorAsync(value=>restart.IsEnabled=value,value=>feedback.Text=value);
             panel.Children.Add(restart);
         } else {
             var external=new ToggleSwitch { Header="Allow online analysis for this administrator session",IsOn=sessionConsent.ExternalAnalysis };

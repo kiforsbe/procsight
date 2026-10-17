@@ -197,6 +197,16 @@ replacement/reset restarts the baseline. Aggregate network traffic can overlap o
 adapters; disk caching and buffered ETW delivery limit exact process/system comparisons.
 No system metric substitutes for per-process attribution.
 
+[ProcessGpuSampler](src/ProcSight.Windows/Collection/ProcessGpuSampler.cs) separately samples the
+GPU Engine wildcard off-thread. Named-counter results remain transient and bounded; the pure
+projection combines contexts for each physical engine and chooses the busiest engine per PID.
+Confirmed `ProcessKey` baseline changes require warm-up, including PID reuse. Only utilization
+observations join process snapshots; groups show their busiest member with incomplete coverage
+marked. Driver/query errors stay unavailable without discarding process metadata. GPU is optional
+in saved column layouts and included in new defaults, with numeric sorting and local export.
+Standard-mode process pages expose the existing explicit administrator restart path for disk/network
+monitoring; elevated monitoring failures show the collector's safe reason.
+
 [Performance view](src/ProcSight.App/MainWindow.PerformanceView.cs) opens Overview first, with
 a compact live subsystem selector and five adaptive tiles. CPU, Memory, Disks, Network and GPU
 have native graph/readings detail views. [Sampling dispatch](src/ProcSight.App/MainWindow.Performance.cs)
@@ -214,10 +224,16 @@ sequenceDiagram
     participant System as System sampler
     participant Collector as Snapshot collector
     participant IO as Owned ETW monitor
+    participant GPU as Process GPU sampler
     participant Kernel as Windows kernel
     UI->>System: Sample off thread each second
     System-->>UI: CPU / RAM / disk / adapters / GPU observations
     Note over UI,System: Coalesced dispatch, 60 samples in memory
+    Collector->>Kernel: Read initial process lifetimes
+    Collector->>GPU: Candidate process lifetimes
+    GPU-->>Collector: Provisional per-process GPU observations
+    Collector->>Kernel: Confirm lifetimes after GPU collection
+    Note over Collector: Reject changed lifetimes and prune GPU baselines
     Collector->>IO: Confirmed process lifetimes
     alt Explicit administrator session
         IO->>Kernel: Enable owned real-time session before Source
@@ -626,8 +642,8 @@ classDiagram
 Purpose, security, and optionality are independent assessment axes. A metadata company string
 is not a verified signer. Missing observations remain unavailable; unknown identity does not
 imply threat. CPU, memory and process disk/network throughput preserve observation states;
-unavailable measurements must not be presented as measured zero. GPU is system-only and reports
-the busiest available engine rather than a device-wide average.
+unavailable measurements must not be presented as measured zero. GPU reports the busiest available
+engine per process and for the system rather than a device-wide average.
 
 ## Local-first analysis interaction
 

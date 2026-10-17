@@ -98,20 +98,20 @@ public sealed partial class MainWindow
     }
     private void PopulateColumnHeader(Grid header)
     {
-        header.Children.Clear(); header.ColumnDefinitions.Clear(); sortHeaders.Clear(); cpuSummary=null; memorySummary=null; diskSummary=null; networkSummary=null;
+        header.Children.Clear(); header.ColumnDefinitions.Clear(); sortHeaders.Clear(); cpuSummary=null; memorySummary=null; diskSummary=null; networkSummary=null; gpuSummary=null;
         header.MinWidth=TableMinimumWidth;
         for(var i=0;i<tableColumnLayout.Length;i++) {
             var index=i; var preference=tableColumnLayout[i]; var definition=TableColumns.All.Single(c=>c.Id==preference.Id);
             var column=new ColumnDefinition(); BindingOperations.SetBinding(column,ColumnDefinition.WidthProperty,new Binding { Source=tableColumnWidths[i],Path=new("Width") }); header.ColumnDefinitions.Add(column);
-            var numeric=preference.Id is "Pid" or "ParentPid" or "Cpu" or "Memory" or "Disk" or "Network";
+            var numeric=preference.Id is "Pid" or "ParentPid" or "Cpu" or "Memory" or "Disk" or "Network" or "Gpu";
             var stack=new StackPanel { VerticalAlignment=VerticalAlignment.Bottom,HorizontalAlignment=numeric?HorizontalAlignment.Right:HorizontalAlignment.Left };
             if(preference.Id is "Cpu" or "Memory") {
                 var total=new TextBlock { FontSize=16,TextAlignment=TextAlignment.Right }; stack.Children.Add(total);
                 if(preference.Id=="Cpu") cpuSummary=total; else memorySummary=total;
             }
-            if(preference.Id is "Disk" or "Network") {
+            if(preference.Id is "Disk" or "Network" or "Gpu") {
                 var summary=new TextBlock { Text="—",FontSize=16,TextAlignment=TextAlignment.Right }; stack.Children.Add(summary);
-                if(preference.Id=="Disk") diskSummary=summary; else networkSummary=summary;
+                if(preference.Id=="Disk") diskSummary=summary; else if(preference.Id=="Network") networkSummary=summary; else gpuSummary=summary;
             }
             var label=new TextBlock { Text=definition.Label,FontSize=12,TextTrimming=TextTrimming.CharacterEllipsis }; stack.Children.Add(label);
             var button=new Button { Content=stack,Background=new SolidColorBrush(Microsoft.UI.Colors.Transparent),BorderThickness=new(0),CornerRadius=new(0),
@@ -158,9 +158,9 @@ public sealed partial class MainWindow
             var id=tableColumnLayout[i].Id;
             var binding=id switch { "Assessment"=>"Status","Owner"=>"Ownership",_=>id };
             var value="{Binding "+binding+"}";
-            var tooltip=id is "Disk" or "Network"?"{Binding "+id+"Details}":value;
+            var tooltip=id is "Disk" or "Network" or "Gpu"?"{Binding "+id+"Details}":value;
             var background=id is "Cpu" or "Memory"?$" Background=\"{{Binding {id}Brush}}\"":"";
-            var alignment=id is "Pid" or "ParentPid" or "Cpu" or "Memory" or "Disk" or "Network"?" HorizontalAlignment=\"Right\"":"";
+            var alignment=id is "Pid" or "ParentPid" or "Cpu" or "Memory" or "Disk" or "Network" or "Gpu"?" HorizontalAlignment=\"Right\"":"";
             text.Append($"<Border Tag=\"{id}\" Grid.Column=\"{i}\" BorderThickness=\"1,0,0,0\" BorderBrush=\"{{ThemeResource DividerStrokeColorDefaultBrush}}\"{background}><TextBlock Text=\"{value}\" ToolTipService.ToolTip=\"{tooltip}\" FontSize=\"12\" Margin=\"8,0\" VerticalAlignment=\"Center\" TextTrimming=\"CharacterEllipsis\"{alignment}/></Border>");
         }
         text.Append("</Grid></DataTemplate>"); return (DataTemplate)XamlReader.Load(text.ToString());

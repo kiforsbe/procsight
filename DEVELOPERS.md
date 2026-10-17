@@ -7,6 +7,9 @@ administrator mode. No ETL files are created. `ProcessIoAccumulator` tests cover
 PID reuse, lifecycle invalidation, event-loss restart and pruning; `NetworkRatesTests` cover
 direction totals, adapter replacement, reset and invalid intervals. `SystemPerformanceTests`
 samples local system counters without process inventory or AI. No credential access is needed.
+`ProcessGpuTests` cover engine aggregation, missing samples and reused lifetimes. GPU uses a separate
+off-thread PDH query; `SortTests` cover numeric GPU order and invariant export. The `process-io`
+fixture also checks GPU bindings, new-layout columns and the process-page permission notice.
 
 Native `--visual-fixture <absolute.png> Dark|Light 1200|660 <fixture>` modes include
 `performance-overview`, `performance-navigation`, `performance-cpu`, `performance-memory`,

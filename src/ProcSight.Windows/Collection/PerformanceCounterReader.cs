@@ -24,6 +24,15 @@ public sealed class PerformanceCounterReader : IDisposable
     }
     public (double? Value,bool Warming) Read(bool idle=false,bool percentage=true)
     {
+        var result=ReadValues(); double? maximum=null;
+        foreach(var number in result.Values?.Values??Enumerable.Empty<double?>()) if(number is { } raw) {
+            var value=idle?100-raw:raw;
+            maximum=Math.Max(maximum??0,percentage?Math.Clamp(value,0,100):Math.Max(0,value));
+        }
+        return(maximum,result.Warming);
+    }
+    public (IReadOnlyDictionary<string,double?>? Values,bool Warming) ReadValues()
+    {
         if(query is null||query.IsInvalid||PdhCollectQueryData(query)!=0) return(null,false);
         if(!sampled) { sampled=true; return(null,true); }
         uint bytes=0; var status=PdhGetFormattedCounterArrayW(counter,0x200,ref bytes,out var count,IntPtr.Zero);
@@ -31,13 +40,14 @@ public sealed class PerformanceCounterReader : IDisposable
         var buffer=Marshal.AllocHGlobal((int)bytes);
         try {
             if(PdhGetFormattedCounterArrayW(counter,0x200,ref bytes,out count,buffer)!=0||count>4096||count*(long)Marshal.SizeOf<Item>()>bytes) return(null,false);
-            double? max=null;
+            var values=new Dictionary<string,double?>(StringComparer.Ordinal);
             for(var i=0;i<count;i++) {
                 var item=Marshal.PtrToStructure<Item>(buffer+i*Marshal.SizeOf<Item>());
-                if(item.Status>1||!double.IsFinite(item.Value)||item.Value<0) continue;
-                var value=idle?100-item.Value:item.Value; max=Math.Max(max??0,percentage?Math.Clamp(value,0,100):Math.Max(0,value));
+                var name=Marshal.PtrToStringUni(item.Name);
+                if(string.IsNullOrEmpty(name)||name.Length>512) continue;
+                values[name]=item.Status<=1&&double.IsFinite(item.Value)&&item.Value>=0?item.Value:null;
             }
-            return(max,false);
+            return(values,false);
         } finally { Marshal.FreeHGlobal(buffer); }
     }
     public void Dispose() { query?.Dispose(); query=null; }

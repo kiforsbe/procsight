@@ -215,6 +215,12 @@ tiles first and native subsystem details. Preserve independent off-thread sampli
 dispatcher updates, theme resources, text equivalents and explicit missing/warm-up states.
 Subsystem navigation must retain sidebar items/charts and the compact selector; update only
 right-hand content so selection does not replay list entrance transitions.
+Process GPU uses a separate off-thread PDH wildcard query and confirmed lifetime baselines, never
+the system GPU reading. Combine contexts for the same physical engine, then select the busiest
+engine; groups show their busiest member, with incomplete coverage marked. Keep GPU instance
+names transient, counters bounded and unavailable/warm-up distinct from zero. Preserve saved
+column choices; GPU is selectable and appears in fresh defaults. Process I/O permission notices
+must use the explicit, package-checked administrator restart path without automatic elevation.
 
 Settings apply valid values immediately, with 400 ms text debounce and focus-loss flush; partial
 drafts cannot replace active configuration. API keys commit only on Enter/focus loss. Restrictive

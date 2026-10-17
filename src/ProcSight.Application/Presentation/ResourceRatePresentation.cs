@@ -2,6 +2,14 @@ using ProcSight.Core.Models;
 namespace ProcSight.Application.Presentation;
 public static class ResourceRatePresentation
 {
+    public static double? GpuMaximum(IEnumerable<Observation<double>> source)=>source
+        .Where(v=>v.State==ObservationState.Available&&v.Value is >=0&&double.IsFinite(v.Value.Value))
+        .Select(v=>(double?)Math.Clamp(v.Value!.Value,0,100)).Max();
+    public static string GpuText(IEnumerable<Observation<double>> source) {
+        var values=source.ToArray(); var maximum=GpuMaximum(values);
+        if(maximum is null) return values.Any(v=>v.State==ObservationState.Pending)?"…":"—";
+        return (values.Any(v=>v.State!=ObservationState.Available)?"≥":"")+$"{maximum:F1}%";
+    }
     public static string Text(IEnumerable<Observation<double>> source,bool network=false) {
         var values=source.ToArray(); var available=values.Where(v=>v.State==ObservationState.Available&&v.Value is >=0&&double.IsFinite(v.Value.Value)).ToArray();
         if(available.Length==0) return values.Any(v=>v.State==ObservationState.Pending)?"…":"—";

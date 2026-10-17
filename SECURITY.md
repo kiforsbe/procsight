@@ -155,6 +155,10 @@ startup and unavailable counters remain explicit. Window shutdown stops the sess
 before asynchronous cleanup. Unexpected process termination may still require OS session cleanup;
 normal/elevated live acceptance remains documented separately. Protected-process access denial is
 normal partial collection; administrator mode is optional for the rest of ProcSight.
+Per-process GPU uses local PDH engine counters without requesting elevation. Instance names are
+parsed transiently for PID/physical-engine attribution; only lifetime-scoped utilization observations
+reach snapshots. Driver/counter failures preserve the rest of collection. The process-page restart
+button shares Settings' package checks, Windows consent and owned-window readiness behavior.
 
 Bundled common-task definitions identify known executable purpose using verified signer and
 product/original-name metadata. They do not establish safety, necessity, or the exact behavior

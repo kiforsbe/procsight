@@ -7,6 +7,9 @@ plans, implementation details and validation records belong in the project docum
 
 ### Added
 
+- Per-process GPU column with busiest-engine utilization, sorting and export.
+- Process-page monitoring availability notice with an explicit administrator restart action.
+
 - Performance overview tiles and CPU, RAM, disk, network and GPU detail pages with live graphs.
 - Process disk/network throughput with lifetime-aware event attribution in administrator mode,
   grouped rates and explicit warm-up/unavailable states.

@@ -28,6 +28,11 @@ public sealed class ProcessRow : INotifyPropertyChanged
     public string Network=>ResourceRatePresentation.Text(Io(true),true);
     public string DiskDetails=>ResourceRatePresentation.Details(Io(false));
     public string NetworkDetails=>ResourceRatePresentation.Details(Io(true));
+    private IEnumerable<Observation<double>> GpuObservations=>Projection.Members.Where(e=>e.Process is not null)
+        .Select(e=>e.Process!.Resources.GpuPercent??Observation<double>.Missing("GPU sample unavailable"));
+    public string Gpu=>ResourceRatePresentation.GpuText(GpuObservations);
+    public string GpuDetails=>GpuObservations.Any(v=>v.State!=ObservationState.Available)?ResourceRatePresentation.Details(GpuObservations):
+        "Busiest reported GPU engine. Application groups show the busiest member, not a sum across unrelated engines.";
     public string Availability=>LocalValue("Availability");
     private IReadOnlyDictionary<string,string?>? localValues;
     private string LocalValue(string id)=>IsGroup?"—":(localValues??=TableValues.Read(Entity,analysis)).GetValueOrDefault(id) is { Length:>0 } text?text:"—";
@@ -83,8 +88,8 @@ public sealed class ProcessRow : INotifyPropertyChanged
     public override string ToString() => "ProcessRow ["+Key+"]";
     private AnalysisUpdate? analysis;
     public string Classification => analysis is null ? "Unknown" : string.Join(" / ",analysis.Result.Assessments.Select(a=>a.Value));
-    private static readonly string[] Fields=[nameof(Name),nameof(Owner),nameof(Pid),nameof(Cpu),nameof(Memory),nameof(Status),nameof(ServiceState),nameof(Startup),nameof(ExpansionGlyph),nameof(ExpansionAction),nameof(ExpanderVisibility),nameof(Indent),nameof(NativeName),nameof(CommandLine),nameof(Path),nameof(ParentPid),nameof(Publisher),nameof(Signature),nameof(Started),nameof(Ownership),nameof(Windows),nameof(ServiceName),nameof(Availability),nameof(Disk),nameof(Network),nameof(DiskDetails),nameof(NetworkDetails)];
-    private string[] Values()=>[Name,Owner,Pid,Cpu,Memory,Status,ServiceState,Startup,ExpansionGlyph,ExpansionAction,ExpanderVisibility.ToString(),Indent.ToString(),NativeName,CommandLine,Path,ParentPid,Publisher,Signature,Started,Ownership,Windows,ServiceName,Availability,Disk,Network,DiskDetails,NetworkDetails];
+    private static readonly string[] Fields=[nameof(Name),nameof(Owner),nameof(Pid),nameof(Cpu),nameof(Memory),nameof(Status),nameof(ServiceState),nameof(Startup),nameof(ExpansionGlyph),nameof(ExpansionAction),nameof(ExpanderVisibility),nameof(Indent),nameof(NativeName),nameof(CommandLine),nameof(Path),nameof(ParentPid),nameof(Publisher),nameof(Signature),nameof(Started),nameof(Ownership),nameof(Windows),nameof(ServiceName),nameof(Availability),nameof(Disk),nameof(Network),nameof(DiskDetails),nameof(NetworkDetails),nameof(Gpu),nameof(GpuDetails)];
+    private string[] Values()=>[Name,Owner,Pid,Cpu,Memory,Status,ServiceState,Startup,ExpansionGlyph,ExpansionAction,ExpanderVisibility.ToString(),Indent.ToString(),NativeName,CommandLine,Path,ParentPid,Publisher,Signature,Started,Ownership,Windows,ServiceName,Availability,Disk,Network,DiskDetails,NetworkDetails,Gpu,GpuDetails];
     private void Changed(string field)=>PropertyChanged?.Invoke(this,new(field));
     private string[]? displayedValues;
     private void Notify(string[]? before,bool cpuChanged=false,bool memoryChanged=false) {

@@ -15,7 +15,7 @@ public sealed partial class MainWindow
     private Action? updatePerformanceView;
     private PerformanceSnapshot? pendingPerformance;
     private int performanceUpdateQueued;
-    private TextBlock? diskSummary,networkSummary;
+    private TextBlock? diskSummary,networkSummary,gpuSummary;
     private async Task RunPerformanceAsync() {
         using var timer=new PeriodicTimer(TimeSpan.FromSeconds(1));
         try {

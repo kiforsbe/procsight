@@ -2,7 +2,7 @@ using ProcSight.Core.Models;
 using ProcSight.Core.Identity;
 namespace ProcSight.Application.Presentation;
 public enum ProcessSort { Name, Pid, Cpu, Memory, Assessment, ServiceState, Startup, Disk, Network,
-    NativeName,CommandLine,Path,ParentPid,Publisher,Signature,Started,Owner,Windows,ServiceName,Availability }
+    NativeName,CommandLine,Path,ParentPid,Publisher,Signature,Started,Owner,Windows,ServiceName,Availability,Gpu }
 public sealed record ViewOptions(string Search="",bool Grouped=false,bool Services=false,ProcessSort Sort=ProcessSort.Name,
     HashSet<string>? ExpandedGroups=null,string? ClassificationFilter=null,IReadOnlyList<string>? PreviousOrder=null,HashSet<string>? CollapsedTree=null,bool Descending=false);
 public sealed record ProcessListRow(string Key,ResolvedEntity Entity,bool IsGroup,List<ResolvedEntity> Members,
@@ -69,6 +69,7 @@ public static class ProcessListProjection
                 ProcessSort.Startup=>Order(r=>r.Entity.Service?.StartMode ?? "",StringComparer.CurrentCultureIgnoreCase),
                 ProcessSort.Disk=>Order(r=>r.Members.Sum(m=>m.Process?.Resources.DiskBytesPerSecond.Value??0)),
                 ProcessSort.Network=>Order(r=>r.Members.Sum(m=>m.Process?.Resources.NetworkBytesPerSecond.Value??0)),
+                ProcessSort.Gpu=>Order(r=>ResourceRatePresentation.GpuMaximum(r.Members.Select(m=>m.Process?.Resources.GpuPercent??Observation<double>.Missing("Unavailable")))??0),
                 ProcessSort.ParentPid=>Order(r=>r.Entity.Process?.ParentPid??-1),
                 ProcessSort.Started=>Order(r=>r.Entity.Process?.Key.StartedAt??DateTimeOffset.MinValue),
                 ProcessSort.NativeName or ProcessSort.CommandLine or ProcessSort.Path or ProcessSort.Publisher or ProcessSort.Signature or ProcessSort.Owner or ProcessSort.Windows or ProcessSort.ServiceName or ProcessSort.Availability=>
@@ -79,6 +80,7 @@ public static class ProcessListProjection
                 ProcessSort.Cpu=>!row.CompleteCpu,ProcessSort.Memory=>!row.CompleteMemory,
                 ProcessSort.Disk=>row.Members.All(m=>m.Process?.Resources.DiskBytesPerSecond.Value is null),
                 ProcessSort.Network=>row.Members.All(m=>m.Process?.Resources.NetworkBytesPerSecond.Value is null),
+                ProcessSort.Gpu=>row.Members.All(m=>m.Process?.Resources.GpuPercent?.Value is null),
                 _=>false };
             var sorted=ordered.ThenBy(Display,StringComparer.CurrentCultureIgnoreCase).ThenBy(r=>r.Key,StringComparer.Ordinal).OrderBy(Missing).ToList();
             return sorted;

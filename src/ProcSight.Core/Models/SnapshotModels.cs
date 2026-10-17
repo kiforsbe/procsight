@@ -17,7 +17,8 @@ public sealed record ExecutableMetadata(string Name, string? FullPath = null,
     [property: JsonIgnore] IReadOnlyList<MetadataIssue>? MetadataIssues=null);
 public sealed record ResourceSample(Observation<double> CpuPercent,
     Observation<long> WorkingSetBytes, Observation<double> DiskBytesPerSecond,
-    Observation<double> NetworkBytesPerSecond, DateTimeOffset SampledAt, TimeSpan? Interval);
+    Observation<double> NetworkBytesPerSecond, DateTimeOffset SampledAt, TimeSpan? Interval,
+    Observation<double>? GpuPercent=null);
 public sealed record CommandLineValue(string Raw, DateTimeOffset CollectedAt)
 {
     public override string ToString() => "CommandLineValue [private transient data]";
