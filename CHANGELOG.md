@@ -60,6 +60,8 @@ plans, implementation details and validation records belong in the project docum
 
 ### Fixed
 
+- Removed native list resets during automatic sorting that caused the process table to flash.
+
 - Performance subsystem navigation keeps the left list in place instead of replaying its entrance animation.
 
 - Connection dialogs retain working account/model controls through transient visual unloads and

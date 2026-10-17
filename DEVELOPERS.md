@@ -15,6 +15,9 @@ modes and idle readings. Presentation preference tests cover shading round-trip 
 Native `resource-shading`, `resource-shading-settings` and `live-sort` fixtures use synthetic values
 only. They verify shading/drag binding restoration, mode controls and an 83-row manual/automatic
 sort transition with retained selection and no collection Reset on automatic reordering.
+That fixture also checks native `Items.VectorChanged` during repeated bidirectional reordering:
+managed Move can become native Reset even when `CollectionChanged` reports no Reset. Logical
+relocations use remove/insert notifications to keep the rest of the list realized.
 
 Native `--visual-fixture <absolute.png> Dark|Light 1200|660 <fixture>` modes include
 `performance-overview`, `performance-navigation`, `performance-cpu`, `performance-memory`,

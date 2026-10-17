@@ -20,11 +20,23 @@ public sealed partial class MainWindow
             Change(999000000);
             if(rows.IndexOf(target)!=index) throw new InvalidOperationException("Manual sorting moved a changed process.");
             var resets=0;
+            var nativeResets=0;
+            void NativeChanged(global::Windows.Foundation.Collections.IObservableVector<object> sender,global::Windows.Foundation.Collections.IVectorChangedEventArgs args) {
+                if(args.CollectionChange==global::Windows.Foundation.Collections.CollectionChange.Reset) nativeResets++;
+            }
+            table.Items.VectorChanged+=NativeChanged;
             System.Collections.Specialized.NotifyCollectionChangedEventHandler checkReset=(_,e)=> { if(e.Action==System.Collections.Specialized.NotifyCollectionChangedAction.Reset) resets++; };
             rows.CollectionChanged+=checkReset;
             presentation=presentation with { AutomaticProcessSorting=true }; RefreshRows();
+            for(var iteration=0;iteration<6;iteration++) {
+                Change(iteration%2==0?0:999000000);
+                WindowRoot.UpdateLayout(); await Task.Delay(16);
+                if(!table.SelectedItems.Contains(target)) throw new InvalidOperationException("Automatic native relocation lost process selection.");
+            }
+            table.Items.VectorChanged-=NativeChanged;
             rows.CollectionChanged-=checkReset;
             if(resets>0) throw new InvalidOperationException("Automatic sorting reset the large live list instead of retaining its containers.");
+            if(nativeResets>0) throw new InvalidOperationException($"Automatic sorting produced {nativeResets} native vector resets from managed moves.");
             if(rows.IndexOf(target)<=index||!table.SelectedItems.Contains(target)) throw new InvalidOperationException("Automatic sorting did not move the measured row or lost selection.");
             var automaticIndex=rows.IndexOf(target);
             presentation=presentation with { AutomaticProcessSorting=false }; Change(0);

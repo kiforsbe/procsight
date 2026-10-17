@@ -38,6 +38,8 @@ Keep live process order stable by default. Offer automatic sorting as an explici
 Appearance and the process overflow menu; it follows the selected header direction. Automatic
 reordering moves existing rows incrementally, preserving selection and avoiding entrance/reset
 animations. Suspend it during column dragging. Header clicks still sort immediately in either mode.
+Check the native vector boundary: managed collection Move can become a WinRT Reset. Use native
+remove/insert notifications for logical row relocation; managed-only checks miss this flicker.
 
 Use WinUI controls and their theme resources, templates, focus visuals, and interaction
 states. Prefer a native ListView, CommandBar, AutoSuggestBox, ComboBox, Expander, InfoBar,

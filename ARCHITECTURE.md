@@ -200,6 +200,10 @@ Automatic process sorting is independently opt-in and defaults off. `RefreshRows
 order for the chosen sort when enabled, but still reconciles incrementally; only explicit large
 reorders may use a collection Reset. Selection stays lifetime-aware. Column dragging temporarily
 suspends automatic ordering. Services retain their existing stable live ordering.
+[LiveRowCollection](src/ProcSight.App/ViewModels/LiveRowCollection.cs) emits remove/insert for logical
+relocations: the WinRT adapter maps managed Move notifications to native vector Reset, invalidating
+the realized list and causing a flash. Native event regression checks cover repeated automatic
+reordering in both directions; managed-only Reset checks cannot establish this behavior.
 
 UML sequence view of presentation-only highlighting:
 

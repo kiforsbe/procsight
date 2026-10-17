@@ -1,5 +1,16 @@
 # Development verification
 
+## Automatic-sort native reset regression — 2026-10-17
+
+The 83-row synthetic live-sort fixture reproduced 81 native vector Reset events from managed
+Move notifications while the managed Reset count stayed zero. LiveRowCollection now emits
+remove/insert for logical moves. The expanded fixture passes with no native or managed Reset
+through repeated bidirectional automatic sorts and retains process selection. Dark 1200px and
+light 660px live-sort, column customization and detail-selection fixtures passed. Debug and Release
+builds passed with zero warnings/errors. No authentication, credentials, provider or live inventory
+access occurred. Full desktop motion/keyboard/scaling acceptance remains separate from these
+native event and capture checks.
+
 ## Resource shading and optional live sorting — 2026-10-17
 
 Debug/Release builds passed with zero warnings/errors. Selected Release suites passed Core 74,

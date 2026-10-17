@@ -17,6 +17,9 @@ their shared VS Code files. Do not imply release readiness from synthetic tests 
 Live-list updates preserve sibling order and keys by default; explicit sort/refresh may reorder.
 Opt-in automatic process sorting follows the selected sort column using incremental moves, never
 the explicit bulk-reset path; pause automatic reordering during column dragging. Preserve selection.
+WinRT maps managed collection Move notifications to native vector Reset. LiveRowCollection must
+relocate with remove/insert notifications; verify native Items.VectorChanged as well as managed
+CollectionChanged so automatic sorting cannot silently reset the native list and flash.
 Application groups require multiple visible processes; one member renders as a normal row.
 Preserve owner-slot keys and lifetime-aware selection across single/group transitions. Empty
 metadata descriptions must use a nonblank executable fallback.
