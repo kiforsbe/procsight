@@ -19,6 +19,9 @@ foreach($name in @('knowledge.db','settings.json','private.pfx','test.log','src/
  Assert-Equal (Test-ProcSightPackageFile $name) $false
 }
 Assert-Equal (Test-ProcSightPackageFile 'machine-inventory.json') $false
+Assert-Equal (Test-ProcSightPackageFile 'Microsoft.UI.Xaml/Assets/map.html') $true
+Assert-Equal (Test-ProcSightPackageFile 'map.html') $false
+Assert-Equal (Test-ProcSightPackageFile 'Microsoft.UI.Xaml/Assets/settings.json') $false
 $certificate=[pscustomobject]@{Subject='CN=Fixture';HasPrivateKey=$true;NotBefore=(Get-Date).AddDays(-1);NotAfter=(Get-Date).AddDays(1);UsageOids=@('1.3.6.1.5.5.7.3.3')}
 Assert-ProcSightSigningMetadata $certificate 'CN=Fixture'
 Assert-Rejected { Assert-ProcSightSigningMetadata $certificate 'CN=Another publisher' }

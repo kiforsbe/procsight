@@ -35,6 +35,8 @@ function Test-ProcSightPackageFile([string]$Name) {
  if($name.StartsWith('/') -or $name.Split('/') -contains '..' -or $name -match '(^|/)(\.git|src|tests|local-config|local-data)(/|$)') { return $false }
  if($name -match '(?i)(settings|credentials|secrets|knowledge)\.json$|\.(pfx|p12|key|pem|cer|db|sqlite|log|etl|dmp|pdb|cs|ps1|csproj)$') { return $false }
  if($name.StartsWith('Licenses/')) { return [IO.Path]::GetExtension($name) -in @('.txt','.html','.md','') }
+ # Windows App SDK's self-contained WinUI map-control asset, not application web content.
+ if($name -ceq 'Microsoft.UI.Xaml/Assets/map.html') { return $true }
  if([IO.Path]::GetFileName($name) -in @('AppxManifest.xml','AppxBlockMap.xml','[Content_Types].xml','AppxSignature.p7x')) { return $true }
  if($name.EndsWith('.json')) { return $name -in @('ProcSight.App.deps.json','ProcSight.App.runtimeconfig.json') }
  return [IO.Path]::GetExtension($name) -in @('.dll','.exe','.winmd','.pri','.xbf','.mui','.png','.ico','.svg','.txt','.manifest')
