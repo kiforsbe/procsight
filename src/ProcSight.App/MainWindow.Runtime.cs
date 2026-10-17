@@ -27,6 +27,8 @@ public sealed partial class MainWindow
     private ChatGptAuthenticationLog? chatGptAuthenticationLog;
     private void TraceChatGpt(ChatGptAuthEvent entry) => (chatGptAuthenticationLog ??=
         new(Path.Combine(dataFolder,"diagnostics","chatgpt-auth.log"))).Write(entry);
+    internal void TraceUnhandledUiException(int hresult) => (chatGptAuthenticationLog ??=
+        new(Path.Combine(dataFolder,"diagnostics","chatgpt-auth.log"))).WriteCrash(hresult);
     private ChatGptSessionService ChatGpt=>chatGpt ??=new(credentials,diagnostics:TraceChatGpt);
     private SqliteKnowledgeStore knowledge=null!,usage=null!;
     private AnalysisCoordinator coordinator=null!;

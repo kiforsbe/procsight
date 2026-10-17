@@ -196,6 +196,9 @@ Connection management uses a compact native toolbar/list plus separate fallback 
 opens a focused per-profile ContentDialog; provider fields must not leak back into the main page.
 Close flushes pending valid edits and protected-key commits using a closing deferral. Removing a
 profile clears its research reference and routing membership without signing out shared accounts.
+Each dialog owns a fresh editor and explicitly detaches it on close. Transient visual Unloaded
+notifications must not dispose live connection/account editors or cancel interactive sign-in/model
+work; only actual owner cleanup after the closing flush does so.
 Suppress routine settings success text and collapse empty feedback; preserve errors and explicit tests.
 
 Tray monitoring is opt-in, system-only and independent of AI. Preserve bounded 30-sample history,

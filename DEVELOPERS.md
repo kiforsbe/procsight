@@ -459,7 +459,8 @@ counts and numeric HRESULTs. Follow browser launch, callback, token exchange, id
 session/catalog writes and dialog/model updates to locate the last completed stage. The logger never
 accepts free text, tokens, codes, state/nonce/PKCE values, account IDs, emails, paths or HTTP bodies.
 It writes off-thread through a bounded 256-event queue and rotates at 128 KiB to one `.previous`
-file. Logging failures do not change authentication. Abrupt termination or a full queue can lose
+file. Logging failures do not change authentication. A fatal UI exception synchronously records
+only its numeric HRESULT without suppressing the crash. Abrupt termination or a full queue can lose
 pending entries. Debug visual fixtures redirect these logs alongside their synthetic captures.
 This is operational authentication diagnostics, separate from memory-only AI activity history.
 
@@ -468,6 +469,10 @@ For manual debugging against an installed package's identity and settings, Windo
 This launches a diagnostic executable without reinstalling or clearing the package. Its process token
 is similar to, but not identical to, normal activation; it does not establish full installed-package
 acceptance. See [Microsoft's debugging command](https://learn.microsoft.com/en-us/powershell/module/appx/invoke-commandindesktoppackage).
+
+Connection editors belong to one dialog instance. Closing deferral flushes valid settings, then
+explicit owner cleanup cancels account/model work and detaches the editor. Transient WinUI Unloaded
+notifications do not end the editor lifetime or disable still-visible account controls.
 
 ## Structured process details
 

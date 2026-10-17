@@ -6,7 +6,7 @@ public sealed partial class MainWindow
 {
     private string? settingsChatGptAccountId;
     private string? settingsChatGptModel;
-    private FrameworkElement BuildChatGptSettings(ComboBox provider,TextBox model,Action signedOut,ProcSight.Core.Models.ProviderSettings? configured=null,Action? reauthorized=null)
+    private FrameworkElement BuildChatGptSettings(ComboBox provider,TextBox model,Action signedOut,ProcSight.Core.Models.ProviderSettings? configured=null,Action? reauthorized=null,Action<Action>? registerCleanup=null)
     {
         TraceChatGpt(new(ChatGptAuthStage.DialogOpened,ChatGptAuthOutcome.Succeeded));
         var accounts=new ComboBox { Header="Saved ChatGPT accounts",DisplayMemberPath="Label",HorizontalAlignment=HorizontalAlignment.Stretch };
@@ -128,8 +128,11 @@ public sealed partial class MainWindow
         usage.Padding=new Thickness(0); usage.HorizontalAlignment=HorizontalAlignment.Left;
         var panel=new StackPanel { Spacing=16,HorizontalAlignment=HorizontalAlignment.Stretch };
         foreach(var control in new FrameworkElement[]{info,selectors,feedback,buttons,usage}) panel.Children.Add(control);
-        panel.Loaded+=async(_,_)=> { TraceChatGpt(new(ChatGptAuthStage.PanelLoaded,ChatGptAuthOutcome.Succeeded)); unloaded=false; await LoadModelsAsync(); };
-        panel.Unloaded+=(_,_)=> { TraceChatGpt(new(ChatGptAuthStage.PanelUnloaded,ChatGptAuthOutcome.Succeeded)); unloaded=true; signingIn?.Cancel(); modelLoad?.Cancel(); ++modelLoadVersion; };
+        panel.Loaded+=async(_,_)=> { TraceChatGpt(new(ChatGptAuthStage.PanelLoaded,ChatGptAuthOutcome.Succeeded)); if(!unloaded) await LoadModelsAsync(); };
+        // ContentDialog can unload visuals transiently while they are still interactive.
+        // Only the owning dialog's completed close disposes this editor and cancels work.
+        panel.Unloaded+=(_,_)=>TraceChatGpt(new(ChatGptAuthStage.PanelUnloaded,ChatGptAuthOutcome.Succeeded));
+        registerCleanup?.Invoke(()=> { unloaded=true; signingIn?.Cancel(); modelLoad?.Cancel(); ++modelLoadVersion; });
         return panel;
     }
 }

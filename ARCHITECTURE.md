@@ -51,6 +51,11 @@ off-thread to the package-scoped data folder, rotating a 128 KiB file to one pre
 diagnostic flow contains no credential/account/URL/payload text and is independent of AI activity.
 Failures are isolated; shutdown or saturation may drop events. Live sign-in is performed by the user.
 
+Connection dialogs own a fresh editor per opening and explicitly detach it when closed. A closing
+deferral flushes valid settings before owner cleanup cancels in-flight account/model work. Transient
+visual Unloaded notifications do not dispose the editor. Fatal UI exceptions synchronously append
+only a numeric HRESULT without handling/suppressing the exception.
+
 ```mermaid
 sequenceDiagram
     actor User
@@ -66,6 +71,9 @@ sequenceDiagram
     Queue->>File: Background write and bounded rotation
     OAuth-->>Dialog: Validated account or failure
     Dialog->>Queue: Account/model presentation outcome
+    Note over Dialog: Transient visual unload does not end editor lifetime
+    User->>Dialog: Close configuration
+    Dialog->>Dialog: Flush valid settings, cancel work, detach editor
 ```
 
 ### MSIX distribution and release preparation

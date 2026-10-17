@@ -50,6 +50,8 @@ plans, implementation details and validation records belong in the project docum
 
 ### Fixed
 
+- Connection dialogs retain working account/model controls through transient visual unloads and
+  own fresh editor panels to avoid reopening crashes.
 - Evidence-backed known-purpose analysis creates an exact-binary rule when the provider proposes none, preserving
   names across sessions; older entry-level names also survive SQLite reloads.
 - Shared column transforms, cached display metadata and batched explicit sorts reduce UI stalls

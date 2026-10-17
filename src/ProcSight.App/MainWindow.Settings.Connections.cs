@@ -30,7 +30,7 @@ public sealed partial class MainWindow
         panel.Children.Add(commands); panel.Children.Add(list);
         panel.Children.Add(SettingsCard("\uE8AB","Automatic fallback","Try the next enabled connection if unavailable. API billing may apply.",fallback));
         panel.Children.Add(feedback);
-        string? selectedId=profiles.FirstOrDefault()?.ProfileId; bool rebuilding=false; bool validEditor=true; Func<Task>? flush=null; Func<string>? editorFeedback=null;
+        string? selectedId=profiles.FirstOrDefault()?.ProfileId; bool rebuilding=false; bool validEditor=true; Func<Task>? flush=null; Func<string>? editorFeedback=null; Action? closeEditor=null;
         var labels=new Dictionary<string,TextBlock>();
         async Task Commit() {
             try {
@@ -64,7 +64,8 @@ public sealed partial class MainWindow
             up.IsEnabled=index>0; down.IsEnabled=index>=0&&index<profiles.Count-1;
         }
         void Edit() {
-            flush=null; editor.Children.Clear(); validEditor=true;
+            // Clearing children does not detach a panel from its previous dialog's visual parent.
+            flush=null; editor=new StackPanel { Spacing=16 }; validEditor=true;
             var profile=profiles.FirstOrDefault(p=>p.ProfileId==selectedId); test.IsEnabled=profile is not null;
             if(profile is null) return;
             var model=new TextBox { Header="Model",Text=profile.Provider.Model };
@@ -75,7 +76,8 @@ public sealed partial class MainWindow
             var warning=new TextBlock { TextWrapping=TextWrapping.Wrap };
             editorFeedback=()=>warning.Text;
             var timer=new DispatcherTimer { Interval=TimeSpan.FromMilliseconds(400) }; var closed=false; var editing=false; var keyCommitting=false; long editVersion=0;
-            Task? pendingKey=null;
+            Task? pendingKey=null; Action? closeAccountPanel=null;
+            closeEditor=()=> { closed=true; timer.Stop(); closeAccountPanel?.Invoke(); };
             async Task ApplyDraft() {
                 timer.Stop(); if(editing) return;
                 try {
@@ -119,7 +121,7 @@ public sealed partial class MainWindow
             if(profile.Provider.Id=="chatgpt") {
                 editing=true;
                 var dummy=new ComboBox { SelectedIndex=-1 }; dummy.Items.Add("API"); dummy.Items.Add("Compatible"); dummy.Items.Add("ChatGPT"); dummy.SelectedIndex=2;
-                editor.Children.Add(BuildChatGptSettings(dummy,model,()=> { profiles.Clear(); profiles.AddRange(policy.Connections??[]); RefreshList(); },profile.Provider,()=>coordinator.RetryConnection(profile.ProfileId))); editing=false;
+                editor.Children.Add(BuildChatGptSettings(dummy,model,()=> { profiles.Clear(); profiles.AddRange(policy.Connections??[]); RefreshList(); },profile.Provider,()=>coordinator.RetryConnection(profile.ProfileId),cleanup=>closeAccountPanel=cleanup)); editing=false;
             } else { editor.Children.Add(endpoint); editor.Children.Add(model); editor.Children.Add(strict); if(!profile.IsLocal) editor.Children.Add(key); }
             if(ConnectionRouter.SupportsResearch(profile.Provider)) {
                 var research=new CheckBox { Content="Use this connection for explicitly enabled online research",IsChecked=policy.ResearchProfileId==profile.ProfileId };
@@ -130,8 +132,6 @@ public sealed partial class MainWindow
             removeKey.Click+=(_,_)=> { try { if(profile.Provider.CredentialId is { } id) credentials.Remove(id); warning.Text="Protected key removed."; } catch { warning.Text="Key removal failed."; } };
             if(profile.Provider.Id is "openai" or "compatible") editor.Children.Add(removeKey);
             editor.Children.Add(warning);
-            warning.Unloaded+=OnUnloaded;
-            void OnUnloaded(object sender,RoutedEventArgs e) { warning.Unloaded-=OnUnloaded; closed=true; if(timer.IsEnabled) _=ApplyDraft(); timer.Stop(); }
         }
         list.SelectionChanged+=(_,_)=> { if(rebuilding) return; selectedId=(list.SelectedItem as ListViewItem)?.Tag as string; UpdateActions(); };
         async Task OpenConfigurationAsync() {
@@ -152,10 +152,12 @@ public sealed partial class MainWindow
             catch(OperationCanceledException) { }
             catch { feedback.Text="The connection configuration could not be opened."; }
             finally {
-                connectionConfigurationDialog=null;
                 var id=selectedId;
                 var remainingFeedback=editorFeedback?.Invoke(); editorFeedback=null;
+                closeEditor?.Invoke(); closeEditor=null;
+                if(dialog.Content is ScrollViewer viewport) viewport.Content=null;
                 editor.Children.Clear(); flush=null;
+                connectionConfigurationDialog=null;
                 if(id is not null&&policy.Connections?.Any(p=>p.ProfileId==id)!=true) {
                     profiles.RemoveAll(p=>p.ProfileId==id); selectedId=profiles.FirstOrDefault()?.ProfileId;
                 }

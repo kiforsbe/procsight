@@ -9,7 +9,7 @@ public enum ChatGptAuthStage
     AppStarted, DialogOpened, PanelLoaded, PanelUnloaded, AccountPickerUpdated, SignInClicked,
     SessionLock, CatalogRead, CallbackListener, BrowserLaunch, CallbackReceived,
     CallbackValidation, TokenExchange, IdentityValidation, SessionWrite, CatalogWrite,
-    SignIn, DialogAccountUpdate, Models, HttpResponse
+    SignIn, DialogAccountUpdate, Models, HttpResponse, UnhandledUiException
 }
 public enum ChatGptAuthOutcome { Started, Succeeded, Failed, Cancelled }
 
@@ -25,6 +25,9 @@ public sealed class ChatGptAuthenticationLog(string path)
         Channel.CreateBounded<(DateTimeOffset, ChatGptAuthEvent)>(new BoundedChannelOptions(256) {
             SingleReader = true, FullMode = BoundedChannelFullMode.DropOldest });
     private int started;
+    private readonly object fileGate = new();
+    public void WriteCrash(int hresult) => Append(DateTimeOffset.UtcNow,
+        new(ChatGptAuthStage.UnhandledUiException, ChatGptAuthOutcome.Failed, HResult:hresult));
     public void Write(ChatGptAuthEvent entry)
     {
         if (!Enum.IsDefined(entry.Stage) || !Enum.IsDefined(entry.Outcome) ||
@@ -41,6 +44,7 @@ public sealed class ChatGptAuthenticationLog(string path)
     {
         // Diagnostics must never break authentication or propagate storage errors.
         try {
+            lock (fileGate) {
             Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
             if (File.Exists(path) && new FileInfo(path).Length >= MaximumBytes)
                 File.Move(path, path + ".previous", true);
@@ -50,6 +54,7 @@ public sealed class ChatGptAuthenticationLog(string path)
             if (entry.Count is { } count) line += $" count={count}";
             if (entry.HResult is { } result) line += $" hresult=0x{result:X8}";
             File.AppendAllText(path, line + Environment.NewLine, Encoding.UTF8);
+            }
         } catch { }
     }
 }
