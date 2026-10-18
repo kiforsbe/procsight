@@ -337,3 +337,11 @@ A kernel sequence proves process lifetime only, never executable identity, signa
 Name-only automatic assessment stays Unknown; explicit Analyze can assess the limited evidence.
 Service icons use configured implementation, then host, as cosmetic sources only; they never imply
 loaded-module or publisher proof. Maintain stale-source checks in the shared off-thread icon pipeline.
+
+MSI packaging uses the Msi profile: self-contained unpackaged x64, per-machine Program Files,
+Windows Installer Automation/MakeCab, no executable custom actions or automatic app launch.
+Preserve stable per-file component GUIDs/upgrade identity, transactional major upgrades, downgrade
+checks, bounded approved payload/hash inspection and audited restore. MSI uses central X.Y.Z
+(major/minor <=255, patch <=65534); file/MSIX versions remain X.Y.Z.0. Never install a product,
+import trust, erase user data or migrate MSIX credentials as part of packaging/tests. Lifecycle
+and ICE validation remain explicit manual acceptance; no new WiX dependency is needed.

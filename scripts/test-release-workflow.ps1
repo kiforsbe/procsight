@@ -34,9 +34,10 @@ if(Test-Path -LiteralPath (Join-Path $root 'artifacts/fail-package')) { throw 'S
 . (Join-Path $PSScriptRoot 'release/Common.ps1')
 $version=Read-ProcSightVersion $root; $commit=(& git -C $root rev-parse HEAD).Trim()
 $folder=Join-Path $root 'artifacts/packages/fixture'; New-Item -ItemType Directory -Path $folder -Force | Out-Null
-$artifact=Join-Path $folder "ProcSight-$version.msix"; Set-Content -LiteralPath $artifact -Value 'synthetic bytes'
+$extension=if($Profile -eq 'Msi'){'msi'}else{'msix'}
+$artifact=Join-Path $folder "ProcSight-$version.$extension"; Set-Content -LiteralPath $artifact -Value 'synthetic bytes'
 $manifest=Join-Path $folder 'release-artifacts.json'
-@{Version=$version;PackageVersion="$version.0";Commit=$commit;Artifact=[IO.Path]::GetFileName($artifact);SHA256=(Get-FileHash -LiteralPath $artifact).Hash;Signed=$false;Profile=$Profile} | ConvertTo-Json | Set-Content -LiteralPath $manifest
+@{Version=$version;PackageVersion=if($Profile -eq 'Msi'){$version}else{"$version.0"};Commit=$commit;Artifact=[IO.Path]::GetFileName($artifact);SHA256=(Get-FileHash -LiteralPath $artifact).Hash;Signed=$false;Profile=$Profile} | ConvertTo-Json | Set-Content -LiteralPath $manifest
 [pscustomobject]@{ Artifact=$artifact;Manifest=$manifest;Version=$version;Commit=$commit }
 '@ | Set-Content -LiteralPath (Join-Path $fixture 'scripts/package.ps1')
  $null=Run-Git @('init','--initial-branch=fixture-release'); $null=Run-Git @('config','user.name','Synthetic Fixture'); $null=Run-Git @('config','user.email','fixture@example.invalid')
@@ -86,6 +87,13 @@ $manifest=Join-Path $folder 'release-artifacts.json'
  Check ((Run-Git @('rev-parse','v0.1.0^{}')) -eq $releaseCommit) 'Mismatched resume moved the release tag'
  Rejected { & $script -Version 0.0.9 -Profile Direct }
  Check ((Get-Content -LiteralPath (Join-Path $fixture 'CHANGELOG.md') -Raw).Contains('[0.1.0] -')) 'Release changelog was not created'
+ # A subsequent MSI release reuses central SemVer while its database has three components.
+ Set-Content -LiteralPath (Join-Path $fixture 'CHANGELOG.md') -Value "# Changes`n`n## [Unreleased]`n`n### Added`n`n- Synthetic MSI.`n`n## [0.1.0] - 2026-10-17`n`n- Older fixture.`n"
+ $null=Run-Git @('add','CHANGELOG.md');$null=Run-Git @('commit','-m','Synthetic MSI notes')
+ & $script -Bump Minor -Profile Msi | Out-Null
+ Check ((Run-Git @('tag','--list','v0.2.0')) -eq 'v0.2.0') 'MSI release did not create its synthetic annotated tag'
+ $msiMetadata=Get-Content -LiteralPath (Join-Path $fixture 'artifacts/packages/fixture/release-artifacts.json') -Raw | ConvertFrom-Json
+ Check ($msiMetadata.PackageVersion -eq '0.2.0' -and $msiMetadata.Artifact.EndsWith('.msi')) 'MSI artifact version/format mismatch'
  Write-Output "Release workflow checks passed: $checks"
 } finally {
  if([IO.Path]::GetFullPath($fixture).StartsWith([IO.Path]::GetFullPath([IO.Path]::GetTempPath()),[StringComparison]::OrdinalIgnoreCase)) { Remove-Item -LiteralPath $fixture -Recurse -Force }

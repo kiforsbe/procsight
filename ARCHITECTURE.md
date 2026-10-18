@@ -76,7 +76,7 @@ sequenceDiagram
     Dialog->>Dialog: Flush valid settings, cancel work, detach editor
 ```
 
-### MSIX distribution and release preparation
+### Installer distribution and release preparation
 
 Local MSIX generation is implemented. The [packaging design](docs/superpowers/specs/2026-10-17-msix-packaging-design.md)
 defines opt-in Direct/Store profiles, signing, package identity and elevation boundaries; the
@@ -84,6 +84,28 @@ defines opt-in Direct/Store profiles, signing, package identity and elevation bo
 installation lifecycle checks. Normal builds remain unpackaged; explicit Direct packaging bundles
 runtimes and Store packaging declares runtime dependencies. Package trust, Store acceptance and
 actual installed elevation/upgrade/uninstall behavior have not been established by synthetic tests.
+
+The [MSI profile](packaging/Msi.pubxml) publishes a self-contained unpackaged app.
+[Native MSI authoring](scripts/packaging/Msi.ps1) creates a per-machine x64 database and
+embedded cabinet using Windows Installer Automation and MakeCab. Stable per-file component
+GUIDs and one upgrade GUID support transactional major upgrades; the product GUID changes
+with the central three-part version. A Windows-build launch condition enforces 24H2.
+The advertised Start-menu shortcut targets the main feature's executable key path.
+No executable custom actions, app launch, user-data cleanup or certificate import are authored.
+Inspection reopens the database, checks identity/components and extracts the cabinet to compare
+every file's SHA-256 with the approved publish payload. Installed lifecycle/ICE acceptance is pending.
+
+```mermaid
+flowchart LR
+    Source[Versioned source and locked dependencies] --> Audit[Solution and profile vulnerability gates]
+    Audit --> Publish[Self-contained unpackaged publish]
+    Publish --> Native[Windows Installer database and embedded cabinet]
+    Native --> Inspect[Read-only database and payload hash inspection]
+    Inspect --> Artifact[MSI and version / commit / hash manifest]
+    Artifact --> Consent[User installation with Windows UAC]
+    Consent --> Files[Program Files and Start-menu shortcut]
+    Files --> App[Normal privilege app and per-user data]
+```
 
 [Dependency tooling](scripts/dependencies/Common.ps1) supplies a shared vulnerability-report
 gate and audited-restore arguments. [Packaging](scripts/package.ps1) first restores/audits the

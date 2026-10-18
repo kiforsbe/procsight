@@ -11,7 +11,7 @@ processes and services do.
 </p>
 
 **Development preview — no public release or download is available yet.**
-Current packaging produces MSIX packages. A standalone EXE installer and a Microsoft
+Current packaging produces self-contained MSI installers and MSIX packages. A standalone EXE installer and a Microsoft
 Store listing are not currently available. Installation and full desktop acceptance
 checks are still in progress; see [known validation limits](docs/verification.md).
 
@@ -37,6 +37,24 @@ are shown explicitly.
 
 ProcSight targets **Windows 11 24H2 or later, x64**. Public downloads will be listed in
 this repository's GitHub Releases when a release is published.
+
+### MSI installer
+
+If you have been supplied an MSI preview, close ProcSight, double-click the `.msi`, and
+approve Windows' administrator prompt. It installs to **Program Files\ProcSight** for all
+users and adds **ProcSight** to the Start menu. The required runtimes are included.
+The app starts normally; administrator mode remains an explicit in-app choice.
+
+**No certificate import is required for MSI.** Unsigned installers can still trigger
+publisher/reputation warnings or be blocked by Smart App Control or device policy.
+Only install files from a source you trust.
+
+Install a newer MSI to upgrade. Remove it through **Settings → Apps → Installed apps**.
+User settings and credentials are retained. MSI and MSIX use separate settings/account
+storage; switching formats does not migrate them automatically. Installer lifecycle
+acceptance testing is still pending.
+
+### MSIX package
 
 If you have been supplied a signed development-preview package:
 

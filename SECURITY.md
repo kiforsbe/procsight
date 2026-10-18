@@ -25,7 +25,7 @@ time. Ordinary bugs and support questions belong in the issue templates and
 ## Supported versions
 
 ProcSight is an unreleased development preview. Source builds and locally prepared
-development MSIX packages are for evaluation; no stable release or supported-version security
+development MSI/MSIX packages are for evaluation; no stable release or supported-version security
 update policy has been established. See [verification notes](docs/verification.md)
 for actual checks and remaining acceptance work.
 
@@ -72,6 +72,17 @@ matching the publisher and HTTPS timestamping; development certificate creation 
 Unsigned development artifacts are not installation-ready. Store preparation does not establish
 Microsoft approval for restricted capabilities or certification. Signing and installed lifecycle
 acceptance remain outstanding; no certificate or package is automatically trusted or installed.
+
+The MSI profile bundles the unpackaged app and runtimes under protected Program Files,
+using Windows Installer's per-machine elevation prompt. The app remains asInvoker; no
+installer action launches it or enables administrator mode. Authoring has no executable
+custom actions, certificate trust changes, forced app termination or user-data deletion.
+An advertised Start-menu shortcut can invoke Windows Installer repair before normal launch.
+Uninstall retains per-user settings and credentials, which use unpackaged namespaces rather
+than MSIX package-family storage. There is no automatic migration between formats.
+Unsigned MSI needs no imported certificate, but Windows reputation, Smart App Control and
+enterprise policies can warn or block it. Optional MSI signing signs the installer container,
+not every payload binary. Database/cabinet inspection is not installed lifecycle or ICE validation.
 
 Release preparation requires PowerShell 7+, a clean named branch and valid local Git identity.
 It commits only synchronized version/changelog files, builds from that exact clean commit and checks

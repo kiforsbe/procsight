@@ -1,4 +1,9 @@
 # Product version inventory only. Dependency versions and historical examples are deliberately excluded.
+function Assert-ProcSightMsiVersion([string]$Version) {
+ $null=Get-ProcSightReleaseVersion -Current $Version -Version $Version
+ $parts=$Version.Split('.')
+ if([int]$parts[0] -gt 255 -or [int]$parts[1] -gt 255) { throw 'MSI requires major/minor version components <=255; the patch retains the central <=65534 limit.' }
+}
 function Get-ProcSightReleaseVersion {
  param([Parameter(Mandatory)][string]$Current,[string]$Version,[ValidateSet('Major','Minor','Patch')][string]$Bump,[switch]$Store)
  function Parse-Version([string]$value) {

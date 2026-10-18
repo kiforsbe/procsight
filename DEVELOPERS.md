@@ -161,6 +161,41 @@ source version, so fixture scenarios must never assume that copied source is sti
 If verification fails before the release commit, correct the failure and retry the original
 command; `-Resume` applies only after a prepared release commit exists.
 
+## MSI packaging
+
+Run from PowerShell 7 on Windows with the existing .NET/Windows SDK prerequisites:
+
+```powershell
+./scripts/test-msi.ps1
+./scripts/package.ps1 -Profile Msi
+./scripts/prepare-release.ps1 -Bump Minor -Profile Msi -DryRun
+```
+
+The final `.msi` and `release-artifacts.json` are under
+`artifacts/packages/Msi/<version>/<build-id>/`. The MSI includes .NET and Windows App SDK
+runtimes, licenses and notices; users need no SDK or certificate import. Build tooling
+uses Windows Installer Automation, MakeCab and Expand, with no WiX dependency.
+Optional `-CertificateThumbprint` and `-TimestampUri` sign the MSI through SignTool;
+this does not individually sign every bundled executable or guarantee Windows reputation.
+Unsigned installation remains subject to Smart App Control and managed-device policy.
+
+MSI uses the central `X.Y.Z` version; file/MSIX versions remain `X.Y.Z.0`. Windows Installer
+limits major/minor to 255 and patch to 65534; MSI preflight rejects larger versions before
+release edits. Release preparation uses the same verification, changelog, release commit
+and annotated tag flow, without pushing or publishing. DryRun creates none of those.
+
+The native installer uses standard progress UI, installs per-machine under Program Files,
+registers an advertised Start-menu shortcut to the executable key path, removes older MSI
+versions transactionally and rejects downgrades. It has no executable custom actions,
+automatic launch, forced process termination, certificate import or user-data cleanup.
+Close ProcSight before installation/upgrade. Remove through Windows Settings. MSI runs
+without package identity and uses the existing unpackaged per-user data/credentials;
+MSIX data is separate and is not migrated.
+
+`test-msi.ps1` creates only synthetic databases/cabinets and inspects their contents;
+it never installs a product. Actual install, repair, upgrade, downgrade and uninstall,
+Windows Installer ICE validation and clean-machine runtime acceptance remain manual checks.
+
 ## MSIX packaging
 
 Windows SDK 10.0.26100.0+ x64 MakeAppx/SignTool are discovered explicitly. Packaging uses the pinned

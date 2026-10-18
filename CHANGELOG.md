@@ -7,6 +7,8 @@ plans, implementation details and validation records belong in the project docum
 
 ### Added
 
+- Self-contained MSI packaging with Start-menu integration, versioned upgrades and shared release validation.
+
 - Local dependency review/update tooling and packaging gates for known package vulnerabilities.
 
 - Dependency-review requirements covering current stable versions, transitive dependencies, licenses and advisories.

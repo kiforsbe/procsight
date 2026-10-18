@@ -1,11 +1,13 @@
 . (Join-Path $PSScriptRoot '../release/Common.ps1')
 function Get-ProcSightPackageInputs {
- param([string]$Root,[ValidateSet('Direct','Store')][string]$Profile,[string]$IdentityFile,[string]$ElevationMode,[string]$VersionForValidation)
+ param([string]$Root,[ValidateSet('Direct','Store','Msi')][string]$Profile,[string]$IdentityFile,[string]$ElevationMode,[string]$VersionForValidation)
  if($ElevationMode -and $ElevationMode -notin @('Disabled','Approved')) { throw 'Invalid elevation mode.' }
+ if($Profile -eq 'Msi' -and $ElevationMode) { throw 'ElevationMode is an MSIX capability option; MSI keeps normal startup and explicit administrator restart.' }
  Assert-ProcSightVersionConsistency $Root
  $version=Read-ProcSightVersion $Root
  if($VersionForValidation) { $version=(Get-ProcSightReleaseVersion -Current $version -Version $VersionForValidation).Version }
  $null=Get-ProcSightReleaseVersion -Current $version -Version $version -Store:($Profile -eq 'Store')
+ if($Profile -eq 'Msi') { Assert-ProcSightMsiVersion $version }
  $identity=[pscustomobject]@{ Name='ProcSight.Development'; Publisher='CN=ProcSight Development'; PublisherDisplayName='ProcSight development' }
  if($Profile -eq 'Store' -and (!$IdentityFile -or !$ElevationMode)) { throw 'Store requires reserved IdentityFile and explicit ElevationMode Disabled or Approved.' }
  if($IdentityFile) {
@@ -15,7 +17,7 @@ function Get-ProcSightPackageInputs {
   $null=[Security.Cryptography.X509Certificates.X500DistinguishedName]::new([string]$identity.Publisher)
  }
  [pscustomobject]@{ Name=$identity.Name; Publisher=$identity.Publisher; PublisherDisplayName=$identity.PublisherDisplayName;
-  Version="$version.0"; ProductVersion=$version; Production=[bool]$IdentityFile; AllowsElevation=($Profile -eq 'Direct' -or $ElevationMode -eq 'Approved'); Profile=$Profile }
+  Version="$version.0"; InstallerVersion=if($Profile -eq 'Msi'){$version}else{"$version.0"}; ProductVersion=$version; Production=[bool]$IdentityFile; AllowsElevation=($Profile -ne 'Store' -or $ElevationMode -eq 'Approved'); Profile=$Profile }
 }
 function Get-ProcSightSdkTool([string]$Name) {
  if($Name -notin @('makeappx.exe','signtool.exe')) { throw 'Unknown SDK tool.' }

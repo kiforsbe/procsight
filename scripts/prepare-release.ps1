@@ -4,7 +4,7 @@ param(
  [Parameter(Mandatory,ParameterSetName='Version')][Parameter(Mandatory,ParameterSetName='Resume')][string]$Version,
  [Parameter(Mandatory,ParameterSetName='Bump')][ValidateSet('Major','Minor','Patch')][string]$Bump,
  [Parameter(Mandatory,ParameterSetName='Resume')][switch]$Resume,
- [Parameter(Mandatory)][ValidateSet('Direct','Store')][string]$Profile,
+ [Parameter(Mandatory)][ValidateSet('Direct','Store','Msi')][string]$Profile,
  [switch]$DryRun,[string]$ReleaseDate=(Get-Date -Format 'yyyy-MM-dd'),
  [string]$IdentityFile,[string]$CertificateThumbprint,[ValidateSet('Disabled','Approved')][string]$ElevationMode,
  [string]$FeedUri,[string]$PackageUri,[string]$TimestampUri)
@@ -47,7 +47,7 @@ if($Resume) {
  foreach($previous in $tags) { if($previous -match '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' -and [version]$Version -le [version]$previous.Substring(1)) { throw 'Release version must be greater than existing local release tags.' } }
 }
 $inputs=Get-ProcSightPackageInputs -Root $root -Profile $Profile -IdentityFile $IdentityFile -ElevationMode $ElevationMode -VersionForValidation $Version
-$null=Get-ProcSightSdkTool 'makeappx.exe'
+if($Profile -ne 'Msi') { $null=Get-ProcSightSdkTool 'makeappx.exe' }
 if([bool]$FeedUri -ne [bool]$PackageUri) { throw 'Supply both FeedUri and PackageUri, or neither.' }
 if($FeedUri) {
  Assert-ProcSightFeedUri $FeedUri; Assert-ProcSightFeedUri $PackageUri
@@ -125,7 +125,7 @@ try {
  $packages=@($results | Where-Object { $_.PSObject.Properties.Name -contains 'Artifact' -and $_.PSObject.Properties.Name -contains 'Manifest' })
  if($packages.Count -ne 1) { throw 'Package command did not return exactly one inspected artifact.' }
  $package=$packages[0]; $metadata=Get-Content -LiteralPath $package.Manifest -Raw | ConvertFrom-Json
- if($metadata.Version -cne $Version -or $metadata.PackageVersion -cne $release.WindowsVersion -or $metadata.Commit -cne $head -or
+ if($metadata.Version -cne $Version -or $metadata.PackageVersion -cne $inputs.InstallerVersion -or $metadata.Profile -cne $Profile -or $metadata.Commit -cne $head -or
   $metadata.SHA256 -cne (Get-FileHash -LiteralPath $package.Artifact -Algorithm SHA256).Hash) { throw 'Release artifact version/commit/hash does not agree with the release commit.' }
  Assert-CleanReleaseCheckout
  if((Invoke-ReleaseGit @('rev-parse','HEAD')) -ne $head) { throw 'HEAD changed while release packages were built.' }

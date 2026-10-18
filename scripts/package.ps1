@@ -1,9 +1,10 @@
 #requires -Version 7.0
 [CmdletBinding()]
-param([ValidateSet('Direct','Store')][string]$Profile='Direct',[string]$IdentityFile,[string]$CertificateThumbprint,
+param([ValidateSet('Direct','Store','Msi')][string]$Profile='Direct',[string]$IdentityFile,[string]$CertificateThumbprint,
  [ValidateSet('Disabled','Approved')][string]$ElevationMode,[string]$FeedUri,[string]$PackageUri,[string]$TimestampUri)
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'packaging/Common.ps1')
+. (Join-Path $PSScriptRoot 'packaging/Msi.ps1')
 . (Join-Path $PSScriptRoot 'dependencies/Common.ps1')
 $root=Split-Path $PSScriptRoot -Parent
 $inputs=Get-ProcSightPackageInputs -Root $root -Profile $Profile -IdentityFile $IdentityFile -ElevationMode $ElevationMode
@@ -14,7 +15,7 @@ if($FeedUri) {
  if(!$inputs.Production -or $Profile -ne 'Direct' -or !$CertificateThumbprint) { throw 'An update feed requires a signed production Direct package.' }
  Assert-ProcSightFeedUri $FeedUri; Assert-ProcSightFeedUri $PackageUri
 }
-$makeappx=Get-ProcSightSdkTool 'makeappx.exe'
+$makeappx=if($Profile -ne 'Msi') { Get-ProcSightSdkTool 'makeappx.exe' } else { $null }
 $signTool=$null; $certificate=$null
 if($CertificateThumbprint) {
  if($Profile -eq 'Store') { throw 'Store preparation is unsigned; Microsoft signs accepted Store submissions.' }
@@ -37,9 +38,11 @@ if(!$inputs.AllowsElevation) {
 $manifest.Save($generatedManifest)
 $output=Join-Path $buildRoot 'output'; $packages=Join-Path $buildRoot 'msix'
 $licenses=Join-Path $buildRoot 'Licenses'
+$publish=Join-Path $buildRoot 'publish'
 $common=@('-p:ProcSightPackaging=true',"-p:ProcSightPackagingRoot=$buildRoot/","-p:ProcSightPackageProfile=$root/packaging/$Profile.pubxml",'-p:SelfContained=true',
- "-p:WindowsAppSDKSelfContained=$($Profile -eq 'Direct')",'-p:Platform=x64',"-p:BaseOutputPath=$output/", "-p:ProcSightPackageManifest=$generatedManifest",
+ "-p:WindowsAppSDKSelfContained=$($Profile -ne 'Store')",'-p:Platform=x64',"-p:BaseOutputPath=$output/", "-p:ProcSightPackageManifest=$generatedManifest",
  "-p:AppxPackageDir=$packages/", "-p:SourceRevisionId=$commit","-p:ProcSightLicenseFolder=$licenses",'-p:AppxPackageSigningEnabled=false','-p:AppxAutoIncrementPackageRevision=false')
+if($Profile -eq 'Msi') { $common+=@('-p:ProcSightInstallerFormat=Msi','-p:WindowsPackageType=None','-p:EnableMsixTooling=false','-p:DebugType=None','-p:DebugSymbols=false',"-p:PublishDir=$publish/") }
 $project=Join-Path $root 'src/ProcSight.App/ProcSight.App.csproj'
 Push-Location $root
 try {
@@ -67,16 +70,24 @@ try {
  }
  Invoke-ProcSightTool 'dotnet' (@('publish',$project,'-c','Release','--no-restore','--nologo')+$common)
 } finally { Pop-Location }
-$candidates=@(Get-ChildItem -LiteralPath $packages -Recurse -File -Filter '*.msix' | Where-Object { $_.DirectoryName -notmatch '[\\/]Dependencies([\\/]|$)' })
-if($candidates.Count -ne 1) { throw 'Expected exactly one primary MSIX package.' }
-$inspection=Join-Path $buildRoot 'inspection'
-Invoke-ProcSightTool $makeappx @('unpack','/p',$candidates[0].FullName,'/d',$inspection,'/o')
-Assert-ProcSightPackageContents $inspection $inputs
+if($Profile -eq 'Msi') {
+ $inspection=$publish
+ $suffix=if($certificate){'signed'}else{'unsigned'}
+ $artifact=Join-Path $buildRoot "ProcSight-$($inputs.ProductVersion)-x64-$suffix.msi"
+ New-ProcSightMsi -Folder $publish -Path $artifact -Version $inputs.ProductVersion
+ Assert-ProcSightMsiContents $artifact $publish $inputs.ProductVersion (Join-Path $buildRoot 'inspection')
+} else {
+ $candidates=@(Get-ChildItem -LiteralPath $packages -Recurse -File -Filter '*.msix' | Where-Object { $_.DirectoryName -notmatch '[\\/]Dependencies([\\/]|$)' })
+ if($candidates.Count -ne 1) { throw 'Expected exactly one primary MSIX package.' }
+ $inspection=Join-Path $buildRoot 'inspection'
+ Invoke-ProcSightTool $makeappx @('unpack','/p',$candidates[0].FullName,'/d',$inspection,'/o')
+ Assert-ProcSightPackageContents $inspection $inputs
+ $suffix=if($Profile -eq 'Store') {'store-submission'}elseif($certificate){'signed'}else{'unsigned-development'}
+ $artifact=Join-Path $buildRoot "ProcSight-$($inputs.ProductVersion)-x64-$suffix.msix"
+ Copy-Item -LiteralPath $candidates[0].FullName -Destination $artifact
+}
 $information=[Diagnostics.FileVersionInfo]::GetVersionInfo((Join-Path $inspection 'ProcSight.App.dll')).ProductVersion
 if(!$information.StartsWith($inputs.ProductVersion+'+') -or !$information.Contains($commit)) { throw 'Packaged informational version does not identify the source commit.' }
-$suffix=if($Profile -eq 'Store') {'store-submission'}elseif($certificate){'signed'}else{'unsigned-development'}
-$artifact=Join-Path $buildRoot "ProcSight-$($inputs.ProductVersion)-x64-$suffix.msix"
-Copy-Item -LiteralPath $candidates[0].FullName -Destination $artifact
 if($certificate) {
  $arguments=@('sign','/sha1',$CertificateThumbprint,'/s','My','/fd','SHA256')
  if($TimestampUri) { $arguments+=@('/tr',$TimestampUri,'/td','SHA256') }
@@ -90,10 +101,11 @@ if($FeedUri) {
  New-ProcSightAppInstaller $inputs $FeedUri $PackageUri (Join-Path $buildRoot "ProcSight-$($inputs.ProductVersion).appinstaller")
 }
 $hash=(Get-FileHash -LiteralPath $artifact -Algorithm SHA256).Hash
-[pscustomobject]@{ Version=$inputs.ProductVersion;PackageVersion=$inputs.Version;Commit=$commit;Profile=$Profile;Artifact=[IO.Path]::GetFileName($artifact);SHA256=$hash;Signed=[bool]$certificate } |
+[pscustomobject]@{ Version=$inputs.ProductVersion;PackageVersion=$inputs.InstallerVersion;Commit=$commit;Profile=$Profile;Artifact=[IO.Path]::GetFileName($artifact);SHA256=$hash;Signed=[bool]$certificate } |
  ConvertTo-Json | Set-Content -LiteralPath (Join-Path $buildRoot 'release-artifacts.json') -Encoding utf8NoBOM
 Write-Output "Package inspected: $artifact"
 if(!$certificate -and $Profile -eq 'Direct') { Write-Output 'UNSIGNED DEVELOPMENT OUTPUT: not installable until explicitly signed with a trusted certificate.' }
+if(!$certificate -and $Profile -eq 'Msi') { Write-Output 'UNSIGNED MSI: no certificate import is required; Windows reputation or managed-device policy may warn or block installation.' }
 if($Profile -eq 'Store') { Write-Output 'STORE PREPARATION ONLY: certification, elevation approval and publication are not performed.' }
 # Return a structured result for local release orchestration; tool output is routed to the host.
 [pscustomobject]@{ Artifact=$artifact;Manifest=(Join-Path $buildRoot 'release-artifacts.json');Version=$inputs.ProductVersion;Commit=$commit }

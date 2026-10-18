@@ -1,5 +1,25 @@
 # Development verification
 
+## MSI packaging (2026-10-18)
+
+The native MSI authoring/profile and release integration passed 28 synthetic MSI checks,
+28 disposable-repository release-workflow checks, 20 release helper checks, 27 packaging
+checks, 19 dependency-helper checks and 10 certificate-helper checks (no trust changes).
+The Release solution build and all 399 permitted tests passed; ChatGPT authentication
+was excluded. Actual unsigned self-contained MSI creation and embedded-payload SHA-256
+inspection passed; Direct MSIX creation/inspection also passed as a regression check.
+No dependency was added, no product was installed, and no real release/tag was created.
+
+The MSI database declares x64/per-machine scope, one component per file, a stable upgrade
+identity, transactional older-version removal, same/newer-version detection, a Windows
+build floor and an advertised Start-menu shortcut to the main executable key path.
+It contains no executable custom actions or authored registry writes. Inspection verifies
+identity, mappings, cabinet count and every embedded file against the published payload.
+This does not substitute for Windows Installer ICE validation or actual clean-machine
+install/repair/upgrade/downgrade/uninstall tests, which remain outstanding. Unsigned MSI
+requires no certificate import but Windows security policy/reputation can still block it.
+
+
 ## Release verification version isolation (2026-10-18)
 
 A regression fixture first seeded a higher source version (7.8.9) and reproduced the
