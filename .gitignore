@@ -1,7 +1,10 @@
 # Visual Studio and local editor state
 .vs/
 .idea/
-.vscode/
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/extensions.json
 *.user
 *.suo
 *.userosscache
@@ -22,16 +25,23 @@
 *.appxbundle
 *.appxsym
 *.appxupload
+*.msixupload
+*.cer
+/packaging/*.local.json
 
 # Tests, coverage, logs and diagnostics
+/.superpowers/
 **/TestResults/
 **/coverage/
 *.trx
 *.coverage
 *.coveragexml
 *.log
+*.log.previous
 *.dmp
 *.etl
+*.png.checks
+*.png.error
 
 # Local credentials and personal configuration
 .env
@@ -61,6 +71,8 @@ appsettings.*.Local.json
 *.sqlite3-shm
 
 # OS and temporary files
+*.gcdump
+*.nettrace
 Thumbs.db
 Desktop.ini
 .DS_Store
@@ -70,3 +82,12 @@ Desktop.ini
 
 # Keep source, assets, package lock files and documentation tracked.
 # Update these rules whenever tooling or generated output changes.
+# Local inventory exports (sanitized fixtures should use explicit test names elsewhere).
+/exports/
+ProcSight-processes*.csv
+ProcSight-processes*.json
+ProcSight-processes*.tsv
+ProcSight-services*.csv
+ProcSight-services*.json
+ProcSight-services*.tsv
+.procsight-export-*.tmp

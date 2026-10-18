@@ -1,0 +1,30 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "ProcSight (Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "ProcSight: build",
+            "program": "${workspaceFolder}/src/ProcSight.App/bin/Debug/net10.0-windows10.0.26100.0/win-x64/ProcSight.App.exe",
+            "cwd": "${workspaceFolder}",
+            "args": [],
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "justMyCode": true
+        },
+        {
+            "name": "ProcSight (Release)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "ProcSight: build Release",
+            "program": "${workspaceFolder}/src/ProcSight.App/bin/Release/net10.0-windows10.0.26100.0/win-x64/ProcSight.App.exe",
+            "cwd": "${workspaceFolder}",
+            "args": [],
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "justMyCode": false,
+            "suppressJITOptimizations": false
+        }
+    ]
+}
