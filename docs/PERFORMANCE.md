@@ -1,5 +1,51 @@
 # Local UI and rules performance
 
+## Off-screen table realization — 2026-10-18
+
+The current goal is approximately 250 MB total resident working set with no substantial performance
+regression. **That goal has not been reached.** A fresh Release build with administrator collection
+and AI disabled averaged 376.50 MB in seven numeric samples from 60 through 120 seconds. Changing
+only native table CacheLength from WinUI's default 4 to 1 averaged 333.60 MB in the corresponding
+follow-up samples, about 43 MB lower. Both temporary Release instances used the verified local
+10.0.13 runtime and their normal Processes page/settings. Startup and live inventories differ;
+these are exploratory, not controlled, comparisons. CPU consumed during the final 60 seconds was
+9.64 versus 8.30 core-seconds, providing no evidence of a CPU regression in these runs.
+
+PSAPI QueryWorkingSet plus VirtualQueryEx classified resident pages without reading their contents.
+At the end of the Release baseline, the 374.23 MB page sample comprised about 207.98 MB private
+allocations, 120.17 MB sharable image pages, 39.55 MB sharable mapped pages and 6.52 MB other/private
+image/mapped pages. After reducing the cache, total page bytes were 333.61 MB and private allocations
+167.42 MB; images/mappings were similar. Sharable is an attribute, not proof every such page is
+currently shared. Total working set includes these pages; it must not be confused with private
+resident memory or private committed bytes. No memory contents, commands or credentials were captured.
+
+Fresh synthetic 1,000-row table processes compared native caches with 90 scroll/layout operations:
+
+| CacheLength | Realized rows | Working set after scrolling | Mean synchronous work | p95 synchronous work |
+| --- | ---: | ---: | ---: | ---: |
+| 4 (previous default) | 83 | 294.32 MB | 4.82 ms | 32.46 ms |
+| 2 | 51 | 259.85 MB | 3.17 ms | 9.18 ms |
+| 1 (chosen) | 35 | 241.02 MB | 2.61 ms | 6.47 ms |
+| 0.5 (not chosen) | 27 | 234.97 MB | 2.18 ms | 3.59 ms |
+
+These are individual samples, not retained-heap proofs or completed-frame/input-latency measurements.
+CacheLength 1 retains half a viewport on each side, a conservative buffer compared with 0.5.
+Microsoft documents the [default and buffer semantics](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.controls.itemsstackpanel.cachelength).
+Live data, columns, native selection and context actions are unchanged. The smaller cache increases
+recycling frequency; wide/narrow light/dark column, drag and shading checks passed, while actual fast
+inertial scrolling still needs desktop acceptance. Several memory-fixture runs completed measurement
+and rendering but hit the previously recorded 0xC000027B during closing; do not count those as clean
+end-to-end passes. The default-cache contract first failed at 4, then passed at 1.
+
+Removing width bindings in a temporary fixture changed post-scroll working set by only about
+2.5 MB in one pair and did not improve synchronous mean work; the experiment was discarded.
+An optional GCConserveMemory=5 administrator comparison was canceled at Windows elevation before
+launch. It produced no measurements and **no GC configuration was changed**. Forced GC, working-set
+trimming, reduced metadata/sampling coverage and disabled monitoring are not used to meet the goal.
+Remaining work is attribution of the native/runtime/private footprint and longer controlled runs;
+250 MB is not justified by the synthetic table result alone. Ignored reports are under
+`artifacts/ui-performance/release-{baseline,cache1}-*` and `table-cache-*`.
+
 ## Live administrator GUI and runtime leak — 2026-10-17
 
 A 35-second capture of the user's running administrator Processes page, excluding AI work,

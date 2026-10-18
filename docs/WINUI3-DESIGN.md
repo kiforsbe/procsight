@@ -132,6 +132,10 @@ product requirements when changing shared table controls.
   changes that column's width continuously; neighboring columns shift accordingly. Do not turn
   an edge drag into a reorder or sort, and do not redistribute all column widths automatically.
 - **Stable list:** keep row identities, selection, group expansion, icons and resource data intact.
+  Process/service tables use ItemsStackPanel CacheLength 1 (half a viewport buffered on each side),
+  retaining native virtualization rather than the four-viewport default. Validate shared transforms,
+  widths and selection through recycling. Do not remove the buffer or disable virtualization to
+  reduce memory. Synchronous layout timings do not establish input-to-present frame latency.
   Reordering must move existing cells, not recreate the row templates on every pointer move.
   Keep boundaries aligned through horizontal scrolling and virtualization, without binding errors,
   flicker, blank cells or a jump in vertical scroll position.

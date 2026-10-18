@@ -126,6 +126,8 @@ public sealed partial class MainWindow
                 }
                 if(args.Length>5&&args[5]=="ui-performance") await CheckUiPerformanceAsync(output);
                 if(args.Length>5&&args[5]=="ui-memory") await CheckMemoryPerformanceAsync(output);
+                if(args.Length>5&&args[5].StartsWith("table-memory-",StringComparison.Ordinal))
+                    await CheckTableMemoryAsync(output,args[5]=="table-memory-default"?-1:double.Parse(args[5][13..],System.Globalization.CultureInfo.InvariantCulture));
                 if(args.Length>5&&args[5] is "chart-performance" or "chart-reuse") await CheckChartPerformanceAsync(output,args[5]=="chart-reuse");
                 if(args.Length>5&&args[5]=="local-sampling") await CheckLocalSamplingAsync(output);
                 if(args.Length>5&&args[5]=="ui-performance-rules") await CheckUiPerformanceAsync(output,true);

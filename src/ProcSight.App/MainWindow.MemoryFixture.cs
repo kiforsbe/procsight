@@ -1,10 +1,45 @@
 #if DEBUG
 using System.Diagnostics;
 using System.Text.Json;
+using Microsoft.UI.Xaml.Controls;
 using ProcSight.Application.Presentation;
 namespace ProcSight.App;
 public sealed partial class MainWindow
 {
+    private async Task CheckTableMemoryAsync(string output,double cacheLength) {
+        var panel=(ItemsStackPanel)table!.ItemsPanelRoot;
+        if(cacheLength==-1) {
+            if(panel.CacheLength!=1) throw new InvalidOperationException("Table must retain one viewport of off-screen rows, not the WinUI four-viewport default.");
+            cacheLength=panel.CacheLength;
+        } else {
+            if(cacheLength is <0.5 or >4) throw new ArgumentOutOfRangeException(nameof(cacheLength));
+            panel.CacheLength=cacheLength;
+        }
+        var seed=lastSnapshot.Processes[0];
+        lastSnapshot=lastSnapshot with { Processes=Enumerable.Range(0,1000).Select(i=>seed with {
+            Key=new(10000+i,seed.Key.StartedAt,null),ParentPid=null,
+            Executable=new("synthetic.exe",$@"C:\Synthetic\worker-{i}.exe",Product:"Synthetic application"),CommandLine=null }).ToArray() };
+        entities=new ProcSight.Core.Identity.IdentityResolver().Resolve(lastSnapshot,[]);
+        RefreshRows(true); await Task.Delay(1200);
+        var scroller=FindTableScrollViewer(table)!;
+        scroller.ChangeView(null,scroller.ScrollableHeight/2,null,true); await Task.Delay(1500); WindowRoot.UpdateLayout();
+        using var process=Process.GetCurrentProcess();
+        process.Refresh();
+        var initial=new { workingSet=process.WorkingSet64,privateBytes=process.PrivateMemorySize64,
+            managedBytes=GC.GetTotalMemory(false),realizedRows=RealizedColumnRows().Count() };
+        var timings=new List<double>();
+        for(var i=0;i<90;i++) {
+            var at=Stopwatch.GetTimestamp();
+            scroller.ChangeView(null,scroller.ScrollableHeight/2+(i%30-15)*112,null,true); WindowRoot.UpdateLayout();
+            timings.Add(Stopwatch.GetElapsedTime(at).TotalMilliseconds); await Task.Delay(16);
+        }
+        process.Refresh();
+        File.WriteAllText(output+".table-memory.json",JsonSerializer.Serialize(new { cacheLength,initial,
+            workingSet=process.WorkingSet64,privateBytes=process.PrivateMemorySize64,realizedRows=RealizedColumnRows().Count(),
+            scrollMeanMs=timings.Average(),scrollP95Ms=timings.Order().ElementAt(85),scrollMaxMs=timings.Max(),
+            overFrame=timings.Count(t=>t>16.67) },new JsonSerializerOptions { WriteIndented=true }));
+        if(rows.Count!=1000||RealizedColumnRows().Count()>=300) throw new InvalidOperationException("Table virtualization failed.");
+    }
     private async Task CheckMemoryPerformanceAsync(string output) {
         var readings=new List<object>();
         var retired=new List<WeakReference>();

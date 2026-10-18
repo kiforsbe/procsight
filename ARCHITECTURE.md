@@ -244,6 +244,14 @@ sequenceDiagram
 
 ### Performance monitoring
 
+The process/service table keeps native ItemsStackPanel virtualization with `CacheLength=1`:
+one viewport of buffered rows in total, split around the visible viewport. This replaces WinUI's
+four-viewport default while retaining native recycling, multi-selection, chevrons and shared column
+width/drag transforms. Only visual realization changes; collection, metadata and rule coverage do
+not. All live row models still retain their lifetime-aware keys. No working-set trimming or forced
+production GC is used. [Memory fixtures](src/ProcSight.App/MainWindow.MemoryFixture.cs) compare
+bounded realization and synchronous layout work; they do not measure completed compositor frames.
+
 The app's `Microsoft.NETCore.App` FrameworkReference requires runtime 10.0.13, including
 self-contained packaging, to prevent duplicate COM-wrapper diagnostic registration during WinUI
 binding notifications. Debugging remains enabled. [ProcessRow](src/ProcSight.App/ViewModels/ProcessRow.cs)

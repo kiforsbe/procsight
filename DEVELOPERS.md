@@ -70,6 +70,15 @@ The local rules harness is `dotnet run --project benchmarks/Rules -c Release`; i
 SQLite data only. Allocation-regression tests complement timings; desktop accessibility and actual
 pointer/frame-rate acceptance remain separate.
 
+Native `table-memory-default` checks the one-viewport table buffer, builds 1,000 synthetic rows,
+scrolls to the middle and records 90 programmatic scroll/layout operations. Variants
+`table-memory-4`, `table-memory-2`, `table-memory-1` and `table-memory-0.5` override only the fixture's
+cache for comparison in separate fresh processes. The capture's `.table-memory.json` contains
+numeric resident/private/managed samples, realized-row counts and synchronous layout timings.
+No inventory, settings, credentials, provider calls or forced GC are used. Record nonzero exit
+codes even if metrics were written; the existing intermittent fixture-close failure remains open.
+These are not completed-frame or inertial-scroll measurements. See [memory results](docs/PERFORMANCE.md).
+
 `./scripts/measure-sampling.ps1 -Samples 15 -Label comparison` profiles real system/GPU sampling,
 command metadata reads and full inventory collection in separate Release console processes. It writes
 only numeric timing, allocations, managed heap, private bytes, working set, handle/thread counts and

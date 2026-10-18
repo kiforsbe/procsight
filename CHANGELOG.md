@@ -66,6 +66,8 @@ plans, implementation details and validation records belong in the project docum
 
 ### Fixed
 
+- Reduce off-screen process/service row caching to lower memory use and table layout work.
+
 - Require .NET 10.0.13 to avoid WinUI COM-wrapper memory growth; reduce redundant row shading notifications.
 - Reuse snapshot resolution between the process table and local analysis to reduce allocation traffic.
 

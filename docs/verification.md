@@ -1,5 +1,24 @@
 # Development verification
 
+## Off-screen row cache — 2026-10-18
+
+The synthetic `table-memory-default` contract failed with CacheLength 4, then accepted the native
+one-viewport buffer. Fresh 1,000-row variants at 4/2/1/0.5 measured realization, working set and
+synchronous scroll/layout work. Several completed their records/capture but hit the known native
+0xC000027B while closing; their exit status remains a failure, not a clean acceptance pass.
+Wide Dark columns, narrow Light columns, wide Light column-drag and narrow Dark resource-shading
+fixtures all exited 0 with captures and no error files. Representative light captures were inspected.
+Independent review found no production correctness issue and confirmed that layout timings do not
+measure compositor completion. Fast inertial scrolling, Narrator, high contrast and scaling remain
+desktop acceptance work.
+
+Debug/Release builds passed without warnings/errors; 399 non-auth tests passed (74 Core,
+138 Application, 118 Infrastructure, 69 Windows). Two fresh administrator Release runs sampled
+the full app for 120 seconds: later working-set means were 376.50 versus 333.60 MB. These exploratory
+live runs do not establish long-term stability or achieve the 250 MB goal. See [memory evidence](PERFORMANCE.md).
+The optional elevated GC setting experiment was canceled before launch and left no configuration
+changes. No AI/provider/authentication calls or credential tests ran.
+
 ## Live GUI memory and notification regression — 2026-10-17
 
 The running administrator app was sampled using numeric counters, managed stacks and a retained

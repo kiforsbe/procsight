@@ -106,7 +106,7 @@ public sealed partial class MainWindow
         table=new ListView { ItemsSource=rows,SelectionMode=ListViewSelectionMode.Extended,
             ItemContainerTransitions=new Microsoft.UI.Xaml.Media.Animation.TransitionCollection(),
             ItemsPanel=(ItemsPanelTemplate)XamlReader.Load("""
-            <ItemsPanelTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"><ItemsStackPanel ItemsUpdatingScrollMode="KeepItemsInView"/></ItemsPanelTemplate>
+            <ItemsPanelTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"><ItemsStackPanel CacheLength="1" ItemsUpdatingScrollMode="KeepItemsInView"/></ItemsPanelTemplate>
             """),
             ItemContainerStyle=(Style)XamlReader.Load("""
             <Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" TargetType="ListViewItem">
