@@ -5,6 +5,8 @@ plans, implementation details and validation records belong in the project docum
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-18
+
 ### Added
 
 - Local Windows test-environment guidance for disposable Sandbox sessions and small snapshot-based VMs.
