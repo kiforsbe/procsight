@@ -1,12 +1,21 @@
-<Project><PropertyGroup><ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally></PropertyGroup><ItemGroup>
-<PackageVersion Include="Microsoft.WindowsAppSDK.WinUI" Version="2.2.1" />
-<PackageVersion Include="Microsoft.WindowsAppSDK.Runtime" Version="2.2.0" />
-<PackageVersion Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.4654" />
-<PackageVersion Include="Microsoft.Windows.SDK.BuildTools.MSIX" Version="1.7.251221100" />
+<Project><PropertyGroup><ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally><CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled></PropertyGroup><ItemGroup>
+<PackageVersion Include="Microsoft.WindowsAppSDK.WinUI" Version="2.3.9" />
+<PackageVersion Include="Microsoft.WindowsAppSDK.Runtime" Version="2.5.1" />
+<PackageVersion Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" />
+<PackageVersion Include="Microsoft.Windows.SDK.BuildTools.MSIX" Version="1.7.260930100" />
 <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.13" />
 <PackageVersion Include="System.Management" Version="10.0.13" />
 <PackageVersion Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="4.0.0" />
-<PackageVersion Include="xunit" Version="2.9.3" />
+<PackageVersion Include="xunit.v3.mtp-off" Version="4.0.2" />
 <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.1" />
 <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+<!-- Reviewed transitive versions; NuGet otherwise resolves dependency lower bounds. -->
+<PackageVersion Include="Microsoft.WindowsAppSDK.InteractiveExperiences" Version="2.1.9" />
+<PackageVersion Include="Microsoft.Web.WebView2" Version="1.0.4258.31" />
+<PackageVersion Include="Microsoft.Diagnostics.NETCore.Client" Version="0.2.750501" />
+<PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.13" />
+<PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.13" />
+<PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.13" />
+<PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
+<PackageVersion Include="SQLite" Version="3.54.0" />
 </ItemGroup></Project>

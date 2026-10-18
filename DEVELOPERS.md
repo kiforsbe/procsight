@@ -350,8 +350,11 @@ they already exist.
 ## Intended toolchain
 
 The plan targets Windows 11 x64, C#/.NET 10, WinUI 3, and Windows SDK 10.0.26100.0.
-The locally inspected baseline is .NET SDK 10.0.301, WinUI package 2.2.1, Windows App SDK
-Runtime package 2.2.0, and Windows SDK BuildTools 10.0.26100.4654.
+The reviewed baseline is .NET SDK 10.0.301, WinUI package 2.3.9, Windows App SDK
+Runtime package 2.5.1, and Windows SDK BuildTools 10.0.28000.2705. The target framework
+and minimum Windows version remain Windows 11 24H2 / SDK 10.0.26100.0; newer build tools
+do not themselves raise that minimum. Install the matching Windows App Runtime 2.5.1
+for normal framework-dependent unpackaged launches.
 
 Implementation must confirm the actual Visual Studio/MSBuild and runtime prerequisites,
 pin dependencies and SDK configuration, and document a working unpackaged build/launch
@@ -417,6 +420,31 @@ Run collection and analysis away from the UI thread. Keep unavailable facts expl
 Do not derive identity from a name alone, trust metadata company names as verified
 signers, or attach old findings to a reused PID. Generated rules are validated declarative
 data, never executable code.
+
+## Dependency review and updates
+
+Run `pwsh -File scripts/update-dependencies.ps1` for a read-only dependency review.
+It checks the whole solution, including transitive dependencies, against NuGet update,
+vulnerability and deprecation metadata and verifies resolved versions are listed/stable.
+The reviewed inventory and compatibility decisions are in [DEPENDENCIES.md](docs/DEPENDENCIES.md).
+
+Use `pwsh -File scripts/update-dependencies.ps1 -Apply` to update existing approved
+central pins and regenerate lock files. Dependency files must start clean. Updates are
+retained only after graph checks, locked restore, Release build and the permitted test
+suite pass; failure restores their original bytes. Deprecated package-ID migrations,
+new transitive pins and framework changes require explicit review. The script cannot
+infer API compatibility or approve license terms; inspect release notes/licenses and
+run affected native UI/packaging checks before committing. It never commits or publishes.
+Real ChatGPT authentication tests are excluded; fake-provider tests remain included.
+
+`scripts/package.ps1` performs a solution vulnerability check before creating output,
+then forces an audited restore of the actual selected profile with transitive auditing
+and all severities enabled. NU1900–NU1905 are errors, including unavailable advisory data.
+[nuget.config](nuget.config) explicitly selects nuget.org for packages and advisories.
+This blocks known feed-reported vulnerabilities; it is not proof of safety or a complete
+native/runtime vulnerability inventory. Packaging does not automatically upgrade packages.
+`pwsh -File scripts/test-dependencies.ps1` verifies rejection and rollback using synthetic data
+and is included in `scripts/verify.ps1`.
 
 ## Contributions and verification
 

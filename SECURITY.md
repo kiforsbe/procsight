@@ -31,6 +31,12 @@ for actual checks and remaining acceptance work.
 
 ## Implemented security boundaries and validation limits
 
+Packaging rejects known NuGet vulnerability findings before output creation and forces
+an audited restore of the selected packaging graph, including transitive packages at
+all severity levels. Advisory retrieval failures also stop packaging. This is a current
+advisory-feed check, not proof that packages, native libraries or bundled runtimes are
+free of vulnerabilities. See [dependency review and updates](DEVELOPERS.md#dependency-review-and-updates).
+
 Connection profiles keep API keys in independent Windows-protected credential slots. Plain settings
 contain only opaque references. Migration copies a legacy key before publishing the new profile;
 failure must not publish a partly configured replacement. Profile endpoints reject embedded

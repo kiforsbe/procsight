@@ -85,6 +85,15 @@ installation lifecycle checks. Normal builds remain unpackaged; explicit Direct 
 runtimes and Store packaging declares runtime dependencies. Package trust, Store acceptance and
 actual installed elevation/upgrade/uninstall behavior have not been established by synthetic tests.
 
+[Dependency tooling](scripts/dependencies/Common.ps1) supplies a shared vulnerability-report
+gate and audited-restore arguments. [Packaging](scripts/package.ps1) first restores/audits the
+locked solution, then audits its profile-specific restore with all transitive severities enabled;
+advisory failures and known vulnerabilities stop before artifact creation. This is independent
+of process analysis and uses nuget.org metadata, never local inventory or provider credentials.
+[Explicit updates](scripts/update-dependencies.ps1) modify only approved central pins and tracked
+lock files, with byte backups restored on failed validation; generated assets are refreshed after
+ordinary failure. Package-ID migrations and license/API compatibility still require human review.
+
 The explicit [certificate drop target](scripts/trust-package-certificate.cmd) invokes
 [public-certificate validation and trust](scripts/trust-package-certificate.ps1) separately from
 packaging. It accepts one valid public code-signing `.cer`, displays its identity, and uses UAC

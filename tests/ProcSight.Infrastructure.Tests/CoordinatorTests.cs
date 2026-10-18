@@ -17,7 +17,7 @@ public sealed class CountingProvider : IAnalysisProvider
         return new(null,new(Kind,"Fixture unknown",TimeSpan.Zero));
     }
 }
-public sealed class CoordinatorTests(Xunit.Abstractions.ITestOutputHelper output) : IDisposable
+public sealed class CoordinatorTests(Xunit.ITestOutputHelper output) : IDisposable
 {
     [Fact] public async Task ReusingOneSnapshotAvoidsDuplicateResolutionAllocations()
     {

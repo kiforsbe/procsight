@@ -172,6 +172,10 @@ where affected. Document any retained older compatible version and its reason. D
 silently retain a flagged dependency or claim an upgrade is compatible before validation;
 surface conflicts and resolve replacements. Do not introduce automated CI/CD for this check.
 
+Use `scripts/update-dependencies.ps1` for review and explicit `-Apply` updates. Preserve
+the packaging vulnerability gates and profile-specific forced audited restore; never
+suppress NU1900–NU1905 or bypass an unavailable advisory source to produce an artifact.
+
 Profile allocation churn separately from retained managed heap, private bytes and working set. Use
 bounded buffer pooling with private contents cleared on return; cache presentation only against its
 complete lifetime/value/availability inputs. Candidate batching must keep a fresh read transaction per

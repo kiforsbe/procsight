@@ -4,8 +4,11 @@ param([ValidateSet('Direct','Store')][string]$Profile='Direct',[string]$Identity
  [ValidateSet('Disabled','Approved')][string]$ElevationMode,[string]$FeedUri,[string]$PackageUri,[string]$TimestampUri)
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'packaging/Common.ps1')
+. (Join-Path $PSScriptRoot 'dependencies/Common.ps1')
 $root=Split-Path $PSScriptRoot -Parent
 $inputs=Get-ProcSightPackageInputs -Root $root -Profile $Profile -IdentityFile $IdentityFile -ElevationMode $ElevationMode
+$null=Invoke-ProcSightDependencyDotnet $root (@('restore','ProcSight.slnx','--locked-mode','--nologo')+(Get-ProcSightPackageAuditArguments))
+Assert-ProcSightVulnerabilityReport (Get-ProcSightDependencyReport $root vulnerable)
 if([bool]$FeedUri -ne [bool]$PackageUri) { throw 'Supply both FeedUri and PackageUri, or neither.' }
 if($FeedUri) {
  if(!$inputs.Production -or $Profile -ne 'Direct' -or !$CertificateThumbprint) { throw 'An update feed requires a signed production Direct package.' }
@@ -40,7 +43,7 @@ $common=@('-p:ProcSightPackaging=true',"-p:ProcSightPackagingRoot=$buildRoot/","
 $project=Join-Path $root 'src/ProcSight.App/ProcSight.App.csproj'
 Push-Location $root
 try {
- Invoke-ProcSightTool 'dotnet' (@('restore',$project,'--locked-mode','--nologo')+$common)
+ Invoke-ProcSightTool 'dotnet' (@('restore',$project,'--locked-mode','--nologo')+(Get-ProcSightPackageAuditArguments)+$common)
  $assets=Get-Content -LiteralPath (Join-Path $buildRoot 'obj/ProcSight.App/project.assets.json') -Raw | ConvertFrom-Json
  foreach($library in $assets.libraries.PSObject.Properties) {
   if($library.Value.type -ne 'package') { continue }

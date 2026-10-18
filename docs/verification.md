@@ -1,5 +1,35 @@
 # Development verification
 
+## Dependency refresh and packaging audit (2026-10-18)
+
+The [dependency review](DEPENDENCIES.md) inventories all 38 resolved packages, selected
+versions and license findings. Live NuGet outdated/vulnerable/deprecated queries returned
+no findings; registration checks confirmed all resolved versions listed and non-prerelease.
+Locked restore passed. Release build passed with 259 new xUnit1051 cancellation-token
+advisories, not suppressed; 399 tests passed using
+`dotnet test ProcSight.slnx -c Release --no-build --no-restore --filter 'FullyQualifiedName!~ChatGptAuth' --nologo`.
+Real authentication was not automated. The official xunit.v3.mtp-off 4.0.2 variant preserves
+VSTest and existing filtered commands; the default MTP variant required a different runner.
+
+Native self-contained Debug app build passed without warnings. Synthetic columns captures
+exited 0 in dark/1200 and light/660 layouts. Column-drag and details-stability captures
+completed but their processes exited abnormally at shutdown, consistent with a previously
+recorded fixture issue; they are not counted as clean end-to-end passes. Full desktop,
+installed activation and accessibility acceptance remain outstanding.
+
+Unsigned Direct package creation/inspection passed with forced transitive audit and
+NU1900–NU1905 treated as errors. Nothing was signed, installed, trusted or published.
+A separate ignored synthetic project referencing Newtonsoft.Json 12.0.1 was rejected by
+actual NuGet restore with a vulnerability error. Repeating with an explicit unavailable
+loopback advisory source was rejected with an advisory retrieval error. These probes
+used the same audit argument builder as packaging; no vulnerable package was added to
+ProcSight. Unit-level script fixtures also cover metadata rejection, direct/transitive
+report findings, dependency rollback and successful updates. Reports/logs stay ignored.
+
+The dependency updater performs review by default; `-Apply` is explicit and refuses dirty
+dependency files. Script checks do not prove license compatibility, absence of unknown
+vulnerabilities or application behavior after future package updates.
+
 ## Off-screen row cache — 2026-10-18
 
 The synthetic `table-memory-default` contract failed with CacheLength 4, then accepted the native

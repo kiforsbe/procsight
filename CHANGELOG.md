@@ -7,6 +7,8 @@ plans, implementation details and validation records belong in the project docum
 
 ### Added
 
+- Local dependency review/update tooling and packaging gates for known package vulnerabilities.
+
 - Dependency-review requirements covering current stable versions, transitive dependencies, licenses and advisories.
 
 - Contribution, support and conduct guides, with security reporting guidance easier to find.
@@ -130,6 +132,8 @@ plans, implementation details and validation records belong in the project docum
 - Memory heat updates when total RAM changes, even if process memory text stays unchanged.
 
 ### Changed
+
+- Updated Windows App SDK, build tools and transitive dependencies; migrated deprecated xUnit v2 to supported v3 packages.
 
 - Reuse bounded native chart geometry and process projection rows to reduce UI allocation churn.
 - Read process/service WMI metadata in forward-only batches while preserving local command collection.

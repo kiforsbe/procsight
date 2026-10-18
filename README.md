@@ -262,6 +262,7 @@ and remaining desktop/live-provider validation.
 - [Implementation plan](docs/superpowers/plans/2026-10-13-procsight.md)
 - [Architecture and UML diagrams](ARCHITECTURE.md)
 - [Developer guide](DEVELOPERS.md)
+- [Dependency and license review](docs/DEPENDENCIES.md)
 - [Contributing](CONTRIBUTING.md)
 - [Support and troubleshooting](SUPPORT.md)
 - [Code of conduct](CODE_OF_CONDUCT.md)
