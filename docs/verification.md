@@ -1,5 +1,23 @@
 # Development verification
 
+## MSI preflight identity collision (2026-10-18)
+
+Release verification failed at OpenPackage after ProcSight 0.1.0 was installed. The synthetic
+0.1.0 MSI reused the production ProductCode; Windows Installer reported that identity installed
+(state 5) and refused to open the different fixture database. The same test reproduced this
+failure locally before the change. The user uninstalled the app during this investigation;
+verification did not install or uninstall a product.
+
+Preflight now rewrites only a disposable copy with fresh product, upgrade, package and component
+GUIDs. The real MSI is preserved byte-for-byte and separately checked. Costing targets are owned
+temporary paths; no installation/removal transaction runs. All 73 MSI checks pass, including
+identity separation across repeated clones, distinct components/package IDs, unchanged source
+hashes, preserved product registration state, custom-action rejection, native preflight and embedded
+payload inspection.
+The existing 28 release-workflow, 27 packaging and 20 release helper checks also pass. Fixture
+checks do not establish real installed upgrade/repair/uninstall or complete ICE validation.
+
+
 ## MSI error 2725 preflight regression (2026-10-18)
 
 Native read-only preflight reproduced the full MSI's failure at InstallValidate with error

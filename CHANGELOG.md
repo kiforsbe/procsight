@@ -80,6 +80,8 @@ plans, implementation details and validation records belong in the project docum
 
 ### Fixed
 
+- Isolated MSI verification identities so release checks work alongside an installed ProcSight.
+
 - Fixed MSI error 2725 by using binary file versions and validating the full installation preflight.
 
 - Fixed MSI installation error 2228 and added explicit ownership for uninstalling empty app folders.

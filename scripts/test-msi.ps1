@@ -44,11 +44,33 @@ try {
  New-ProcSightMsi -Folder $payload -Path $msi -Version '0.1.0' -Manufacturer 'Synthetic Fixture'
  # Exercise the real engine's read-only search action, not just our own table reader.
  # No InstallInitialize/ExecuteAction or file/registration action is invoked.
+ $originalHash=(Get-FileHash -LiteralPath $msi -Algorithm SHA256).Hash
+ $enginePath=Join-Path $fixture 'engine-only.msi'
+ New-ProcSightMsiPreflightCopy $msi $enginePath
+ $originalIdentity=Read-ProcSightMsi $msi
+ $isolatedIdentity=Read-ProcSightMsi $enginePath
+ Check ($isolatedIdentity.Properties.ProductCode -ne $originalIdentity.Properties.ProductCode) 'Preflight must never open an installed product identity.'
+ Check ($isolatedIdentity.Properties.UpgradeCode -ne $originalIdentity.Properties.UpgradeCode) 'Preflight must use an isolated upgrade identity.'
+ Check ($isolatedIdentity.PackageCode -ne $originalIdentity.PackageCode) 'Preflight must use an isolated package identity.'
+ $secondPath=Join-Path $fixture 'engine-only-second.msi'
+ New-ProcSightMsiPreflightCopy $msi $secondPath
+ $secondIdentity=Read-ProcSightMsi $secondPath
+ Check ($secondIdentity.Properties.ProductCode -ne $isolatedIdentity.Properties.ProductCode) 'Repeated preflights need distinct product identities.'
+ $firstComponents=@($isolatedIdentity.Components | ForEach-Object ComponentId)
+ Check (@($secondIdentity.Components | Where-Object ComponentId -in $firstComponents).Count -eq 0) 'Repeated preflights must not share component registrations.'
+
+ $originalComponents=@($originalIdentity.Components | ForEach-Object ComponentId)
+ Check (@($isolatedIdentity.Components | Where-Object ComponentId -in $originalComponents).Count -eq 0) 'Preflight components must not share installed component identities.'
+ Check (@($isolatedIdentity.Components | Select-Object -ExpandProperty ComponentId -Unique).Count -eq $files.Count) 'Isolated components need unique identities.'
+ Check ((Get-FileHash -LiteralPath $msi -Algorithm SHA256).Hash -eq $originalHash) 'Preflight must not modify the original MSI.'
  $engine=$null;$session=$null
  try {
   $engine=New-Object -ComObject WindowsInstaller.Installer
   $engine.UILevel=2
-  $session=$engine.OpenPackage($msi,0)
+  $installedStateBefore=$engine.ProductState($originalIdentity.Properties.ProductCode)
+  $session=$engine.OpenPackage($enginePath,0)
+  $session.Property('INSTALLFOLDER')=Join-Path $fixture 'costing-target'
+  $session.Property('PROCSIGHTMENUDIR')=Join-Path $fixture 'costing-menu'
   Check ($session.DoAction('AppSearch') -eq 1) 'Native AppSearch must succeed without missing Signature table error 2228.'
   Check ($session.Property('PROCSIGHTWINDOWSBUILD') -match '^\d+$') 'Native registry search must resolve the Windows build.'
   # Build a removal plan only. No script generation/execution or installed state mutation.
@@ -58,8 +80,10 @@ try {
   # The synthetic product is deliberately not installed: request the feature state explicitly.
   $session.FeatureRequestState('Main')=2
   Check ($session.FeatureRequestState('Main') -eq 2) 'Engine must accept an absent-state request for the main feature.'
+  Check ($engine.ProductState($originalIdentity.Properties.ProductCode) -eq $installedStateBefore) 'Read-only preflight must preserve the real product registration state.'
  } finally { Close-ProcSightMsiCom $session;Close-ProcSightMsiCom $engine }
  Assert-ProcSightMsiPreflight ($msi.Replace('\','/'));$checks++
+ Check ((Get-FileHash -LiteralPath $msi -Algorithm SHA256).Hash -eq $originalHash) 'Complete preflight must preserve the deliverable bytes.'
  Rejected { Assert-ProcSightMsiPreflight (Join-Path $fixture 'missing.msi') }
  $inspection=Read-ProcSightMsi $msi
  $runtimeRow=@($inspection.Files | Where-Object { ($_.FileName -split '\|')[-1] -eq 'ProcSight.App.dll' })[0]
@@ -101,6 +125,19 @@ try {
  $productCode=$inspection.Properties.ProductCode
  Check ($inspection.Properties.UpgradeCode -eq (Get-ProcSightMsiGuid 'upgrade/x64')) 'Upgrade identity must remain stable.'
  Check ($productCode -ne (Get-ProcSightMsiGuid 'product/x64/0.2.0')) 'A new product version needs a new product code.'
+ # Even a harmless/empty custom-action table is outside this read-only contract.
+ $blocked=Join-Path $fixture 'blocked-custom-action.msi'
+ Copy-Item -LiteralPath $msi -Destination $blocked
+ $engine=$null;$database=$null
+ try {
+  $engine=New-Object -ComObject WindowsInstaller.Installer
+  $database=$engine.OpenDatabase($blocked,1)
+  Invoke-ProcSightMsiSql $database 'CREATE TABLE `CustomAction` (`Action` CHAR(72) NOT NULL PRIMARY KEY `Action`)'
+  $null=$database.Commit()
+ } finally { Close-ProcSightMsiCom $database;Close-ProcSightMsiCom $engine }
+ $blockedHash=(Get-FileHash -LiteralPath $blocked -Algorithm SHA256).Hash
+ Rejected { Assert-ProcSightMsiPreflight $blocked }
+ Check ((Get-FileHash -LiteralPath $blocked -Algorithm SHA256).Hash -eq $blockedHash) 'Rejected preflight must preserve the original input bytes.'
  Write-Output "MSI checks passed: $checks (synthetic database/cabinet only; no product installed)."
 } finally {
  $target=[IO.Path]::GetFullPath($fixture)

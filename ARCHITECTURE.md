@@ -94,7 +94,11 @@ AppSearch includes its required empty Signature table for the raw Windows-build 
 lookup. CreateFolder binds only app/menu directories to the main component; RemoveFolders
 removes them only when empty. Synthetic native engine checks run search and costing without
 executing an installation/removal transaction. Full-package preflight additionally reaches
-InstallValidate with a non-restricted session. File table versions come from Windows Installer's
+InstallValidate with a non-restricted session on a disposable copy. Fresh product/upgrade/package
+and component GUIDs prevent collisions with installed registrations; costing targets are redirected
+to owned temporary paths. The original MSI's bytes, identities and payload are inspected separately,
+and only the disposable copy is rewritten/removed. Custom-action tables are rejected before engine
+preflight. This is validation isolation, not an installation or proof of installed lifecycle. File table versions come from Windows Installer's
 fixed PE version reader; vendor display strings are not used as installer versions.
 The advertised Start-menu shortcut targets the main feature's executable key path.
 No executable custom actions, app launch, user-data cleanup or certificate import are authored.
@@ -106,7 +110,10 @@ flowchart LR
     Source[Versioned source and locked dependencies] --> Audit[Solution and profile vulnerability gates]
     Audit --> Publish[Self-contained unpackaged publish]
     Publish --> Native[Windows Installer database and embedded cabinet]
-    Native --> Inspect[Read-only database and payload hash inspection]
+    Native --> Inspect[Original database and payload hash inspection]
+    Native --> Clone[Disposable copy with fresh installer identities]
+    Clone --> Engine[Search, costing and InstallValidate with temporary targets]
+    Engine --> Artifact
     Inspect --> Artifact[MSI and version / commit / hash manifest]
     Artifact --> Consent[User installation with Windows UAC]
     Consent --> Files[Program Files and Start-menu shortcut]

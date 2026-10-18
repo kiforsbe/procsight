@@ -196,7 +196,11 @@ MSIX data is separate and is not migrated.
 and costing/InstallValidate actions, and checks the removal plan, component membership and uninstall action
 ordering. [AppSearch requires Signature](https://learn.microsoft.com/en-us/windows/win32/msi/appsearch-action)
 even for a raw registry lookup. Packaging runs read-only search, costing and InstallValidate
-against the full MSI before accepting it. File versions come from Windows Installer's fixed
+against a disposable full-payload copy before accepting the original MSI. That copy has fresh
+product, upgrade, package and component GUIDs, and temporary costing targets, so installed
+ProcSight versions cannot collide with fixture identities. The original MSI remains byte-for-byte
+unchanged and receives separate identity/mapping/payload checks. Preflight refuses custom-action
+tables and removes its owned temporary directory after closing engine handles. File versions come from Windows Installer's fixed
 binary-version reader, never descriptive vendor strings. The regression fixture temporarily
 copies the required .NET 10 runtime's msquic.dll as nonexecuted input; no binary is tracked. CreateFolder explicitly
 owns only app/menu directories so RemoveFolders removes them only when empty. The test

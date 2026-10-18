@@ -357,3 +357,10 @@ FileVersionInfo.FileVersion string. Runtime vendor strings may contain component
 Full payload preflight must reach InstallValidate with an unrestricted read-only session before
 accepting an artifact; IgnoreMachineState sessions cannot run that action. Never call
 InstallInitialize/ExecuteAction or any installation/removal transaction from this preflight.
+
+Native MSI preflight opens only a disposable copy with fresh product, upgrade, package and
+component GUIDs, and redirects costing targets to its temporary directory. Never open a
+synthetic/validation package under production identities: an installed ProcSight can make
+OpenPackage reject it or contaminate feature/component state. Preserve original MSI bytes,
+version/schema/payload inspection and installed registrations; reject custom-action tables
+and clean only the bounded owned preflight directory after releasing MSI handles.

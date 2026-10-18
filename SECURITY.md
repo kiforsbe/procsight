@@ -83,6 +83,12 @@ than MSIX package-family storage. There is no automatic migration between format
 Unsigned MSI needs no imported certificate, but Windows reputation, Smart App Control and
 enterprise policies can warn or block it. Optional MSI signing signs the installer container,
 not every payload binary. Database/cabinet inspection is not installed lifecycle or ICE validation.
+Native preflight uses a disposable copy with fresh product, upgrade, package and component GUIDs;
+it never opens the real product identity in an execution-capable session. Costing targets point
+inside the owned temporary directory. Only search, costing and InstallValidate actions are called;
+custom-action tables are rejected, no transaction is initialized, and original deliverable bytes
+and installed registrations are preserved. Cleanup closes handles before deleting the bounded
+preflight directory. This isolation does not simulate real repair, upgrade or uninstall.
 
 Release preparation requires PowerShell 7+, a clean named branch and valid local Git identity.
 It commits only synchronized version/changelog files, builds from that exact clean commit and checks

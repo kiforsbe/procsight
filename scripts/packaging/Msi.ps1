@@ -185,7 +185,7 @@ function Read-ProcSightMsi([string]$Path) {
   $properties=@{}; foreach($row in Get-ProcSightMsiRows $database Property @('Property','Value')) { $properties[$row.Property]=$row.Value }
   $tables=@(Get-ProcSightMsiRows $database _Tables @('Name') | ForEach-Object Name)
   $summary=$database.SummaryInformation(0)
-  [pscustomobject]@{Tables=$tables;FolderComponents=@(Get-ProcSightMsiRows $database CreateFolder @('Directory_','Component_'));Removals=@(Get-ProcSightMsiRows $database RemoveFile @('FileKey','Component_','FileName','DirProperty','InstallMode'));FeatureComponents=@(Get-ProcSightMsiRows $database FeatureComponents @('Feature_','Component_'));Properties=$properties;Template=$summary.Property(7);Files=@(Get-ProcSightMsiRows $database File @('File','Component_','FileName','FileSize','Version','Sequence'));Components=@(Get-ProcSightMsiRows $database Component @('Component','ComponentId','Directory_','Attributes','KeyPath'));Directories=@(Get-ProcSightMsiRows $database Directory @('Directory','Directory_Parent','DefaultDir'));CustomActionCount=if('CustomAction' -in $tables) {@(Get-ProcSightMsiRows $database CustomAction @('Action')).Count}else{0};RegistryCount=if('Registry' -in $tables){@(Get-ProcSightMsiRows $database Registry @('Registry')).Count}else{0};ShortcutTarget=@(Get-ProcSightMsiRows $database Shortcut @('Target'))[0].Target;UpgradeCount=@(Get-ProcSightMsiRows $database Upgrade @('UpgradeCode')).Count;LaunchConditions=(@(Get-ProcSightMsiRows $database LaunchCondition @('Condition')) | ForEach-Object Condition) -join ';';Actions=@(Get-ProcSightMsiRows $database InstallExecuteSequence @('Action','Sequence'));Media=@(Get-ProcSightMsiRows $database Media @('DiskId','LastSequence','Cabinet'))}
+  [pscustomobject]@{Tables=$tables;FolderComponents=@(Get-ProcSightMsiRows $database CreateFolder @('Directory_','Component_'));Removals=@(Get-ProcSightMsiRows $database RemoveFile @('FileKey','Component_','FileName','DirProperty','InstallMode'));FeatureComponents=@(Get-ProcSightMsiRows $database FeatureComponents @('Feature_','Component_'));Properties=$properties;PackageCode=$summary.Property(9);Template=$summary.Property(7);Files=@(Get-ProcSightMsiRows $database File @('File','Component_','FileName','FileSize','Version','Sequence'));Components=@(Get-ProcSightMsiRows $database Component @('Component','ComponentId','Directory_','Attributes','KeyPath'));Directories=@(Get-ProcSightMsiRows $database Directory @('Directory','Directory_Parent','DefaultDir'));CustomActionCount=if('CustomAction' -in $tables) {@(Get-ProcSightMsiRows $database CustomAction @('Action')).Count}else{0};RegistryCount=if('Registry' -in $tables){@(Get-ProcSightMsiRows $database Registry @('Registry')).Count}else{0};ShortcutTarget=@(Get-ProcSightMsiRows $database Shortcut @('Target'))[0].Target;UpgradeCount=@(Get-ProcSightMsiRows $database Upgrade @('UpgradeCode')).Count;LaunchConditions=(@(Get-ProcSightMsiRows $database LaunchCondition @('Condition')) | ForEach-Object Condition) -join ';';Actions=@(Get-ProcSightMsiRows $database InstallExecuteSequence @('Action','Sequence'));Media=@(Get-ProcSightMsiRows $database Media @('DiskId','LastSequence','Cabinet'))}
  } finally { Close-ProcSightMsiCom $summary;Close-ProcSightMsiCom $database;Close-ProcSightMsiCom $installer }
 }
 
@@ -225,17 +225,65 @@ namespace ProcSight.Packaging {
  }
  [ProcSight.Packaging.MsiStream]::Copy($Path,$Destination)
 }
+# The engine must see a disposable, unregistered identity; never edit the deliverable.
+function New-ProcSightMsiPreflightCopy([string]$Path,[string]$Destination) {
+ $ErrorActionPreference='Stop'
+ $Path=[IO.Path]::GetFullPath($Path);$Destination=[IO.Path]::GetFullPath($Destination)
+ if(!(Test-Path -LiteralPath $Path -PathType Leaf) -or (Test-Path -LiteralPath $Destination)) { throw 'Preflight needs an existing MSI and a new disposable destination.' }
+ Copy-Item -LiteralPath $Path -Destination $Destination
+ $engine=$null;$database=$null;$summary=$null;$view=$null;$record=$null
+ try {
+  $engine=New-Object -ComObject WindowsInstaller.Installer
+  $database=$engine.OpenDatabase($Destination,1)
+  $tables=@(Get-ProcSightMsiRows $database _Tables @('Name') | ForEach-Object Name)
+  if('CustomAction' -in $tables) { throw 'Read-only MSI preflight does not permit custom actions.' }
+  foreach($property in @('ProductCode','UpgradeCode')) {
+   $guid=[guid]::NewGuid().ToString('B').ToUpperInvariant()
+   Invoke-ProcSightMsiSql $database ("UPDATE ``Property`` SET ``Value``='$guid' WHERE ``Property``='$property'")
+   if($property -eq 'UpgradeCode') {
+    $columns=@('UpgradeCode','VersionMin','VersionMax','Language','Attributes','Remove','ActionProperty')
+    $upgrades=@(Get-ProcSightMsiRows $database Upgrade $columns)
+    Invoke-ProcSightMsiSql $database 'DELETE FROM `Upgrade`'
+    foreach($upgrade in $upgrades) {
+     Add-ProcSightMsiRow $engine $database Upgrade $columns @($guid,$upgrade.VersionMin,$upgrade.VersionMax,$upgrade.Language,[int]$upgrade.Attributes,$upgrade.Remove,$upgrade.ActionProperty)
+    }
+   }
+  }
+  $view=$database.OpenView('UPDATE `Component` SET `ComponentId`=? WHERE `Component`=?')
+  $record=$engine.CreateRecord(2)
+  foreach($component in @(Get-ProcSightMsiRows $database Component @('Component'))) {
+   $record.StringData(1)=[guid]::NewGuid().ToString('B').ToUpperInvariant()
+   $record.StringData(2)=$component.Component
+   $null=$view.Execute($record)
+  }
+  $summary=$database.SummaryInformation(20)
+  $summary.Property(9)=[guid]::NewGuid().ToString('B').ToUpperInvariant()
+  $null=$summary.Persist();$null=$database.Commit()
+ } finally {
+  Close-ProcSightMsiCom $record
+  if($view) { $null=$view.Close();Close-ProcSightMsiCom $view }
+  Close-ProcSightMsiCom $summary;Close-ProcSightMsiCom $database;Close-ProcSightMsiCom $engine
+ }
+}
 # Explicit read-only preflight actions only; never initialize or execute an install transaction here.
 function Assert-ProcSightMsiPreflight([string]$Path) {
  $ErrorActionPreference='Stop'
  # OpenPackage requires native Windows separators, unlike OpenDatabase.
  $Path=[IO.Path]::GetFullPath($Path)
+ $tempRoot=[IO.Path]::GetFullPath([IO.Path]::GetTempPath())
+ $preflightRoot=Join-Path $tempRoot ('ProcSight-MsiPreflight-'+[guid]::NewGuid().ToString('N'))
+ $null=New-Item -ItemType Directory -Path $preflightRoot
+ $copy=Join-Path $preflightRoot 'preflight.msi'
  $engine=$null;$session=$null;$previousUi=$null
  try {
+  New-ProcSightMsiPreflightCopy $Path $copy
   $engine=New-Object -ComObject WindowsInstaller.Installer
   $previousUi=$engine.UILevel;$engine.UILevel=2
   # IgnoreMachineState=1 creates a restricted engine that cannot run InstallValidate.
-  $session=$engine.OpenPackage($Path,0)
+  $session=$engine.OpenPackage($copy,0)
+  # Cost only disposable paths, never installed application or Start-menu files.
+  $session.Property('INSTALLFOLDER')=Join-Path $preflightRoot 'target'
+  $session.Property('PROCSIGHTMENUDIR')=Join-Path $preflightRoot 'menu'
   foreach($action in @('AppSearch','CostInitialize','FileCost','CostFinalize','InstallValidate')) {
    if($session.DoAction($action) -ne 1) { throw "MSI native read-only preflight failed at $action." }
   }
@@ -244,6 +292,9 @@ function Assert-ProcSightMsiPreflight([string]$Path) {
   Close-ProcSightMsiCom $session
   if($engine -and $null -ne $previousUi) { $engine.UILevel=$previousUi }
   Close-ProcSightMsiCom $engine
+  $target=[IO.Path]::GetFullPath($preflightRoot)
+  if(!$target.StartsWith($tempRoot,[StringComparison]::OrdinalIgnoreCase) -or [IO.Path]::GetFileName($target) -notlike 'ProcSight-MsiPreflight-*') { throw 'Unsafe MSI preflight cleanup path.' }
+  Remove-Item -LiteralPath $target -Recurse -Force
  }
 }
 function Assert-ProcSightMsiContents([string]$Path,[string]$Folder,[string]$Version,[string]$InspectionFolder) {
