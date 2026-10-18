@@ -347,7 +347,13 @@ import trust, erase user data or migrate MSIX credentials as part of packaging/t
 and ICE validation remain explicit manual acceptance; no new WiX dependency is needed.
 
 MSI AppSearch must include the required Signature table even for raw registry searches.
-Packaging validates native read-only AppSearch; tests may also run read-only costing and
+Packaging validates native read-only AppSearch, costing and InstallValidate; tests may also
 request feature states, never InstallInitialize/ExecuteAction or removal transactions.
 Explicit CreateFolder ownership covers only app/menu directories and removes them only
 when empty. Keep engine planning checks distinct from actual installed lifecycle acceptance.
+
+MSI File.Version must use Windows Installer's fixed binary version reader, not the descriptive
+FileVersionInfo.FileVersion string. Runtime vendor strings may contain components above 65535.
+Full payload preflight must reach InstallValidate with an unrestricted read-only session before
+accepting an artifact; IgnoreMachineState sessions cannot run that action. Never call
+InstallInitialize/ExecuteAction or any installation/removal transaction from this preflight.

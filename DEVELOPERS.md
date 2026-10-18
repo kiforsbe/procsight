@@ -193,9 +193,12 @@ without package identity and uses the existing unpackaged per-user data/credenti
 MSIX data is separate and is not migrated.
 
 `test-msi.ps1` creates synthetic databases/cabinets, runs the native read-only AppSearch
-and costing actions, and checks the removal plan, component membership and uninstall action
+and costing/InstallValidate actions, and checks the removal plan, component membership and uninstall action
 ordering. [AppSearch requires Signature](https://learn.microsoft.com/en-us/windows/win32/msi/appsearch-action)
-even for a raw registry lookup. Packaging also runs this read-only native search check. CreateFolder explicitly
+even for a raw registry lookup. Packaging runs read-only search, costing and InstallValidate
+against the full MSI before accepting it. File versions come from Windows Installer's fixed
+binary-version reader, never descriptive vendor strings. The regression fixture temporarily
+copies the required .NET 10 runtime's msquic.dll as nonexecuted input; no binary is tracked. CreateFolder explicitly
 owns only app/menu directories so RemoveFolders removes them only when empty. The test
 never installs a product. Actual install, repair, upgrade, downgrade and uninstall,
 Windows Installer ICE validation and clean-machine runtime acceptance remain manual checks.

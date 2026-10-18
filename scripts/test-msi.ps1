@@ -22,6 +22,18 @@ $null=New-Item -ItemType Directory -Path (Join-Path $fixture 'payload/Assets/Pac
 try {
  $payload=Join-Path $fixture 'payload'
  foreach($name in @('ProcSight.App.exe','ProcSight.App.dll','ProcSight-LICENSE.txt','ProcSight-THIRD-PARTY-NOTICES.txt','Assets/Package/StoreLogo.png')) { [IO.File]::WriteAllText((Join-Path $payload $name),'Synthetic fixture '+$name) }
+ # Use a required .NET 10 runtime file as nonexecuted test input: its descriptive version can
+ # differ from its fixed binary version. No third-party binary is tracked or launched.
+ $runtimeLines=@(& dotnet --list-runtimes)
+ if($LASTEXITCODE -ne 0) { throw 'Cannot locate the required .NET 10 runtime fixture.' }
+ $runtimeFixtures=@(foreach($line in $runtimeLines) {
+  if($line -match '^Microsoft\.NETCore\.App (10\.\d+\.\d+) \[(.+)\]$') {
+   [pscustomobject]@{Version=[version]$Matches[1];Path=(Join-Path (Join-Path $Matches[2] $Matches[1]) 'msquic.dll')}
+  }
+ })
+ $versionFixture=($runtimeFixtures | Where-Object {Test-Path -LiteralPath $_.Path -PathType Leaf} | Sort-Object Version -Descending | Select-Object -First 1).Path
+ if(!$versionFixture) { throw 'The required .NET 10 runtime msquic.dll fixture is unavailable.' }
+ Copy-Item -LiteralPath $versionFixture -Destination (Join-Path $payload 'ProcSight.App.dll')
  [IO.File]::WriteAllText((Join-Path $payload 'settings.json'),'sensitive fixture')
  Rejected { Get-ProcSightMsiPayload $payload }
  Remove-Item -LiteralPath (Join-Path $payload 'settings.json')
@@ -36,21 +48,25 @@ try {
  try {
   $engine=New-Object -ComObject WindowsInstaller.Installer
   $engine.UILevel=2
-  $session=$engine.OpenPackage($msi,1)
+  $session=$engine.OpenPackage($msi,0)
   Check ($session.DoAction('AppSearch') -eq 1) 'Native AppSearch must succeed without missing Signature table error 2228.'
   Check ($session.Property('PROCSIGHTWINDOWSBUILD') -match '^\d+$') 'Native registry search must resolve the Windows build.'
   # Build a removal plan only. No script generation/execution or installed state mutation.
-  $session.Property('REMOVE')='ALL'
-  foreach($action in @('CostInitialize','FileCost','CostFinalize')) {
-   Check ($session.DoAction($action) -eq 1) "Native read-only uninstall planning failed at $action."
+  foreach($action in @('CostInitialize','FileCost','CostFinalize','InstallValidate')) {
+   Check ($session.DoAction($action) -eq 1) "Native read-only installation preflight failed at $action."
   }
   # The synthetic product is deliberately not installed: request the feature state explicitly.
   $session.FeatureRequestState('Main')=2
   Check ($session.FeatureRequestState('Main') -eq 2) 'Engine must accept an absent-state request for the main feature.'
  } finally { Close-ProcSightMsiCom $session;Close-ProcSightMsiCom $engine }
- Assert-ProcSightMsiSearch ($msi.Replace('\','/'));$checks++
- Rejected { Assert-ProcSightMsiSearch (Join-Path $fixture 'missing.msi') }
+ Assert-ProcSightMsiPreflight ($msi.Replace('\','/'));$checks++
+ Rejected { Assert-ProcSightMsiPreflight (Join-Path $fixture 'missing.msi') }
  $inspection=Read-ProcSightMsi $msi
+ $runtimeRow=@($inspection.Files | Where-Object { ($_.FileName -split '\|')[-1] -eq 'ProcSight.App.dll' })[0]
+ $fixed=[Diagnostics.FileVersionInfo]::GetVersionInfo($versionFixture)
+ $expectedVersion=@($fixed.FileMajorPart,$fixed.FileMinorPart,$fixed.FileBuildPart,$fixed.FilePrivatePart) -join '.'
+ Check ($runtimeRow.Version -eq $expectedVersion) 'File table must contain the fixed PE version, never the vendor display string.'
+
  Check ($inspection.Properties.ProductVersion -eq '0.1.0') 'MSI version must match source.'
  Check ($inspection.Properties.ALLUSERS -eq '1') 'Installation must use the protected per-machine location.'
  Check ($inspection.Template -eq 'x64;1033') 'MSI must declare x64.'

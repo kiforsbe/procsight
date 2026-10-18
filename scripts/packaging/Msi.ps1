@@ -124,8 +124,9 @@ function New-ProcSightMsi {
    }
    Add-ProcSightMsiRow $installer $database Component @('Component','ComponentId','Directory_','Attributes','KeyPath') @($file.Component,(Get-ProcSightMsiGuid ('component/'+$file.Relative)),$parent,256,$file.Id)
    Add-ProcSightMsiRow $installer $database FeatureComponents @('Feature_','Component_') @('Main',$file.Component)
-   $fileVersion=[Diagnostics.FileVersionInfo]::GetVersionInfo($file.FullName).FileVersion
-   if($fileVersion -notmatch '^\d+\.\d+\.\d+\.\d+$') { $fileVersion=$null }
+   # MSI needs the fixed binary version, not a vendor's descriptive FileVersion string.
+   $fileVersion=$installer.FileVersion($file.FullName,$false)
+   if([string]::IsNullOrEmpty($fileVersion)) { $fileVersion=$null }
    $sequence=[array]::IndexOf($files,$file)+1
    $extension=[IO.Path]::GetExtension($file.Name)
    if($extension.Length -gt 4) { $extension='' }
@@ -184,7 +185,7 @@ function Read-ProcSightMsi([string]$Path) {
   $properties=@{}; foreach($row in Get-ProcSightMsiRows $database Property @('Property','Value')) { $properties[$row.Property]=$row.Value }
   $tables=@(Get-ProcSightMsiRows $database _Tables @('Name') | ForEach-Object Name)
   $summary=$database.SummaryInformation(0)
-  [pscustomobject]@{Tables=$tables;FolderComponents=@(Get-ProcSightMsiRows $database CreateFolder @('Directory_','Component_'));Removals=@(Get-ProcSightMsiRows $database RemoveFile @('FileKey','Component_','FileName','DirProperty','InstallMode'));FeatureComponents=@(Get-ProcSightMsiRows $database FeatureComponents @('Feature_','Component_'));Properties=$properties;Template=$summary.Property(7);Files=@(Get-ProcSightMsiRows $database File @('File','Component_','FileName','FileSize','Sequence'));Components=@(Get-ProcSightMsiRows $database Component @('Component','ComponentId','Directory_','Attributes','KeyPath'));Directories=@(Get-ProcSightMsiRows $database Directory @('Directory','Directory_Parent','DefaultDir'));CustomActionCount=if('CustomAction' -in $tables) {@(Get-ProcSightMsiRows $database CustomAction @('Action')).Count}else{0};RegistryCount=if('Registry' -in $tables){@(Get-ProcSightMsiRows $database Registry @('Registry')).Count}else{0};ShortcutTarget=@(Get-ProcSightMsiRows $database Shortcut @('Target'))[0].Target;UpgradeCount=@(Get-ProcSightMsiRows $database Upgrade @('UpgradeCode')).Count;LaunchConditions=(@(Get-ProcSightMsiRows $database LaunchCondition @('Condition')) | ForEach-Object Condition) -join ';';Actions=@(Get-ProcSightMsiRows $database InstallExecuteSequence @('Action','Sequence'));Media=@(Get-ProcSightMsiRows $database Media @('DiskId','LastSequence','Cabinet'))}
+  [pscustomobject]@{Tables=$tables;FolderComponents=@(Get-ProcSightMsiRows $database CreateFolder @('Directory_','Component_'));Removals=@(Get-ProcSightMsiRows $database RemoveFile @('FileKey','Component_','FileName','DirProperty','InstallMode'));FeatureComponents=@(Get-ProcSightMsiRows $database FeatureComponents @('Feature_','Component_'));Properties=$properties;Template=$summary.Property(7);Files=@(Get-ProcSightMsiRows $database File @('File','Component_','FileName','FileSize','Version','Sequence'));Components=@(Get-ProcSightMsiRows $database Component @('Component','ComponentId','Directory_','Attributes','KeyPath'));Directories=@(Get-ProcSightMsiRows $database Directory @('Directory','Directory_Parent','DefaultDir'));CustomActionCount=if('CustomAction' -in $tables) {@(Get-ProcSightMsiRows $database CustomAction @('Action')).Count}else{0};RegistryCount=if('Registry' -in $tables){@(Get-ProcSightMsiRows $database Registry @('Registry')).Count}else{0};ShortcutTarget=@(Get-ProcSightMsiRows $database Shortcut @('Target'))[0].Target;UpgradeCount=@(Get-ProcSightMsiRows $database Upgrade @('UpgradeCode')).Count;LaunchConditions=(@(Get-ProcSightMsiRows $database LaunchCondition @('Condition')) | ForEach-Object Condition) -join ';';Actions=@(Get-ProcSightMsiRows $database InstallExecuteSequence @('Action','Sequence'));Media=@(Get-ProcSightMsiRows $database Media @('DiskId','LastSequence','Cabinet'))}
  } finally { Close-ProcSightMsiCom $summary;Close-ProcSightMsiCom $database;Close-ProcSightMsiCom $installer }
 }
 
@@ -224,8 +225,8 @@ namespace ProcSight.Packaging {
  }
  [ProcSight.Packaging.MsiStream]::Copy($Path,$Destination)
 }
-# AppSearch only reads the authored registry search; never execute an install sequence here.
-function Assert-ProcSightMsiSearch([string]$Path) {
+# Explicit read-only preflight actions only; never initialize or execute an install transaction here.
+function Assert-ProcSightMsiPreflight([string]$Path) {
  $ErrorActionPreference='Stop'
  # OpenPackage requires native Windows separators, unlike OpenDatabase.
  $Path=[IO.Path]::GetFullPath($Path)
@@ -233,8 +234,12 @@ function Assert-ProcSightMsiSearch([string]$Path) {
  try {
   $engine=New-Object -ComObject WindowsInstaller.Installer
   $previousUi=$engine.UILevel;$engine.UILevel=2
-  $session=$engine.OpenPackage($Path,1)
-  if($session.DoAction('AppSearch') -ne 1 -or $session.Property('PROCSIGHTWINDOWSBUILD') -notmatch '^\d+$') { throw 'MSI native AppSearch failed or did not resolve the Windows build.' }
+  # IgnoreMachineState=1 creates a restricted engine that cannot run InstallValidate.
+  $session=$engine.OpenPackage($Path,0)
+  foreach($action in @('AppSearch','CostInitialize','FileCost','CostFinalize','InstallValidate')) {
+   if($session.DoAction($action) -ne 1) { throw "MSI native read-only preflight failed at $action." }
+  }
+  if($session.Property('PROCSIGHTWINDOWSBUILD') -notmatch '^\d+$') { throw 'MSI native AppSearch did not resolve the Windows build.' }
  } finally {
   Close-ProcSightMsiCom $session
   if($engine -and $null -ne $previousUi) { $engine.UILevel=$previousUi }
@@ -259,7 +264,7 @@ function Assert-ProcSightMsiContents([string]$Path,[string]$Folder,[string]$Vers
  }
  if($actual.FolderComponents.Count -ne $ownedDirectories.Count -or @($actual.FolderComponents | Where-Object { !$ownedDirectories.Contains($_.Directory_) -or $_.Component_ -cne $main.Component }).Count) { throw 'MSI folder ownership must cover only owned install/menu directories.' }
  if($actual.Removals.Count -ne 1 -or $actual.Removals[0].FileName -or $actual.Removals[0].DirProperty -cne 'PROCSIGHTMENUDIR' -or $actual.Removals[0].Component_ -cne $main.Component -or $actual.Removals[0].InstallMode -ne '2') { throw 'MSI explicit cleanup must remove only the owned empty menu folder.' }
- Assert-ProcSightMsiSearch $Path
+ Assert-ProcSightMsiPreflight $Path
  $null=New-Item -ItemType Directory -Path $InspectionFolder
  $cab=Join-Path $InspectionFolder 'payload.cab';$extracted=Join-Path $InspectionFolder 'files';$null=New-Item -ItemType Directory -Path $extracted
  Export-ProcSightMsiCabinet $Path $cab

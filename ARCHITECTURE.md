@@ -93,7 +93,9 @@ with the central three-part version. A Windows-build launch condition enforces 2
 AppSearch includes its required empty Signature table for the raw Windows-build registry
 lookup. CreateFolder binds only app/menu directories to the main component; RemoveFolders
 removes them only when empty. Synthetic native engine checks run search and costing without
-executing an installation/removal transaction.
+executing an installation/removal transaction. Full-package preflight additionally reaches
+InstallValidate with a non-restricted session. File table versions come from Windows Installer's
+fixed PE version reader; vendor display strings are not used as installer versions.
 The advertised Start-menu shortcut targets the main feature's executable key path.
 No executable custom actions, app launch, user-data cleanup or certificate import are authored.
 Inspection reopens the database, checks identity/components and extracts the cabinet to compare

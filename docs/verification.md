@@ -1,5 +1,25 @@
 # Development verification
 
+## MSI error 2725 preflight regression (2026-10-18)
+
+Native read-only preflight reproduced the full MSI's failure at InstallValidate with error
+2725. Isolating File.Version entries identified bundled msquic.dll: its descriptive version
+was 2.5.11.159415436, while the actual fixed PE version was 2.5.11.0. Authoring now uses
+Windows Installer's FileVersion reader rather than FileVersionInfo's descriptive string.
+No version component is truncated and no runtime dependency was changed.
+
+The regression fixture temporarily copies the required .NET 10 runtime's msquic.dll as nonexecuted
+input and failed at InstallValidate before the fix. All 61 MSI checks pass afterward,
+alongside 28 workflow, 27 packaging and 20 release checks. Packaging now runs AppSearch,
+CostInitialize, FileCost, CostFinalize and InstallValidate on the actual full MSI. Opening
+with IgnoreMachineState creates a restricted engine that cannot run InstallValidate, so
+the preflight uses an ordinary session but never initializes or executes a transaction.
+No app/product was installed or uninstalled by these checks. VM/lifecycle and ICE checks
+remain separate, outstanding acceptance work.
+The corrected full 512-file MSI passed native InstallValidate and embedded-payload SHA-256
+inspection. No install/uninstall transaction was performed on the host.
+
+
 ## MSI installer error 2228 and uninstall review (2026-10-18)
 
 The user's installation log reported error 2228 querying `Signature` from `AppSearch`.
