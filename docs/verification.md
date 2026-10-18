@@ -1,5 +1,26 @@
 # Development verification
 
+## MSI installer error 2228 and uninstall review (2026-10-18)
+
+The user's installation log reported error 2228 querying `Signature` from `AppSearch`.
+The initial payload/database checks missed that required empty table. A new regression
+ran native AppSearch against the synthetic MSI and failed before the schema fix; it
+passes after adding Signature, and resolves the numeric Windows-build registry value.
+
+The uninstall review added explicit CreateFolder ownership for every app directory and
+the app's Start-menu folder, bound to the main executable component. No shared parent or
+user-data directory is owned. RemoveFolders removes empty owned directories only. The
+59 MSI checks include native search/costing, a requested absent-feature plan, all payload
+component memberships and removal-action ordering. No InstallInitialize, ExecuteAction,
+file deletion, registry registration or product installation/removal action is executed
+by this test. The plan checks do not simulate installed component state or prove actual
+uninstall, repair or upgrade behavior. Those lifecycle and ICE checks remain outstanding.
+
+Actual corrected MSI creation and embedded payload inspection passed for all 512 files.
+A separate native AppSearch check against that full MSI passed; its 512 components,
+110 owned folders, one empty-menu removal row and zero custom actions were inspected.
+
+
 ## MSI packaging (2026-10-18)
 
 The native MSI authoring/profile and release integration passed 28 synthetic MSI checks,

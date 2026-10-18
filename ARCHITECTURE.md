@@ -90,6 +90,10 @@ The [MSI profile](packaging/Msi.pubxml) publishes a self-contained unpackaged ap
 embedded cabinet using Windows Installer Automation and MakeCab. Stable per-file component
 GUIDs and one upgrade GUID support transactional major upgrades; the product GUID changes
 with the central three-part version. A Windows-build launch condition enforces 24H2.
+AppSearch includes its required empty Signature table for the raw Windows-build registry
+lookup. CreateFolder binds only app/menu directories to the main component; RemoveFolders
+removes them only when empty. Synthetic native engine checks run search and costing without
+executing an installation/removal transaction.
 The advertised Start-menu shortcut targets the main feature's executable key path.
 No executable custom actions, app launch, user-data cleanup or certificate import are authored.
 Inspection reopens the database, checks identity/components and extracts the cabinet to compare

@@ -192,8 +192,12 @@ Close ProcSight before installation/upgrade. Remove through Windows Settings. MS
 without package identity and uses the existing unpackaged per-user data/credentials;
 MSIX data is separate and is not migrated.
 
-`test-msi.ps1` creates only synthetic databases/cabinets and inspects their contents;
-it never installs a product. Actual install, repair, upgrade, downgrade and uninstall,
+`test-msi.ps1` creates synthetic databases/cabinets, runs the native read-only AppSearch
+and costing actions, and checks the removal plan, component membership and uninstall action
+ordering. [AppSearch requires Signature](https://learn.microsoft.com/en-us/windows/win32/msi/appsearch-action)
+even for a raw registry lookup. Packaging also runs this read-only native search check. CreateFolder explicitly
+owns only app/menu directories so RemoveFolders removes them only when empty. The test
+never installs a product. Actual install, repair, upgrade, downgrade and uninstall,
 Windows Installer ICE validation and clean-machine runtime acceptance remain manual checks.
 
 ## MSIX packaging

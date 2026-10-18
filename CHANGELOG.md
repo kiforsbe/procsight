@@ -78,6 +78,8 @@ plans, implementation details and validation records belong in the project docum
 
 ### Fixed
 
+- Fixed MSI installation error 2228 and added explicit ownership for uninstalling empty app folders.
+
 - Release verification now isolates its synthetic version history, allowing Minor/Major bumps to pass the workflow checks.
 
 - Reduce off-screen process/service row caching to lower memory use and table layout work.
