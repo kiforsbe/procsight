@@ -7,6 +7,8 @@ plans, implementation details and validation records belong in the project docum
 
 ### Added
 
+- Dependency-review requirements covering current stable versions, transitive dependencies, licenses and advisories.
+
 - Contribution, support and conduct guides, with security reporting guidance easier to find.
 
 - GitHub bug/feature forms and a pull request checklist with privacy and verification guidance.

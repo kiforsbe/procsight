@@ -151,6 +151,27 @@ Once source exists, link important architecture claims to their actual code owne
 
 ## Verification and scope
 
+### Dependency currency and compatibility
+
+Before choosing, adding, updating or reviewing dependencies, check every direct package
+and the resolved transitive graph against the live authoritative registry and upstream
+documentation. Prefer the newest listed stable compatible set; exclude prerelease,
+deprecated and known-vulnerable versions. A successful restore, an old lock file or an
+unchanged package ID is not evidence that a dependency is current or supported.
+Check replacement package IDs and migration guidance when a package is deprecated.
+
+Run `dotnet list ProcSight.slnx package --outdated --include-transitive --format json`,
+and the equivalent `--vulnerable` and `--deprecated` checks. Inspect actual package
+licenses/notices and redistribution terms, not just an upstream repository's license.
+Record the review date, selected versions, compatibility reasons and any unresolved
+findings. Never describe a clean vulnerability-feed result as proof of security.
+
+Keep related SDK/runtime and native-library packages coherent. Regenerate lock files
+deliberately, then verify locked restore, relevant builds/tests, native UI and packaging
+where affected. Document any retained older compatible version and its reason. Do not
+silently retain a flagged dependency or claim an upgrade is compatible before validation;
+surface conflicts and resolve replacements. Do not introduce automated CI/CD for this check.
+
 Profile allocation churn separately from retained managed heap, private bytes and working set. Use
 bounded buffer pooling with private contents cleared on return; cache presentation only against its
 complete lifetime/value/availability inputs. Candidate batching must keep a fresh read transaction per
