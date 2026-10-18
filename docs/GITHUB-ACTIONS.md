@@ -1,7 +1,8 @@
 # Build ProcSight on GitHub
 
 The [Windows build and MSI workflow](../.github/workflows/windows-build.yml) builds on GitHub
-hosted Windows runners and uploads an unsigned self-contained x64 MSI. No secrets are needed.
+hosted Windows runners, uploads an unsigned self-contained x64 MSI, and prepares a draft GitHub
+Release with the MSI and hash manifest attached. No personal tokens or signing secrets are needed.
 
 1. Push the committed workflow and source to your GitHub repository's default branch. Enable
    Actions in Settings if organizational policy has disabled them. This work does not push.
@@ -14,6 +15,9 @@ hosted Windows runners and uploads an unsigned self-contained x64 MSI. No secret
 4. Open the successful run and download **ProcSight-<version>-windows-x64-<run>-<attempt>**
    under **Artifacts**. GitHub login is required. Extract its ZIP and open the `.msi`.
    The adjacent `release-artifacts.json` contains version, source commit and SHA-256.
+5. Open **Releases**, find the draft for the selected tag, review the MSI and hash manifest,
+   edit the starter release notes (using the matching changelog entry), and select **Publish release**
+   when ready. Until publication, the draft is visible only to repository users with appropriate access.
 
 **Manual only:** pushes, tags and pull requests never trigger this workflow. It has only
 `workflow_dispatch`; it does not run on a schedule or as a follow-up to another workflow.
@@ -21,8 +25,8 @@ The required tag must be stable `vMAJOR.MINOR.PATCH`, exist on GitHub, and match
 Version.props and manifests. Missing tags and version mismatches fail before compilation.
 An untagged branch tip cannot be selected as the build source.
 
-Artifacts expire after 14 days (subject to repository policy). They are build downloads,
-not GitHub Releases or a Store submission. The unsigned MSI requires no certificate import,
+Workflow artifacts expire after 14 days (subject to repository policy); attached release assets
+are separate downloads. Neither is a Store submission. The unsigned MSI requires no certificate import,
 but Windows reputation/Smart App Control or device policy can still block it. An artifact contains code from the requested tag and must not be treated as a trusted release. Builds use the central version;
 CI does not independently bump it, so different commits may produce the same MSI product version.
 Use the existing local release-preparation flow for versioned upgrades.
@@ -36,12 +40,30 @@ by `scripts/package.ps1 -Profile Msi`. Existing package auditing remains fail-cl
 no NuGet cache shared between builds, custom installer, cloud VM setup or self-hosted runner.
 The installer bundles required app runtimes; the build does not launch the WinUI app.
 
-The workflow has a 45-minute timeout, cancels older runs for the same ref and uses read-only
+The build job has a 45-minute timeout, cancels older runs for the same tag and uses read-only
 repository permissions. Checkout does not persist credentials. All Actions are full-SHA pinned.
 The upload stage accepts only the inspected unsigned MSI and manifest, checks the staged hash,
 and excludes build logs, databases, local metadata and intermediate output. No private secrets,
-OAuth session, signing certificate, version rewrite, commit, tag or release publication is used.
+OAuth session, signing certificate, version rewrite, commit, tag or public release publication is used.
 Automated auth/provider tests use synthetic handlers/stores; no actual account sign-in is run.
+
+The separate 10-minute draft-release job has `actions: read` and `contents: write`. It uses the
+runner-provided [GitHub CLI](https://cli.github.com/manual/gh_release_create) and automatic
+`GITHUB_TOKEN`; it performs no checkout and executes no tagged code or third-party Actions.
+It downloads only this run's exact named artifact, revalidates the two filenames, installer hash,
+version/source commit and remote tag, and creates the release with `--draft --verify-tag`.
+An existing draft can receive assets if these names are absent; its notes remain unchanged.
+Published releases and colliding asset names cause a clear failure, with no replacement or
+automatic deletion. After a partial upload or a rebuild, inspect the draft and explicitly remove
+the old MSI/manifest before rerunning the failed job or workflow. Never delete an asset blindly.
+No new tag, release version or public release is created by this job.
+
+If repository/organization policy rejects the write permission, an administrator must allow
+the workflow's requested `contents: write`; do not work around it with a personal token.
+Synthetic CLI tests live in [test-github-release.ps1](../scripts/test-github-release.ps1) and
+run through verify.ps1. They cover draft creation/upload and refusal/failure paths without any
+credentials, network calls, release creation or asset changes. The release job's workflow-owned
+logic works with existing tags that predate this job; the tagged source need not contain it.
 
 Hosted CI is not Windows 11 desktop acceptance. Interactive UI, accessibility, real GPU/ETW,
 installer UAC and installed lifecycle tests remain separate. A successful workflow has not yet

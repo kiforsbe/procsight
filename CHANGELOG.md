@@ -7,7 +7,7 @@ plans, implementation details and validation records belong in the project docum
 
 ### Added
 
-- Manual GitHub Actions verification and unsigned MSI downloads from existing version tags.
+- Manual GitHub Actions verification, unsigned MSI downloads, and draft releases from existing version tags.
 
 ## [0.2.0] - 2026-10-18
 

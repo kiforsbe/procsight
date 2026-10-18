@@ -4,7 +4,7 @@ $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path $PSScriptRoot -Parent
 Push-Location $taskRoot
 try {
-    foreach ($taskScript in @('test-release.ps1','test-packaging.ps1','test-release-workflow.ps1','test-package-certificate.ps1','test-dependencies.ps1','test-msi.ps1')) {
+    foreach ($taskScript in @('test-release.ps1','test-packaging.ps1','test-release-workflow.ps1','test-package-certificate.ps1','test-dependencies.ps1','test-msi.ps1','test-github-release.ps1')) {
         & (Join-Path $PSScriptRoot $taskScript)
         if (!$?) { throw "$taskScript failed" }
     }

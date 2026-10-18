@@ -272,8 +272,8 @@ Service implementation/host icons are cosmetic configured-file presentation, not
 The Windows workflow runs repository code and tests on an ephemeral hosted runner. It uses
 workflow_dispatch only (no push, tag, pull_request or pull_request_target triggers),
 contents:read, nonpersistent checkout credentials and
-SHA-pinned official Actions. No user/API/signing secrets are configured, no self-hosted desktop
-is involved, and no release or repository-write permission is requested. Only the staged unsigned
+SHA-pinned official Actions in the build job. No user/API/signing secrets are configured and no self-hosted desktop
+is involved. Only the staged unsigned
 MSI and hash/version manifest are uploaded. Dispatch requires a validated existing version tag, and the checked-out commit/version must
 match it. Tags are not signatures; these remain unsigned build artifacts, not trusted releases. Tests use synthetic provider credentials; real sign-in and live AI calls are excluded.
 
@@ -281,5 +281,14 @@ match it. Tags are not signatures; these remain unsigned build artifacts, not tr
 Node advisory findings in the latest stable official Actions and an unresolved legacy transitive
 license declaration. These are explicit build-tool exceptions, not findings in the NuGet product
 graph or proof of safe execution. Keep fixed workflow inputs, ephemeral isolation, bounded job
-lifetime and no secrets/publication; re-review upstream fixes. Do not weaken the product's
+lifetime and no personal/signing secrets; re-review upstream fixes. Do not weaken the product's
 fail-closed vulnerability gate or describe the complete toolchain as advisory-free.
+
+A separate draft-release job uses actions:read and contents:write with the automatic GITHUB_TOKEN.
+It runs no checkout or tagged scripts and no third-party Actions. The runner's GitHub CLI downloads
+only the current build's named artifact; workflow-owned PowerShell validates the exact two files,
+SHA-256, version and source commit, and rechecks the remote tag. This is artifact integrity, not
+proof of trustworthy tagged build code. The job creates drafts only, refuses published releases
+and existing asset names, and never overwrites assets or edits tags. Public publication remains a
+maintainer action. GitHub contents:write is broader than releases alone, so keep it isolated from
+the read-only build job and never execute artifact contents in this privileged job.

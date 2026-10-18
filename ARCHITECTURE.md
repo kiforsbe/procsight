@@ -84,9 +84,12 @@ installs the SDK selected by the tagged global.json, runs verify.ps1 and then pa
 the Msi profile on an ephemeral windows-2025 runner. Existing locked restore, vulnerability gates,
 MSI preflight and payload inspection remain the authoritative build checks. A narrow staging step
 copies only the unsigned MSI and release-artifacts.json and verifies its SHA-256 before upload.
-No version/tag edits, signing or GitHub Release publication occur. Read-only repository permissions
-and manual dispatch keep these build artifacts separate from privileged release work; pushes,
-tags and PRs never trigger this workflow.
+No version/tag edits, signing or public Release publication occur. The build job retains read-only
+repository permissions. A separate ephemeral job has actions:read and contents:write, downloads
+only this run's named artifact, verifies its files/hash/version/source commit and current remote
+tag, then uses the runner's GitHub CLI to create a draft release or upload to an empty existing
+draft. It never checks out or executes tagged code. Published releases and colliding assets are
+refused; maintainers review and publish manually. Pushes, tags and PRs never trigger the workflow.
 Known Action dependency advisory exceptions and hosted-validation limits are documented in the
 [workflow guide](docs/GITHUB-ACTIONS.md); no hosted run has been observed from this local setup.
 
@@ -97,7 +100,10 @@ flowchart LR
     Verify --> Package[Audited self-contained MSI build and inspection]
     Package --> Stage[MSI and hash manifest only]
     Stage --> Artifact[Downloadable workflow artifact]
-    Artifact --> User[User reviews and installs preview]
+    Artifact --> DraftJob[Separate job: verify artifact and remote tag]
+    DraftJob --> Draft[Draft release with MSI and manifest]
+    Draft --> Review[Maintainer reviews and publishes]
+    Review --> User[User downloads preview]
 ```
 
 ### Installer distribution and release preparation

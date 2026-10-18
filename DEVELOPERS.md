@@ -571,8 +571,11 @@ The user-requested [Windows build workflow](.github/workflows/windows-build.yml)
 verification and MSI packaging only on manual dispatch with an existing vMAJOR.MINOR.PATCH tag
 matching the product version; pushes, tags and PRs do not trigger it. See
 [GITHUB-ACTIONS.md](docs/GITHUB-ACTIONS.md) for setup, downloading artifacts, pinned-Action review
-and upstream dependency advisory exceptions. CI does not sign, alter versions or publish releases.
-Do not add deployment/publication or automatic dependency upgrades without a subsequent request.
+and upstream dependency advisory exceptions. A separate job prepares a draft release with the
+verified installer and hash manifest; publication is manual. CI does not sign or alter versions.
+Run `./scripts/test-github-release.ps1` for synthetic release-CLI checks with no credentials or
+network access; `verify.ps1` includes them. Do not add automatic publication or dependency upgrades
+without a subsequent request.
 
 ## Keep the repository current
 

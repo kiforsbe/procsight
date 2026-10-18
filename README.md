@@ -76,6 +76,8 @@ Once the build workflow is on the GitHub default branch and has been run manuall
 successful **Windows build and MSI** run, and download its **ProcSight-…-windows-x64** artifact.
 Extract the ZIP and open the MSI. These are unsigned preview builds; GitHub sign-in is
 required to download workflow artifacts. See the [build guide](docs/GITHUB-ACTIONS.md).
+The workflow also prepares a draft GitHub Release with the MSI and hash manifest attached.
+Maintainers review its assets and notes, then publish it for normal release downloads.
 
 ## Getting started
 

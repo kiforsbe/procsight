@@ -18,6 +18,9 @@ concurrency:
 jobs:
   build:
     runs-on: windows-2025
+    outputs:
+      artifact: ProcSight-${{ steps.package.outputs.version }}-windows-x64-${{ github.run_id }}-${{ github.run_attempt }}
+      commit: ${{ steps.package.outputs.commit }}
     timeout-minutes: 45
     defaults:
       run:
@@ -88,6 +91,7 @@ jobs:
             throw 'Staged MSI hash differs from its inspected manifest.'
           }
           Add-Content -LiteralPath $env:GITHUB_OUTPUT -Value "version=$($package.Version)"
+          Add-Content -LiteralPath $env:GITHUB_OUTPUT -Value "commit=$($package.Commit)"
           Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Value "Unsigned ProcSight $($package.Version) MSI verified. Download it from this run's Artifacts section."
 
       - name: Upload MSI and hash manifest
@@ -99,3 +103,75 @@ jobs:
           compression-level: 0
           retention-days: 14
           include-hidden-files: false
+
+  draft-release:
+    needs: build
+    runs-on: windows-2025
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      # No checkout, tagged scripts, build tools or third-party Actions in this write-enabled job.
+      - name: Prepare draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          REQUESTED_TAG: ${{ inputs.tag }}
+          EXPECTED_COMMIT: ${{ needs.build.outputs.commit }}
+          ARTIFACT_NAME: ${{ needs.build.outputs.artifact }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Set-StrictMode -Version 3
+          if ($env:REQUESTED_TAG -cnotmatch '^v(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})$' -or
+              $env:EXPECTED_COMMIT -cnotmatch '^[a-f0-9]{40}$') {
+            throw 'Invalid release tag or build commit.'
+          }
+          $stage = Join-Path $PWD 'release-assets'
+          gh run download $env:GITHUB_RUN_ID --repo $env:GH_REPO --name $env:ARTIFACT_NAME --dir $stage
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download this build artifact.' }
+          $version = $env:REQUESTED_TAG.Substring(1)
+          $msiName = "ProcSight-$version-x64-unsigned.msi"
+          $files = @(Get-ChildItem -LiteralPath $stage -Force)
+          if ($files.Count -ne 2 -or @($files | Where-Object {
+                $_.PSIsContainer -or $_.LinkType -or $_.Name -cnotin @($msiName, 'release-artifacts.json')
+              }).Count -ne 0) { throw 'Unexpected release artifact contents.' }
+          $manifestPath = Join-Path $stage 'release-artifacts.json'
+          $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+          $msiPath = Join-Path $stage $msiName
+          if ($manifest.Version -cne $version -or $manifest.Commit -cne $env:EXPECTED_COMMIT -or
+              $manifest.Profile -cne 'Msi' -or $manifest.Signed -isnot [bool] -or $manifest.Signed -or
+              $manifest.Artifact -cne $msiName -or $manifest.SHA256 -notmatch '^[a-fA-F0-9]{64}$' -or
+              (Get-FileHash -LiteralPath $msiPath -Algorithm SHA256).Hash -ine $manifest.SHA256) {
+            throw 'Release artifact does not match the verified build.'
+          }
+          $tagCommit = gh api "repos/$env:GH_REPO/commits/$env:REQUESTED_TAG" --jq '.sha'
+          if ($LASTEXITCODE -ne 0 -or $tagCommit -cne $env:EXPECTED_COMMIT) {
+            throw 'Remote tag no longer matches the verified build.'
+          }
+          $releaseJson = gh api "repos/$env:GH_REPO/releases" --paginate --slurp
+          if ($LASTEXITCODE -ne 0) { throw 'Could not inspect existing releases.' }
+          $releases = @($releaseJson | ConvertFrom-Json | ForEach-Object { $_ } | Where-Object { $_.tag_name -ceq $env:REQUESTED_TAG })
+          if ($releases.Count -gt 1) { throw 'Multiple releases found for this tag.' }
+          if ($releases.Count -eq 1) {
+            $existing = $releases[0]
+            if (!$existing.draft) { throw 'This tag already has a published release; it will not be changed.' }
+            if (@($existing.assets | Where-Object { $_.name -cin @($msiName, 'release-artifacts.json') }).Count -gt 0) {
+              throw 'Draft already contains these assets. Review and remove them manually before retrying; assets are never overwritten.'
+            }
+            gh release upload $env:REQUESTED_TAG $msiPath $manifestPath --repo $env:GH_REPO
+            if ($LASTEXITCODE -ne 0) { throw 'Draft asset upload failed. Inspect the draft before retrying.' }
+          } else {
+            $notes = Join-Path $PWD 'release-notes.md'
+            @("ProcSight $version development preview.", '',
+              'Unsigned self-contained Windows x64 MSI; no development certificate import is required.', '',
+              "Source commit: $env:EXPECTED_COMMIT", '',
+              'See release-artifacts.json for the installer SHA-256. Review and edit these notes before publishing.') |
+              Set-Content -LiteralPath $notes -Encoding utf8
+            gh release create $env:REQUESTED_TAG $msiPath $manifestPath --repo $env:GH_REPO --verify-tag --draft --title "ProcSight $version" --notes-file $notes
+            if ($LASTEXITCODE -ne 0) { throw 'Draft creation or asset upload failed. Inspect Releases before retrying.' }
+          }
+          Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Value "Draft release prepared for $env:REQUESTED_TAG. Review assets and release notes at https://github.com/$env:GH_REPO/releases before publishing."

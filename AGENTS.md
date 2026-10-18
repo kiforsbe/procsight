@@ -203,9 +203,11 @@ An ignore rule does not remove already tracked secrets; inspect the staged diff 
 
 The user has requested manual-only GitHub Actions build/test/MSI artifacts (workflow_dispatch only) from an existing
 vMAJOR.MINOR.PATCH tag matching the central version. Never build an untagged branch tip. Keep the workflow on ephemeral
-Windows hosted runners, with read-only repository permissions, SHA-pinned Actions and no signing
-secrets, credential persistence, version edits, commits, tags or release publication. Upload only
-explicitly staged MSI/hash metadata. Automated deployment/publication remains excluded. Repository
+Windows hosted runners, with read-only build permissions, SHA-pinned Actions and no signing
+secrets, credential persistence, version edits, commits or tags. A separate write-enabled job may
+prepare a draft release with the exact build's verified MSI/hash metadata. It must not check out
+or execute tagged code or artifact contents, replace assets, edit tags or change published releases.
+Public publication and deployment remain manual. Repository
 preparation does not authorize creating a remote repository, pushing, or choosing an unknown
 security-reporting address. Review current upstream Action dependencies/licenses/advisories and
 document any compatibility/security exceptions rather than implying an advisory-free toolchain.
