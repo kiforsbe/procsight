@@ -80,6 +80,8 @@ plans, implementation details and validation records belong in the project docum
 
 ### Fixed
 
+- Prevented generated release notes from failing whitespace verification on the first release.
+
 - Isolated MSI verification identities so release checks work alongside an installed ProcSight.
 
 - Fixed MSI error 2725 by using binary file versions and validating the full installation preflight.

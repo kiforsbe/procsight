@@ -32,6 +32,14 @@ try {
  $notes=New-ProcSightReleaseChangelog "# Changes`n`n## [Unreleased]`n`n### Fixed`n`n- Example fix.`n" '1.2.3' '2026-10-17'
  Assert-Equal ($notes.Contains('## [1.2.3] - 2026-10-17')) $true
  Assert-Equal ($notes.Contains('- Example fix.')) $true
+ Assert-Equal ($notes.EndsWith("`n") -and !$notes.EndsWith("`n`n")) $true
+ foreach($eol in @("`n","`r`n")) {
+  $inputNotes=('# Changes'+$eol+$eol+'## [Unreleased]'+$eol+$eol+'- Current change.'+$eol+$eol+'## [1.0.0] - 2026-01-01'+$eol+$eol+'- Historical change.'+$eol)
+  $rendered=New-ProcSightReleaseChangelog $inputNotes '1.2.3' '2026-10-17'
+  Assert-Equal ($rendered -match '(?<![\r\n])\r?\n\z') $true
+  Assert-Equal ($rendered.Contains('## [1.0.0] - 2026-01-01'+$eol+$eol+'- Historical change.')) $true
+ }
+
  Assert-Rejected { New-ProcSightReleaseChangelog "## [Unreleased]`n" '1.2.3' '2026-10-17' }
 } finally {
  # Only this explicitly created temporary fixture directory is removed.

@@ -25,6 +25,8 @@ try {
  Set-Content -LiteralPath (Join-Path $fixture 'CHANGELOG.md') -Value "# Changes`n`n## [Unreleased]`n`n### Fixed`n`n- Synthetic fix.`n"
  @'
 if(Test-Path -LiteralPath (Join-Path $PSScriptRoot '../artifacts/fail-verify')) { throw 'Synthetic verify failure' }
+& git -C (Split-Path $PSScriptRoot -Parent) diff --check
+if($LASTEXITCODE -ne 0) { throw 'Generated release edits failed Git whitespace verification.' }
 if(Test-Path -LiteralPath (Join-Path $PSScriptRoot '../artifacts/concurrent-edit')) { Add-Content -LiteralPath (Join-Path $PSScriptRoot '../CHANGELOG.md') -Value 'Intervening user edit' }
 '@ | Set-Content -LiteralPath (Join-Path $fixture 'scripts/verify.ps1')
  @'

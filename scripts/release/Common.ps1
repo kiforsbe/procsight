@@ -67,5 +67,8 @@ function New-ProcSightReleaseChangelog([string]$Text,[string]$Version,[string]$R
  $match=[regex]::Match($Text,'(?ms)^## \[Unreleased\][^\S\r\n]*\r?\n(?<body>.*?)(?=^## \[|\z)')
  if(!$match.Success -or ($match.Groups['body'].Value -replace '(?m)^#+.*$','').Trim().Length -eq 0) { throw 'Changelog must contain populated Unreleased notes.' }
  $section="## [Unreleased]`n`n## [$Version] - $ReleaseDate`n`n"+$match.Groups['body'].Value.Trim()+"`n`n"
- $Text.Substring(0,$match.Index)+$section+$Text.Substring($match.Index+$match.Length)
+ # A first release has no following history heading: its section separator must not
+ # become an extra blank line at EOF. Preserve content, with exactly one final newline.
+ $result=$Text.Substring(0,$match.Index)+$section+$Text.Substring($match.Index+$match.Length)
+ $result.TrimEnd([char[]]"`r`n")+"`n"
 }

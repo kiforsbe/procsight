@@ -158,6 +158,8 @@ Synthetic workflow checks run only in disposable temporary repositories through
 The fixture deliberately starts with a higher version, then initializes its own consistent
 synthetic version history. Verification runs after release preparation updates the real
 source version, so fixture scenarios must never assume that copied source is still 0.1.0.
+Generated release notes end with exactly one newline, including the first release without
+older history. Workflow fixtures run Git whitespace verification against the generated edits.
 If verification fails before the release commit, correct the failure and retry the original
 command; `-Resume` applies only after a prepared release commit exists.
 

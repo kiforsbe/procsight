@@ -1,5 +1,19 @@
 # Development verification
 
+## Release changelog EOF regression (2026-10-18)
+
+The supplied release output reported a successful build and all 425 tests passing, then
+failed Git whitespace verification at the generated changelog's EOF. The generator always
+appended a section separator, even when there was no older release heading after it.
+A new helper assertion failed before the fix. Rendering now preserves content and ends
+with exactly one newline; tests cover LF/CRLF inputs with and without historical content.
+All 25 release helper and 28 disposable-repository workflow checks pass. Workflow fixtures
+now run actual Git whitespace verification on generated release edits before proceeding.
+No real product version, release commit or tag was created by this verification. The
+precommit failure restored the original version/changelog files; retry the original
+release command after committing the fix, rather than using Resume.
+
+
 ## MSI preflight identity collision (2026-10-18)
 
 Release verification failed at OpenPackage after ProcSight 0.1.0 was installed. The synthetic
