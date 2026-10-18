@@ -420,6 +420,10 @@ data, never executable code.
 
 ## Contributions and verification
 
+Start with [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution workflow,
+[SUPPORT.md](SUPPORT.md) for safe troubleshooting reports and
+[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community expectations.
+
 GitHub provides a [bug report form](.github/ISSUE_TEMPLATE/bug_report.yml),
 [feature request form](.github/ISSUE_TEMPLATE/feature_request.yml), and
 [pull request template](.github/pull_request_template.md). Reports should identify the

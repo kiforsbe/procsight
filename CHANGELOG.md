@@ -7,6 +7,8 @@ plans, implementation details and validation records belong in the project docum
 
 ### Added
 
+- Contribution, support and conduct guides, with security reporting guidance easier to find.
+
 - GitHub bug/feature forms and a pull request checklist with privacy and verification guidance.
 
 - VS Code Release launch/build/run options alongside the existing Debug configuration.

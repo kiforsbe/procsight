@@ -1,5 +1,36 @@
 # Security policy
 
+## Reporting a vulnerability
+
+Do not put credentials, personal process metadata, full command lines, or exploit details
+in a public issue or pull request.
+
+On GitHub, use **Security > Report a vulnerability** if private vulnerability reporting
+is enabled. Its availability is not currently confirmed.
+If it is unavailable, use a maintainer's explicitly published private security contact.
+No private reporting address has been configured yet; a public issue may request a private
+contact route without disclosing vulnerability details or sensitive information.
+
+Before distributing executable releases, maintainers must enable private reporting or add
+a real private contact route here. Do not invent an email address or promise a response time.
+
+A private report should include the affected revision/version, Windows version, expected
+and observed behavior, impact, and minimal reproduction steps with synthetic data.
+
+Do not send credentials or real inventory dumps even in a private report. Supply only
+the minimum sanitized evidence needed. There is no promised response or remediation
+time. Ordinary bugs and support questions belong in the issue templates and
+[SUPPORT.md](SUPPORT.md), not a vulnerability report.
+
+## Supported versions
+
+ProcSight is an unreleased development preview. Source builds and locally prepared
+development MSIX packages are for evaluation; no stable release or supported-version security
+update policy has been established. See [verification notes](docs/verification.md)
+for actual checks and remaining acceptance work.
+
+## Implemented security boundaries and validation limits
+
 Connection profiles keep API keys in independent Windows-protected credential slots. Plain settings
 contain only opaque references. Migration copies a legacy key before publishing the new profile;
 failure must not publish a partly configured replacement. Profile endpoints reject embedded
@@ -14,34 +45,9 @@ Desired settings are separate from applied settings; permission and budget reduc
 before disk writes. Synthetic connection tests cancel on policy/session changes and recheck revision
 after asynchronous budget reservation and before accepting a response.
 
-## Supported versions
-
 Tray monitoring uses system counters only, without provider calls, credentials, process commands
 or persistent sample logs. It owns and releases native icon/menu/query resources. Tray actions
 are a fixed typed set: open, settings, metric selection and exit. They do not modify processes.
-
-ProcSight has no executable release or supported application version yet. The repository
-currently contains an in-progress native application, design documents, and project policy. Supported releases and
-security-update expectations will be listed here when releases exist.
-
-## Reporting a vulnerability
-
-Do not put credentials, personal process metadata, full command lines, or exploit details
-in a public issue or pull request.
-
-After this repository is published on GitHub, use **Security > Report a vulnerability**
-if private vulnerability reporting is enabled. Its availability is not currently confirmed.
-If it is unavailable, use a maintainer's explicitly published private security contact.
-No private reporting address has been configured yet; a public issue may request a private
-contact route without disclosing vulnerability details or sensitive information.
-
-Before distributing executable releases, maintainers must enable private reporting or add
-a real private contact route here. Do not invent an email address or promise a response time.
-
-A private report should include the affected revision/version, Windows version, expected
-and observed behavior, impact, and minimal reproduction steps with synthetic data.
-
-## Implemented security boundaries and validation limits
 
 Local inventory export is a separate explicit disclosure boundary. Command lines/derived names,
 paths/ownership and window captions/derived names are excluded until independently selected in the
