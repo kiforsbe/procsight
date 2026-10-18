@@ -4,13 +4,19 @@ ProcSight is a native Windows 11 process explorer built with C# and WinUI 3.
 It explains what processes and services belong to, why they are running, and
 what evidence supports their classifications.
 
+<p align="center">
+  <img src="docs/images/process-details-native.png" alt="ProcSight process list and investigation details in dark mode, using synthetic demonstration data" width="1100" />
+  <br />
+  <em>Process list and investigation details with synthetic demonstration data.</em>
+</p>
+
 **Status: development preview; no published release.** Live collection, local rules and
 knowledge, provider adapters, optional research, and the investigation interface are
 implemented. Automated checks use synthetic metadata and fake providers. Targeted live inference
 smoke checks passed; full provider acceptance and desktop accessibility/scaling remain unverified.
 
 On Windows 11 with .NET SDK 10.0.301, **.NET Runtime 10.0.13 or later in the 10.0 series**,
-Windows App Runtime 2.2 and PowerShell 7+ (`pwsh`) installed:
+Windows App Runtime 2.5.1 and PowerShell 7+ (`pwsh`) installed:
 
 ```powershell
 ./scripts/build.ps1
