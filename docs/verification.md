@@ -1,5 +1,16 @@
 # Development verification
 
+## Release verification version isolation (2026-10-18)
+
+A regression fixture first seeded a higher source version (7.8.9) and reproduced the
+reported downgrade guard failure at the hard-coded 0.1.0 dry run. The workflow now
+initializes all three temporary version fields to its own synthetic baseline before
+committing that baseline. The same higher-version regression passes, including Minor
+bump preview, rollback, prepared-commit recovery, tag immutability and resume checks.
+All 26 workflow, 20 version-helper and 27 packaging checks passed. No production version,
+release commit, product tag, signing or publication was created during these tests.
+
+
 ## Dependency refresh and packaging audit (2026-10-18)
 
 The [dependency review](DEPENDENCIES.md) inventories all 38 resolved packages, selected

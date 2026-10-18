@@ -155,6 +155,11 @@ Direct releases require explicit production identity, trusted signing and timest
 development output is only a build artifact. DryRun performs no edits, commits, tags or signing.
 Synthetic workflow checks run only in disposable temporary repositories through
 `scripts/test-release-workflow.ps1`; they do not create a release in this repository.
+The fixture deliberately starts with a higher version, then initializes its own consistent
+synthetic version history. Verification runs after release preparation updates the real
+source version, so fixture scenarios must never assume that copied source is still 0.1.0.
+If verification fails before the release commit, correct the failure and retry the original
+command; `-Resume` applies only after a prepared release commit exists.
 
 ## MSIX packaging
 

@@ -76,6 +76,8 @@ plans, implementation details and validation records belong in the project docum
 
 ### Fixed
 
+- Release verification now isolates its synthetic version history, allowing Minor/Major bumps to pass the workflow checks.
+
 - Reduce off-screen process/service row caching to lower memory use and table layout work.
 
 - Require .NET 10.0.13 to avoid WinUI COM-wrapper memory growth; reduce redundant row shading notifications.

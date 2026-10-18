@@ -12,6 +12,15 @@ try {
  Copy-Item -LiteralPath (Join-Path $sourceRoot 'scripts') -Destination (Join-Path $fixture 'scripts') -Recurse
  Copy-Item -LiteralPath (Join-Path $sourceRoot 'Version.props') -Destination (Join-Path $fixture 'Version.props')
  foreach($name in @('app.manifest','Package.appxmanifest')) { Copy-Item -LiteralPath (Join-Path $sourceRoot "src/ProcSight.App/$name") -Destination (Join-Path $fixture "src/ProcSight.App/$name") }
+ # Verification runs after release preparation has already advanced the source version.
+ # Deliberately reproduce that context, independently of the checkout's current version.
+ . (Join-Path $fixture 'scripts/release/Common.ps1')
+ Set-ProcSightProductVersion $fixture '7.8.9'
+ Check ((Read-ProcSightVersion $fixture) -eq '7.8.9') 'Synthetic source version was not advanced'
+ # The scenarios below own a fixed synthetic version history, not the real product version.
+ Set-ProcSightProductVersion $fixture '0.1.0'
+ Assert-ProcSightVersionConsistency $fixture
+ Check ((Read-ProcSightVersion $fixture) -eq '0.1.0') 'Synthetic release baseline was not isolated'
  Set-Content -LiteralPath (Join-Path $fixture '.gitignore') -Value '/artifacts/'
  Set-Content -LiteralPath (Join-Path $fixture 'CHANGELOG.md') -Value "# Changes`n`n## [Unreleased]`n`n### Fixed`n`n- Synthetic fix.`n"
  @'
@@ -40,6 +49,8 @@ $manifest=Join-Path $folder 'release-artifacts.json'
  try { $null=Run-Git @('config','user.email',''); Rejected { & $script -Version 0.1.0 -Profile Direct } 'missing Git identity' }
  finally { foreach($key in $savedGitEnvironment.Keys) { if($null -eq $savedGitEnvironment[$key]) { Remove-Item -LiteralPath "Env:$key" -ErrorAction SilentlyContinue } else { [Environment]::SetEnvironmentVariable($key,$savedGitEnvironment[$key]) } }; $null=Run-Git @('config','user.email','fixture@example.invalid') }
  $null=Run-Git @('tag','v0.1.0'); Rejected { & $script -Version 0.1.0 -Profile Direct } 'existing tag'; $null=Run-Git @('tag','-d','v0.1.0')
+ $minorPreview=(& $script -Bump Minor -Profile Direct -DryRun) -join "`n"
+ Check ($minorPreview.Contains('0.1.0 -> 0.2.0')) 'Minor bump preview did not use the isolated fixture version'
  & $script -Version 0.1.0 -Profile Direct -DryRun | Out-Null
  Check ((Run-Git @('status','--porcelain')) -eq '') 'Dry run changed files'
  Check ((Run-Git @('rev-parse','HEAD')) -eq $before) 'Dry run changed HEAD'
