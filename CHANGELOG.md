@@ -7,6 +7,8 @@ plans, implementation details and validation records belong in the project docum
 
 ### Added
 
+- Local Windows test-environment guidance for disposable Sandbox sessions and small snapshot-based VMs.
+
 - Self-contained MSI packaging with Start-menu integration, versioned upgrades and shared release validation.
 
 - Local dependency review/update tooling and packaging gates for known package vulnerabilities.

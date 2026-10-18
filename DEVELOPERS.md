@@ -687,3 +687,9 @@ QueueIcon and row invalidation share its key. Tests and native `services` fixtur
 16px gear fallback presentation. `details-restricted` asserts a denied process stays selected and keeps
 its details controls across collection. Windows lifetime tests also perform bounded current-kernel and
 live collector checks; do not commit a machine dump or raw inventory to demonstrate those checks.
+
+## Disposable local Windows testing
+
+See [WINDOWS-TESTING.md](docs/WINDOWS-TESTING.md) for Windows Sandbox on supported editions,
+or a small snapshot-based VM on Windows Home. These are recommendations; the repository
+has not installed a hypervisor, enabled Windows features or downloaded a guest image.
