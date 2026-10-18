@@ -420,6 +420,15 @@ data, never executable code.
 
 ## Contributions and verification
 
+GitHub provides a [bug report form](.github/ISSUE_TEMPLATE/bug_report.yml),
+[feature request form](.github/ISSUE_TEMPLATE/feature_request.yml), and
+[pull request template](.github/pull_request_template.md). Reports should identify the
+revision, Windows build, installation type and elevation state, with minimal synthetic
+reproduction steps. Review all attachments for personal data before posting. Follow
+[SECURITY.md](SECURITY.md) for vulnerabilities instead of disclosing details publicly.
+Pull requests should describe the resulting behavior, actual verification and remaining
+limitations, and update affected documentation in the same change.
+
 The embedded [common catalog](src/ProcSight.Core/Rules/common-tasks.json) contains shared
 process/service definitions, not a machine inventory. Extend it with public file/product/service
 identifiers and reference links; never retain machine paths, per-user instance suffixes, command

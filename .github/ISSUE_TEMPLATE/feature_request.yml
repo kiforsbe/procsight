@@ -1,0 +1,33 @@
+name: Feature request
+description: Suggest an improvement to ProcSight.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search existing issues first. ProcSight currently focuses on read-only investigation;
+        process/service management is a later phase. Use synthetic examples and omit personal
+        paths, command lines, account details, credentials and private screenshots.
+        Report vulnerabilities through the guidance in SECURITY.md instead.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the workflow and who would benefit.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the outcome you want, with a small synthetic example if useful.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives or workarounds (optional)
+  - type: textarea
+    id: considerations
+    attributes:
+      label: Additional considerations (optional)
+      description: Relevant privacy, accessibility, performance or compatibility considerations.

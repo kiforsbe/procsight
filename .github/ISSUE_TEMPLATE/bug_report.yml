@@ -1,0 +1,79 @@
+name: Bug report
+description: Report a reproducible problem in ProcSight.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ProcSight is a development preview. Search existing issues before reporting.
+        Do not disclose vulnerabilities here; follow SECURITY.md in the repository.
+        Use synthetic examples. Remove credentials, account details, personal paths,
+        full command lines and window titles from text, logs and screenshots.
+        Do not attach inventory exports, knowledge databases, memory dumps or OAuth URLs.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What went wrong?
+      description: Describe the observed behavior and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Include the page, actions and relevant settings. Prefer a minimal synthetic example.
+      placeholder: |
+        1. Open Processes
+        2. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: ProcSight version or commit
+      placeholder: Package version or Git commit hash
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version and build
+      placeholder: Windows 11, version and OS build from winver
+    validations:
+      required: true
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Installation / build
+      options:
+        - Installed MSIX
+        - Unpackaged Release
+        - Unpackaged Debug
+        - Other / unsure
+    validations:
+      required: true
+  - type: dropdown
+    id: elevation
+    attributes:
+      label: Running as administrator?
+      options:
+        - "No"
+        - "Yes"
+        - Unsure
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context (optional)
+      description: |
+        Add sanitized screenshots or app-owned error/reason codes. For UI problems, include
+        theme, display scaling and window size. For performance problems, include build mode,
+        debugger state, approximate row count, sampling settings, and the measurement used
+        (for example, total working set versus private memory). Do not paste raw debug output.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy check
+      options:
+        - label: I reviewed the report and attachments for secrets and personal data.
+          required: true

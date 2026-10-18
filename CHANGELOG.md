@@ -7,6 +7,8 @@ plans, implementation details and validation records belong in the project docum
 
 ### Added
 
+- GitHub bug/feature forms and a pull request checklist with privacy and verification guidance.
+
 - VS Code Release launch/build/run options alongside the existing Debug configuration.
 
 - Direct maximum-shading control with a brighter 50% default and system/custom color selection.
