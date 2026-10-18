@@ -37,6 +37,8 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
     private int outstanding;
     private long knowledgeGeneration;
     private readonly ConcurrentDictionary<string,ProviderSettings> authPaused=[];
+    private readonly object resolutionLock=new();
+    private (MachineSnapshot Snapshot,AnalysisPolicy Policy,IReadOnlyList<ResolvedEntity> Entities)? resolution;
     public async Task ObserveAsync(MachineSnapshot snapshot,AnalysisPolicy newPolicy,CancellationToken ct)
     {
         if(newPolicy!=policy) await ChangePolicyAsync(newPolicy,ct);
@@ -69,8 +71,18 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
             lock(policyLock) { if(newPolicy!=policy||generation!=knowledgeGeneration) return; fingerprints[entity.Identity]=fingerprint; }
         }
     }
-    public IReadOnlyList<ResolvedEntity> ResolveEntities(MachineSnapshot snapshot,AnalysisPolicy config)=>
-        new IdentityResolver().Resolve(snapshot,[]).Select(e=>WithCommandContext(e,config)).ToList();
+    public IReadOnlyList<ResolvedEntity> ResolveEntities(MachineSnapshot snapshot,AnalysisPolicy config)
+    {
+        lock(resolutionLock) {
+            // Collection presents and observes the same immutable snapshot. Retain only that
+            // single local result, with its exact privacy policy; never reuse across polls.
+            if(resolution is { } cached&&ReferenceEquals(cached.Snapshot,snapshot)&&cached.Policy==config)
+                return cached.Entities;
+            var entities=Array.AsReadOnly(new IdentityResolver().Resolve(snapshot,[]).Select(e=>WithCommandContext(e,config)).ToArray());
+            resolution=(snapshot,config,entities);
+            return entities;
+        }
+    }
     private ResolvedEntity WithCommandContext(ResolvedEntity entity,AnalysisPolicy config)
     {
         var command=entity.Process?.CommandLine?.Raw ?? entity.Service?.BinaryPath;
@@ -288,6 +300,7 @@ public sealed class AnalysisCoordinator(IKnowledgeStore store,IUsageLedger ledge
         if(worker is not null) await worker;
         while(queue.Reader.TryRead(out _)) Interlocked.Decrement(ref outstanding);
         current.Clear(); fingerprints.Clear(); reviewTimes.Clear();
-        updates.Writer.TryComplete(); lifetime.Dispose(); policyCancellation.Dispose(); Array.Clear(key);
+        updates.Writer.TryComplete(); lifetime.Dispose(); policyCancellation.Dispose();
+        lock(resolutionLock) { resolution=null; Array.Clear(key); }
     }
 }

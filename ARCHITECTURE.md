@@ -252,6 +252,13 @@ the rendered opacity is unchanged; palette changes force refresh. Numeric/text o
 independent of that visual suppression. See [live profiling](docs/PERFORMANCE.md) for evidence and
 the remaining full-process memory acceptance.
 
+[AnalysisCoordinator.ResolveEntities](src/ProcSight.Application/Analysis/AnalysisCoordinator.cs)
+shares one coordinator-owned resolution between collection presentation and rule observation for
+the same immutable snapshot reference and complete effective policy. A different snapshot or policy
+replaces the sole cache entry; disposal releases it under the resolution lock. Entity dictionaries,
+evidence and origins are shared local read-only data, not mutable consumer workspaces. The cache
+contains no provider results and cannot reuse a command origin across policies or observations.
+
 [ProcessIoMonitor](src/ProcSight.Windows/Collection/ProcessIoMonitor.cs) starts an owned kernel
 ETW session off-thread only in explicit administrator mode. Enable precedes Source creation;
 the parser tracks thread/PID relationships without filename tracking. Disk read/write and

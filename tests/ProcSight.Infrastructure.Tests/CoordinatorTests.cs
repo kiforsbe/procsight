@@ -17,8 +17,40 @@ public sealed class CountingProvider : IAnalysisProvider
         return new(null,new(Kind,"Fixture unknown",TimeSpan.Zero));
     }
 }
-public sealed class CoordinatorTests : IDisposable
+public sealed class CoordinatorTests(Xunit.Abstractions.ITestOutputHelper output) : IDisposable
 {
+    [Fact] public async Task ReusingOneSnapshotAvoidsDuplicateResolutionAllocations()
+    {
+        await using var coordinator=Coordinator();
+        var snapshot=Samples.Snapshot(Enumerable.Range(1,1000).Select(pid=>Samples.Process() with {
+            Key=new(pid,Samples.Now,null),CommandLine=new("node.exe synthetic-worker.js --worker",Samples.Now) }).ToArray());
+        var config=new AnalysisPolicy();
+        var before=GC.GetAllocatedBytesForCurrentThread();
+        var first=coordinator.ResolveEntities(snapshot,config);
+        var initial=GC.GetAllocatedBytesForCurrentThread()-before;
+        before=GC.GetAllocatedBytesForCurrentThread();
+        var second=coordinator.ResolveEntities(snapshot,config);
+        var repeated=GC.GetAllocatedBytesForCurrentThread()-before;
+        output.WriteLine($"1000 synthetic entities: first={initial} bytes, repeated={repeated} bytes.");
+        Assert.True(repeated<initial/8,$"Duplicate resolution allocated {repeated} bytes versus {initial} initially.");
+        Assert.Equal(first.Select(e=>e.Identity),second.Select(e=>e.Identity));
+        Assert.Equal(0,provider.Calls);
+    }
+    [Fact] public async Task ResolutionReuseCannotCarryOldObservationsOrCommandOriginsAcrossPolicy()
+    {
+        await using var coordinator=Coordinator();
+        var process=Samples.Process() with { CommandLine=new("node.exe --worker",Samples.Now) };
+        var snapshot=Samples.Snapshot(process);
+        var local=Assert.Single(coordinator.ResolveEntities(snapshot,new()));
+        var online=Assert.Single(coordinator.ResolveEntities(snapshot,new(CommandLineMode:CommandLineMode.OnlineFull)));
+        Assert.Contains(DataOrigin.LocalCommandLine,local.Origins);
+        Assert.Contains(DataOrigin.OnlineCommandLine,online.Origins);
+        Assert.DoesNotContain(DataOrigin.LocalCommandLine,online.Origins);
+        var next=snapshot with { Processes=[process with { CommandLine=new("node.exe other.js",Samples.Now) }] };
+        var changed=Assert.Single(coordinator.ResolveEntities(next,new()));
+        Assert.NotEqual(local.Identity,changed.Identity);
+        Assert.Equal("node.exe other.js",changed.Process!.CommandLine!.Raw);
+    }
     [Fact] public async Task NameOnlyProtectedSnapshotsDoNotSpendAutomaticJobsRepeatedly()
     {
         await using var coordinator=Coordinator();

@@ -6,7 +6,8 @@ The running administrator app was sampled using numeric counters, managed stacks
 type/reference graph, without AI calls or credential access. See [measurements](PERFORMANCE.md).
 The synthetic balanced COM probe reproduced 8.38 MB retained growth on .NET 10.0.9 versus about
 2 KB on 10.0.13. Generated Debug/Release runtimeconfig selects 10.0.13; self-contained framework
-resolution also selects it. No machine-wide runtime installation or user-app restart was performed.
+resolution also selects it. After the user closed the old app, Debug was rebuilt and restarted as
+administrator on a hash-verified local runtime archive. No machine-wide runtime installation occurred.
 
 Native row checks first failed on sub-shade CPU changes unnecessarily notifying the brush, then
 passed with opacity-aware notifications. Row, resource-shading and columns fixtures passed on the
@@ -14,7 +15,16 @@ local 10.0.13 runtime. Live-sort assertions/capture completed, but three of five
 native stowed exception 0xC000027B; two exited normally. This intermittent teardown/render failure
 remains unresolved, so live-sort desktop acceptance is not claimed. Release build passed without
 warnings/errors and 397 tests passed (74 Core, 138 Application, 116 Infrastructure, 69 Windows),
-excluding all ChatGptAuth tests. Whole-app memory/CPU comparison after runtime update remains pending.
+excluding all ChatGptAuth tests. See the performance report for the first restarted-app capture and
+its comparison limitations. Previous row sources on runtime 10.0.13 also reproduced the stowed
+exception (one of three attempts), so the failure is not confined to the new notification code.
+
+The duplicate-resolution allocation regression failed at 5,063,896 bytes on its second resolution,
+then passed at 32 bytes after adding bounded same-snapshot/policy reuse. Another test checks changed
+commands in a new snapshot and local versus online command origins. Independent review found no
+actionable cache/privacy issue. Final Release build passed without warnings/errors and all 399
+non-auth tests passed (74 Core, 138 Application, 118 Infrastructure, 69 Windows). The prior running
+instance predated this second optimization; no claim of its full-app allocation improvement is made.
 
 ## Equivalent unavailable metadata cache regression — 2026-10-17
 

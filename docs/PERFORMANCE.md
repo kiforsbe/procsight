@@ -29,8 +29,25 @@ Those caches must run on the fixed runtime: on affected runtimes, repeatedly mar
 arguments can themselves accumulate holder entries. Availability, memory denominator, high contrast,
 floor/roof and color changes still update shading. Resource text/export readings remain fresh.
 
-The running user instance has not been replaced. Whole-GUI long-running allocation/working-set
-and interaction measurements after updating the runtime and restarting remain outstanding.
+After the user closed the original instance, the rebuilt Debug app was restarted as administrator
+using a SHA-512-verified official runtime archive under ignored artifacts, without installing it
+machine-wide. The loaded coreclr version confirmed 10.0.13. A 35-second capture after 15 seconds
+of warm-up averaged 377.24 MB working set, 40.94 MB managed heap, 4.84 MB LOH and 20.89 MB/s
+allocations. CPU averaged 1.31% and GC time 4.77%; unrelated build/fixture activity occurred during
+the capture. The older session was longer-lived and included stack sampling, so this is not a
+controlled CPU/memory improvement claim. Allocation traffic remains essentially unchanged.
+
+A subsequent 20-second GC allocation-tick trace lost zero events. Sampled attribution was dominated
+by strings (155.5 MB), byte arrays (34.8 MB), string-dictionary entries (32.7 MB) and char arrays
+(25.4 MB). Allocation ticks are sampled attribution, not exact per-type accounting. Inspection found
+the same collected snapshot resolved twice: once for UI rows, then again for coordinator observation.
+A coordinator-owned single-entry cache now reuses that result only for the identical snapshot
+reference and complete policy. New observations/policy recompute it; disposal clears it. Shared
+entity contents remain read-only by convention. No command cache survives into another snapshot.
+The synthetic 1,000-entity regression fell from 5,063,896 bytes for duplicate resolution to 32 bytes;
+initial resolution still costs about 5.06 MB. This later optimization is not in the running instance.
+
+Long-running whole-GUI allocation/working-set and interaction measurements remain outstanding.
 Local traces stay under ignored artifacts; never commit live inventories or heap graphs.
 
 ## Batched metadata enumeration — 2026-10-17

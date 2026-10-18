@@ -67,6 +67,7 @@ plans, implementation details and validation records belong in the project docum
 ### Fixed
 
 - Require .NET 10.0.13 to avoid WinUI COM-wrapper memory growth; reduce redundant row shading notifications.
+- Reuse snapshot resolution between the process table and local analysis to reduce allocation traffic.
 
 - Preserve row display caches when repeated unavailable metadata has equivalent contents.
 
