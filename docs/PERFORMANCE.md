@@ -45,10 +45,25 @@ A coordinator-owned single-entry cache now reuses that result only for the ident
 reference and complete policy. New observations/policy recompute it; disposal clears it. Shared
 entity contents remain read-only by convention. No command cache survives into another snapshot.
 The synthetic 1,000-entity regression fell from 5,063,896 bytes for duplicate resolution to 32 bytes;
-initial resolution still costs about 5.06 MB. This later optimization is not in the running instance.
+initial resolution still costs about 5.06 MB. That optimization was not included in this first capture.
 
 Long-running whole-GUI allocation/working-set and interaction measurements remain outstanding.
 Local traces stay under ignored artifacts; never commit live inventories or heap graphs.
+
+## Snapshot reuse live follow-up — 2026-10-18
+
+With no ProcSight process remaining, the normal Debug output was rebuilt and restarted as
+administrator using the same verified local 10.0.13 runtime. A 35-second capture after 15 seconds
+of warm-up averaged 13.17 MB/s allocations, 370.25 MB working set, 42.26 MB managed heap,
+3.40 MB LOH, 1.59% CPU and 4.60% GC time. No build or native fixtures ran during this capture.
+The earlier runtime-only capture averaged 20.89 MB/s allocations and 377.24 MB working set;
+the observed allocation rate is about 37% lower. Live inventories, startup work and background
+conditions differ across captures, so this is supporting evidence rather than a controlled result.
+CPU was higher and managed heap was similar: no CPU or overall memory improvement is claimed
+for snapshot reuse. The running app includes commit a03c0dc. Long-running memory stability and
+native pointer/frame presentation remain separate acceptance work. Reports remain ignored local
+numeric-only files `artifacts/ui-performance/cache-live-{initial,final}.json` and
+`cache-live-counters.csv`.
 
 ## Batched metadata enumeration — 2026-10-17
 

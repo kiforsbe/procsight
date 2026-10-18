@@ -24,7 +24,10 @@ then passed at 32 bytes after adding bounded same-snapshot/policy reuse. Another
 commands in a new snapshot and local versus online command origins. Independent review found no
 actionable cache/privacy issue. Final Release build passed without warnings/errors and all 399
 non-auth tests passed (74 Core, 138 Application, 118 Infrastructure, 69 Windows). The prior running
-instance predated this second optimization; no claim of its full-app allocation improvement is made.
+instance predated this second optimization. On 2026-10-18 the latest Debug build was restarted as
+administrator on local runtime 10.0.13 and sampled for 35 seconds after warm-up. Allocations averaged
+13.17 MB/s versus 20.89 MB/s previously; CPU did not improve. See the performance report for exact
+metrics and the uncontrolled live-session comparison limits. No AI/authentication tests or calls ran.
 
 ## Equivalent unavailable metadata cache regression — 2026-10-17
 
