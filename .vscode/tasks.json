@@ -28,6 +28,34 @@
             "options": { "cwd": "${workspaceFolder}" },
             "dependsOn": "ProcSight: build",
             "problemMatcher": []
+        },
+        {
+            "label": "ProcSight: build Release",
+            "type": "process",
+            "command": "powershell.exe",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy", "Bypass",
+                "-File", "${workspaceFolder}/scripts/build.ps1",
+                "-Configuration", "Release"
+            ],
+            "options": { "cwd": "${workspaceFolder}" },
+            "problemMatcher": "$msCompile",
+            "group": "build"
+        },
+        {
+            "label": "ProcSight: run Release",
+            "type": "process",
+            "command": "powershell.exe",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy", "Bypass",
+                "-File", "${workspaceFolder}/scripts/start.ps1",
+                "-Configuration", "Release"
+            ],
+            "options": { "cwd": "${workspaceFolder}" },
+            "dependsOn": "ProcSight: build Release",
+            "problemMatcher": []
         }
     ]
 }

@@ -7,6 +7,8 @@ plans, implementation details and validation records belong in the project docum
 
 ### Added
 
+- VS Code Release launch/build/run options alongside the existing Debug configuration.
+
 - Direct maximum-shading control with a brighter 50% default and system/custom color selection.
 
 - Optional logarithmic time axis on Performance charts, with labelled elapsed-time ticks.

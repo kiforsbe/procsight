@@ -24,8 +24,9 @@ having the SDK alone does not ensure that this servicing update is installed. Se
 packages carry the required runtime.
 
 In VS Code, open this repository folder and install the recommended Microsoft C#
-extension. Select **ProcSight (Debug)** in Run and Debug, then press **F5** to build
-and debug or **Ctrl+F5** to build and run without debugging. See the
+extension. Select **ProcSight (Debug)** or **ProcSight (Release)** in Run and Debug,
+then press **F5** to build and debug or **Ctrl+F5** to build and run without debugging.
+Use Release with **Ctrl+F5** for representative performance measurements. See the
 [VS Code setup](DEVELOPERS.md#run-and-debug-in-vs-code) for tasks and troubleshooting.
 
 ## Install a development package

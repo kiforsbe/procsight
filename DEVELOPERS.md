@@ -368,9 +368,15 @@ from Microsoft; accept workspace trust for this checkout to enable tasks and deb
   solution in Debug configuration, then launches the native app with the managed C#
   debugger. Set breakpoints in C# source before launching; **Shift+F5** stops debugging.
 - **Ctrl+F5** uses the same configuration to build and run without the debugger.
+- Select **ProcSight (Release)** to build and launch the optimized Release executable instead.
+  Its debugger configuration retains JIT optimizations and allows optimized/non-user code stepping;
+  source breakpoints/stepping can differ from Debug. Use **Ctrl+F5** for performance comparisons
+  without debugger overhead. Both profiles use the installed .NET 10.0.13+ runtime normally.
 - **Ctrl+Shift+B** runs the default **ProcSight: build** task.
 - **Terminal > Run Task > ProcSight: run** builds and launches through the existing
   scripts without requiring a debug session.
+- **ProcSight: build Release** and **ProcSight: run Release** provide equivalent Release tasks;
+  the default build task remains Debug.
 
 [launch.json](.vscode/launch.json) launches the unpackaged `.exe` directly so the
 Windows App Runtime bootstrapper runs. [tasks.json](.vscode/tasks.json) reuses
