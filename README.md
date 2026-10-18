@@ -70,6 +70,13 @@ A development package may need its signing certificate trusted first. See
 Trust only a certificate whose source and identity you have verified; certificate trust
 applies beyond a single installation. An unsigned development package is not ready to install.
 
+### GitHub build downloads
+
+Once the build workflow is on the GitHub default branch and has been run manually, open the repository's **Actions** tab, select a
+successful **Windows build and MSI** run, and download its **ProcSight-…-windows-x64** artifact.
+Extract the ZIP and open the MSI. These are unsigned preview builds; GitHub sign-in is
+required to download workflow artifacts. See the [build guide](docs/GITHUB-ACTIONS.md).
+
 ## Getting started
 
 1. Open **Processes** or **Services** and select an entry. Use **Details** to inspect

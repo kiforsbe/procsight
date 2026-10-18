@@ -76,6 +76,30 @@ sequenceDiagram
     Dialog->>Dialog: Flush valid settings, cancel work, detach editor
 ```
 
+### GitHub build execution
+
+The [Windows workflow](.github/workflows/windows-build.yml) checks out source without persisted
+credentials at the requested existing version tag, verifies its commit and central version,
+installs the SDK selected by the tagged global.json, runs verify.ps1 and then package.ps1 with
+the Msi profile on an ephemeral windows-2025 runner. Existing locked restore, vulnerability gates,
+MSI preflight and payload inspection remain the authoritative build checks. A narrow staging step
+copies only the unsigned MSI and release-artifacts.json and verifies its SHA-256 before upload.
+No version/tag edits, signing or GitHub Release publication occur. Read-only repository permissions
+and manual dispatch keep these build artifacts separate from privileged release work; pushes,
+tags and PRs never trigger this workflow.
+Known Action dependency advisory exceptions and hosted-validation limits are documented in the
+[workflow guide](docs/GITHUB-ACTIONS.md); no hosted run has been observed from this local setup.
+
+```mermaid
+flowchart LR
+    Source[Manual dispatch with existing version tag] --> Runner[Ephemeral Windows hosted runner]
+    Runner --> Verify[Locked Release verification]
+    Verify --> Package[Audited self-contained MSI build and inspection]
+    Package --> Stage[MSI and hash manifest only]
+    Stage --> Artifact[Downloadable workflow artifact]
+    Artifact --> User[User reviews and installs preview]
+```
+
 ### Installer distribution and release preparation
 
 Local MSIX generation is implemented. The [packaging design](docs/superpowers/specs/2026-10-17-msix-packaging-design.md)

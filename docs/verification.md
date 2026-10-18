@@ -1,5 +1,23 @@
 # Development verification
 
+## Manual GitHub Actions build configuration (2026-10-18)
+
+The Windows build/MSI workflow passed actionlint 1.7.12 and PowerShell AST parsing of its
+run steps. Artifact staging was exercised locally against an existing inspected MSI,
+including manifest copying and SHA-256 verification. The linter binary came from its
+official stable release and its archive SHA-256 matched the upstream checksum manifest.
+The workflow has only workflow_dispatch with a required existing version tag; no push, tag, PR
+or scheduled trigger is configured. It explicitly checks out refs/tags/<input> and checks
+commit and central version agreement before building. A local shallow checkout of v0.2.0 passed
+the extracted tag/version guard; branch, prerelease, leading-zero inputs and a version mismatch
+were rejected using an ignored local fixture. The real tag/release history was not modified.
+Existing verify/package scripts remain the build gates and were not weakened or replaced.
+No GitHub workflow was dispatched, pushed or observed from this environment, so hosted Windows
+build/native preflight acceptance remains unverified. Known official-Action Node dependency
+advisories and license metadata limitations are recorded in GITHUB-ACTIONS.md rather than
+claiming a clean toolchain scan. Product package pins/lock files are unchanged.
+
+
 ## Release changelog EOF regression (2026-10-18)
 
 The supplied release output reported a successful build and all 425 tests passing, then

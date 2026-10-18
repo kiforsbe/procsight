@@ -266,3 +266,20 @@ or verified parent ownership. Final sequence confirmation rejects reused or unco
 API fallback retains snapshot scoping rather than guessing a lifetime from the PID. Creation times
 are retained only under a matching sequence and are never invented from first observation time.
 Service implementation/host icons are cosmetic configured-file presentation, not trust evidence.
+
+## GitHub build boundary
+
+The Windows workflow runs repository code and tests on an ephemeral hosted runner. It uses
+workflow_dispatch only (no push, tag, pull_request or pull_request_target triggers),
+contents:read, nonpersistent checkout credentials and
+SHA-pinned official Actions. No user/API/signing secrets are configured, no self-hosted desktop
+is involved, and no release or repository-write permission is requested. Only the staged unsigned
+MSI and hash/version manifest are uploaded. Dispatch requires a validated existing version tag, and the checked-out commit/version must
+match it. Tags are not signatures; these remain unsigned build artifacts, not trusted releases. Tests use synthetic provider credentials; real sign-in and live AI calls are excluded.
+
+[Current Action review](docs/GITHUB-ACTIONS.md#action-dependency-review) records known transitive
+Node advisory findings in the latest stable official Actions and an unresolved legacy transitive
+license declaration. These are explicit build-tool exceptions, not findings in the NuGet product
+graph or proof of safe execution. Keep fixed workflow inputs, ephemeral isolation, bounded job
+lifetime and no secrets/publication; re-review upstream fixes. Do not weaken the product's
+fail-closed vulnerability gate or describe the complete toolchain as advisory-free.

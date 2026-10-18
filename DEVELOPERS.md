@@ -382,7 +382,7 @@ retain arbitrary exception messages, rejected output, or evidence ID values to e
 
 ProcSight is an unreleased development preview. The native collector/UI, identity resolution,
 privacy projection, rules, SQLite knowledge, provider/research adapters, and coordinator exist.
-No CI/CD workflows exist. [Verification](docs/verification.md) separates automated coverage
+Manually dispatched GitHub Actions runs Windows verification and unsigned MSI packaging; publication stays manual. [Verification](docs/verification.md) separates automated coverage
 from remaining live-provider and desktop checks.
 
 ```powershell
@@ -567,8 +567,12 @@ certificate-subject formats and localized Windows metadata. Never infer security
 from a recognized executable name. Keep rule conflicts and fresh corrections authoritative.
 `ProcessRoleLabels` only creates local display labels; do not serialize them into shared facts.
 
-CI/CD workflows are intentionally excluded from this repository setup. Do not add GitHub
-Actions, deployment pipelines, or automatic publication without a subsequent user request.
+The user-requested [Windows build workflow](.github/workflows/windows-build.yml) runs existing
+verification and MSI packaging only on manual dispatch with an existing vMAJOR.MINOR.PATCH tag
+matching the product version; pushes, tags and PRs do not trigger it. See
+[GITHUB-ACTIONS.md](docs/GITHUB-ACTIONS.md) for setup, downloading artifacts, pinned-Action review
+and upstream dependency advisory exceptions. CI does not sign, alter versions or publish releases.
+Do not add deployment/publication or automatic dependency upgrades without a subsequent request.
 
 ## Keep the repository current
 

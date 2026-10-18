@@ -136,3 +136,10 @@ License entries describe the inspected package metadata/files, not a relicensing
 - [GitHub license recognition](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository)
 - [Apache-2.0 terms](https://choosealicense.com/licenses/apache-2.0/), [MIT terms](https://choosealicense.com/licenses/mit/),
   [Mozilla MPL FAQ](https://www.mozilla.org/en-US/MPL/2.0/FAQ/), [AGPL v3.0 terms](https://choosealicense.com/licenses/agpl-3.0/)
+
+## GitHub Actions build tools
+
+The [workflow dependency review](GITHUB-ACTIONS.md#action-dependency-review) separately covers
+full-SHA-pinned official Actions, production Node dependency trees, licenses and known upstream
+advisory exceptions. These tools run only on hosted build workers and are not MSI payload
+components. The NuGet-only clean-scan statements above do not extend to these Action bundles.

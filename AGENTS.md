@@ -125,7 +125,8 @@ Before committing, check each relevant file:
 | `SECURITY.md` | Reporting, supported releases, privacy, privileges, or trust boundaries change |
 | `LICENSE` and dependency notices | Licensing or distributed third-party components change |
 
-Use Unreleased changelog entries until an actual release. Keep planned behavior distinct
+Use Unreleased changelog entries until an actual release. Scope edits to the Unreleased section explicitly;
+never insert under a generic first Added/Fixed heading that may belong to released history. Keep planned behavior distinct
 from implemented and verified behavior. Treat dated specifications/plans as history once
 execution begins; write a new dated revision for material design changes.
 
@@ -170,7 +171,7 @@ Keep related SDK/runtime and native-library packages coherent. Regenerate lock f
 deliberately, then verify locked restore, relevant builds/tests, native UI and packaging
 where affected. Document any retained older compatible version and its reason. Do not
 silently retain a flagged dependency or claim an upgrade is compatible before validation;
-surface conflicts and resolve replacements. Do not introduce automated CI/CD for this check.
+surface conflicts and resolve replacements. CI packaging may run existing vulnerability gates; do not introduce automatic dependency upgrades.
 
 Use `scripts/update-dependencies.ps1` for review and explicit `-Apply` updates. Preserve
 the packaging vulnerability gates and profile-specific forced audited restore; never
@@ -200,9 +201,14 @@ Keep source, assets, dependency lock files, and sanitized fixtures tracked. Keep
 output, local knowledge databases, credentials, diagnostics, and editor state ignored.
 An ignore rule does not remove already tracked secrets; inspect the staged diff too.
 
-The user explicitly excluded CI/CD flows. Do not add workflow files or deployment/publication
-automation unless later requested. Repository preparation does not authorize publishing,
-creating a remote repository, pushing, or selecting an unknown security-reporting address.
+The user has requested manual-only GitHub Actions build/test/MSI artifacts (workflow_dispatch only) from an existing
+vMAJOR.MINOR.PATCH tag matching the central version. Never build an untagged branch tip. Keep the workflow on ephemeral
+Windows hosted runners, with read-only repository permissions, SHA-pinned Actions and no signing
+secrets, credential persistence, version edits, commits, tags or release publication. Upload only
+explicitly staged MSI/hash metadata. Automated deployment/publication remains excluded. Repository
+preparation does not authorize creating a remote repository, pushing, or choosing an unknown
+security-reporting address. Review current upstream Action dependencies/licenses/advisories and
+document any compatibility/security exceptions rather than implying an advisory-free toolchain.
 
 Packaging/release/verification scripts require PowerShell 7+ and reject older hosts before actions.
 Certificate trust is an explicit user-invoked exception: `scripts/trust-package-certificate.cmd`

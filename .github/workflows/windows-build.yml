@@ -1,0 +1,101 @@
+name: Windows build and MSI
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing release tag (vMAJOR.MINOR.PATCH)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-build-${{ inputs.tag }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-2025
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: 'true'
+      REQUESTED_TAG: ${{ inputs.tag }}
+
+    steps:
+      - name: Validate release tag input
+        run: |
+          if ($env:REQUESTED_TAG -cnotmatch '^v(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})$') {
+            throw 'Select an existing stable vMAJOR.MINOR.PATCH tag.'
+          }
+
+      - name: Check out tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          persist-credentials: false
+
+      - name: Verify checked-out tag and product version
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tagRef = "refs/tags/$env:REQUESTED_TAG"
+          $tagCommit = & git rev-parse --verify --end-of-options "$tagRef^{commit}"
+          if ($LASTEXITCODE -ne 0) { throw 'Requested release tag does not exist.' }
+          $head = & git rev-parse HEAD
+          if ($LASTEXITCODE -ne 0 -or $head -cne $tagCommit) { throw 'Checkout does not match the requested tag.' }
+          . ./scripts/release/Common.ps1
+          $version = Read-ProcSightVersion $PWD
+          if ($env:REQUESTED_TAG -cne "v$version") { throw 'Release tag does not match the central product version.' }
+          Assert-ProcSightVersionConsistency $PWD
+
+      - name: Install repository .NET SDK
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+          architecture: x64
+          cache: false
+
+      - name: Verify Release build and tests
+        run: ./scripts/verify.ps1 -Configuration Release
+
+      - name: Build and stage unsigned MSI
+        id: package
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $results = @(& ./scripts/package.ps1 -Profile Msi)
+          $packages = @($results | Where-Object {
+            $_.PSObject.Properties.Name -contains 'Artifact' -and
+            $_.PSObject.Properties.Name -contains 'Manifest'
+          })
+          if ($packages.Count -ne 1) { throw 'Expected one inspected MSI result.' }
+          $package = $packages[0]
+          $manifest = Get-Content -LiteralPath $package.Manifest -Raw | ConvertFrom-Json
+          if ($manifest.Profile -ne 'Msi' -or $manifest.Signed -or
+              [IO.Path]::GetExtension($package.Artifact) -ne '.msi') {
+            throw 'Expected an unsigned MSI build artifact.'
+          }
+          $stage = Join-Path $PWD 'artifacts/github-msi'
+          $null = New-Item -ItemType Directory -Path $stage
+          $stagedMsi = Join-Path $stage ([IO.Path]::GetFileName($package.Artifact))
+          Copy-Item -LiteralPath $package.Artifact -Destination $stagedMsi
+          Copy-Item -LiteralPath $package.Manifest -Destination (Join-Path $stage 'release-artifacts.json')
+          if ((Get-FileHash -LiteralPath $stagedMsi -Algorithm SHA256).Hash -cne $manifest.SHA256) {
+            throw 'Staged MSI hash differs from its inspected manifest.'
+          }
+          Add-Content -LiteralPath $env:GITHUB_OUTPUT -Value "version=$($package.Version)"
+          Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Value "Unsigned ProcSight $($package.Version) MSI verified. Download it from this run's Artifacts section."
+
+      - name: Upload MSI and hash manifest
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ProcSight-${{ steps.package.outputs.version }}-windows-x64-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/github-msi/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+          include-hidden-files: false
