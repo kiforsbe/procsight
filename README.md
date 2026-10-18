@@ -1,8 +1,8 @@
 # ProcSight
 
-ProcSight is a native Windows 11 process explorer built with C# and WinUI 3.
-It explains what processes and services belong to, why they are running, and
-what evidence supports their classifications.
+Understand what is running on your Windows PC. ProcSight combines a familiar process
+list with readable workload names, system performance graphs and explanations of what
+processes and services do.
 
 <p align="center">
   <img src="docs/images/process-details-native.png" alt="ProcSight process list and investigation details in dark mode, using synthetic demonstration data" width="1100" />
@@ -10,304 +10,124 @@ what evidence supports their classifications.
   <em>Process list and investigation details with synthetic demonstration data.</em>
 </p>
 
-**Status: development preview; no published release.** Live collection, local rules and
-knowledge, provider adapters, optional research, and the investigation interface are
-implemented. Automated checks use synthetic metadata and fake providers. Targeted live inference
-smoke checks passed; full provider acceptance and desktop accessibility/scaling remain unverified.
+**Development preview — no public release or download is available yet.**
+Current packaging produces MSIX packages. A standalone EXE installer and a Microsoft
+Store listing are not currently available. Installation and full desktop acceptance
+checks are still in progress; see [known validation limits](docs/verification.md).
 
-On Windows 11 with .NET SDK 10.0.301, **.NET Runtime 10.0.13 or later in the 10.0 series**,
-Windows App Runtime 2.5.1 and PowerShell 7+ (`pwsh`) installed:
+## What you can do
 
-```powershell
-./scripts/build.ps1
-./scripts/start.ps1
-./scripts/verify.ps1
-```
+- **Understand processes and services.** See application groups, host/script roles,
+  executable details, signatures, command lines and the evidence behind assessments.
+- **Watch system performance.** Overview tiles and CPU, memory, disk, network and GPU
+  pages show recent activity. Add per-process resource columns to the process list.
+- **Make the list your own.** Search, sort, resize and reorder columns, choose which
+  information appears, and select multiple entries for investigation or export.
+- **Reuse what you learn.** Built-in definitions and saved rules help identify tasks
+  across sessions. Inspect matching rules, their sources and any AI-generated findings.
+- **Add optional AI explanations.** Use an eligible ChatGPT account, an API provider or
+  a local model. Inspect requests and results in **AI activity**.
+- **Keep an eye on load.** Enable a system-tray icon and choose its resource metric.
 
-Install the current [Windows x64 .NET Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
-and restart ProcSight after updating. Runtime 10.0.13 fixes a WinUI COM-wrapper memory leak;
-having the SDK alone does not ensure that this servicing update is installed. Self-contained MSIX
-packages carry the required runtime.
+ProcSight currently focuses on read-only investigation. It does not terminate processes,
+change services or clean up software. Unknown assessments and unavailable measurements
+are shown explicitly.
 
-In VS Code, open this repository folder and install the recommended Microsoft C#
-extension. Select **ProcSight (Debug)** or **ProcSight (Release)** in Run and Debug,
-then press **F5** to build and debug or **Ctrl+F5** to build and run without debugging.
-Use Release with **Ctrl+F5** for representative performance measurements. See the
-[VS Code setup](DEVELOPERS.md#run-and-debug-in-vs-code) for tasks and troubleshooting.
+## Download and install
 
-## Install a development package
+ProcSight targets **Windows 11 24H2 or later, x64**. Public downloads will be listed in
+this repository's GitHub Releases when a release is published.
 
-Use a **signed** development MSIX. If you already have one and its matching public `.cer`, skip
-certificate creation and signing. Otherwise, run these commands from the repository in ordinary
-PowerShell 7 as your development user:
+If you have been supplied a signed development-preview package:
 
-```powershell
-./scripts/new-package-certificate.ps1 # Once; keep the printed thumbprint and public .cer path
-./scripts/package.ps1 -Profile Direct -CertificateThumbprint 'YOUR_40_HEX_THUMBPRINT'
-```
+1. Download the complete `.msix` file from a source you trust.
+2. Double-click it and choose **Install** in Windows App Installer.
+3. Open **ProcSight** from the Start menu.
 
-In File Explorer, drag the matching public `.cer` onto
-[`scripts/trust-package-certificate.cmd`](scripts/trust-package-certificate.cmd) and approve the
-administrator prompt. PowerShell 7 must be installed; keep the `.cmd` and companion `.ps1` together.
-The helper displays the certificate identity and imports it into Local Machine > Trusted People.
+The self-contained Direct MSIX includes the required app runtimes. Installing that
+package does not require Visual Studio, the .NET SDK or a source checkout.
 
-Alternatively, open **PowerShell as Administrator** and import it manually:
+A development package may need its signing certificate trusted first. See
+[development certificate installation and troubleshooting](DEVELOPERS.md#install-a-signed-development-package).
+Trust only a certificate whose source and identity you have verified; certificate trust
+applies beyond a single installation. An unsigned development package is not ready to install.
 
-```powershell
-Import-Certificate -FilePath 'C:\path\to\artifacts\certificates\YOUR_40_HEX_THUMBPRINT.cer' -CertStoreLocation 'Cert:\LocalMachine\TrustedPeople'
-```
+## Getting started
 
-Then double-click the `*-signed.msix` file, or run this in ordinary PowerShell as the user who will
-use ProcSight, using the package path printed by the packaging script:
+1. Open **Processes** or **Services** and select an entry. Use **Details** to inspect
+   its identity, purpose, signature, command line and matching rules.
+2. Use the chevron beside a group to expand or collapse it. Each child keeps a readable
+   role where one can be identified, such as a script or extension host.
+3. Open **Performance** for an overview, then choose a subsystem for its history graph.
+4. Use **Choose columns** to add information such as GPU, command line, executable name,
+   publisher or start time. Drag header dividers to resize and optional headers to reorder.
+5. Right-click entries for available investigation, copy and export actions. Export
+   selected entries, filtered entries or the full list as CSV, JSON or TSV.
 
-```powershell
-Add-AppxPackage -Path 'C:\path\to\ProcSight-VERSION-x64-signed.msix'
-```
+Rows keep their positions during live updates by default. Click a column header to
+sort, and click it again to reverse direction. Enable **Automatically sort live values**
+if you prefer the list to keep following a changing resource value.
 
-Replace the example paths and thumbprint with your actual outputs. Trust only your verified development
-certificate: this grants machine-wide trust for packages signed with its key. Use **Trusted People**,
-not Trusted Root Certification Authorities. Error `0x800B0109` (sometimes wrapped in `0x87e00034`)
-means package certificate trust is missing; creating a certificate in Personal/My alone is insufficient.
-See [detailed installation and troubleshooting](DEVELOPERS.md#install-a-signed-development-package)
-and [Microsoft's signing guide](https://learn.microsoft.com/en-us/windows/msix/package/sign-msix-package-guide).
+Per-process disk and network monitoring requires **Restart as administrator**. The app
+normally starts without elevation; protected processes can still restrict access even
+in administrator mode. GPU readings depend on the available driver and Windows counters.
+Missing or warming-up measurements are different from measured zero.
 
-## Current experience
+In **Settings**, you can change appearance, resource-cell shading, AI connections and
+system-tray behavior. Valid settings take effect automatically. Minimize-to-tray is
+optional; closing the app exits it.
 
-The **Performance** page opens with Overview tiles and a compact live subsystem list. Select CPU,
-Memory, Disks, Network or GPU for a larger history graph and readings. System monitoring works
-independently of AI and keeps only the latest 60 samples in memory. GPU shows the busiest reported
-engine; disk totals cover physical disks and network totals cover active non-loopback adapters.
+## Optional AI and privacy
 
-Process-list Disk and Network columns show measured read/write and send/receive rates. Their
-kernel-event collection requires the explicit **Restart as administrator** action; ordinary mode
-shows an unavailable reason instead. Warm-up and missing readings are distinct from measured zero.
-Elevated live attribution and full desktop accessibility acceptance remain pending.
-Enable **Logarithmic time axis** on Performance to expand recent history and compress older
-samples. The toggle applies to all Performance charts and is saved; linear time is the default.
-Detail charts label elapsed time, and the value axis keeps its existing scale.
-The process page also offers **Restart as administrator** when disk/network monitoring needs it.
-GPU utilization uses per-process Windows engine counters in ordinary mode where the driver supports
-them. New layouts include GPU; for an existing layout, enable **Choose columns → GPU**. Application
-groups show the busiest GPU member. Missing GPU counters remain unavailable.
-Under **Settings → Appearance → Resource cell shading**, choose a mode independently for Disk,
-Network and GPU. Recent displayed-value changes brighten and fade by default; other modes show
-current activity, recent spikes or top consumers, or turn shading off. Fade duration, opacity range and color
-apply immediately. Shading is disabled in high contrast and never represents a security judgment.
-**Minimum shading** sets the shared resource-cell floor, defaulting to 5% (slightly darker than
-the former CPU/Memory tint). Choose 0% for no floor. Unavailable readings and Off modes stay clear.
-**Maximum shading** sets the brightest opacity, now 50% by default. Choose the system highlight
-(Windows accent) or a custom color using the native picker. Floor, roof and color apply consistently
-to CPU, Memory, Disk, Network and GPU; the roof cannot be lower than the floor.
-The Started column uses friendly local dates/times; its tooltip and exports retain the full timestamp.
+Process collection, performance monitoring and local rules work without an AI connection.
+**Automatic AI analysis and online research are off by default.** Connecting an account
+alone does not enable them.
 
-The process-page overflow menu and Appearance settings offer **Automatically sort live values**.
-It is off by default: rows retain their order until you sort a header or refresh. Enabling it follows
-the selected sort column while retaining process selection and using incremental row moves.
+Configure a connection in **Settings → AI connections**. Choose its account/model or API
+settings, enable it in the connection list and set its priority. Use **Test connection**
+to check it with synthetic metadata. Trying another connection after failure requires
+an explicit fallback setting, which is off by default.
 
-Closing hides the window promptly and finishes monitoring cleanup in the background before exit.
-Local sampling uses reusable path buffers; rule evaluation reads shared candidate data once per batch.
-Performance charts reuse bounded native geometry between ticks; see [local measurements](docs/PERFORMANCE.md).
+Eligible ChatGPT-plan connections use your plan allowance. API-key connections have
+separate provider billing; a ChatGPT subscription does not include API credits. Online
+research can be enabled for supported ChatGPT/OpenAI connections. Usage limits help bound
+requests but are not a guaranteed monetary or remote search-call cap.
 
-Local MSIX packaging is available with `./scripts/package.ps1 -Profile Direct`. It produces an
-inspected, self-contained **unsigned development package** under artifacts/packages; it does not
-install the app or change certificate trust. See [packaging instructions](DEVELOPERS.md#msix-packaging).
-Store preparation requires your reserved package identity, a version >= 1.0.0 and an explicit elevation
-choice. Installation/upgrade certification remains unverified; no Store release has been published.
+You control what can leave the computer:
 
-Local [release preparation](DEVELOPERS.md#local-release-preparation) synchronizes product versions
-and changelog, verifies and commits release files, builds packages from that commit, then creates an
-annotated `vMAJOR.MINOR.PATCH` tag. Preview it with
-`./scripts/prepare-release.ps1 -Bump Patch -Profile Direct -DryRun`. Publication remains manual.
+- Available command lines are collected for local display. Online sharing excludes
+  them and command-derived knowledge by default; verbatim sharing requires an explicit setting.
+- Paths and ownership, package and service identifiers have a separate online-sharing
+  setting and are excluded by default. Window titles stay local.
+- Research excludes raw command lines and private paths, including when ordinary
+  analysis is allowed to receive command lines.
+- Local export has separate choices for commands, paths/ownership and window titles.
+  Review exports before sharing them: they can contain personal information or secrets.
 
-![Native WinUI process tree with synthetic role data](docs/images/tree-groups.png)
+Use the payload preview to inspect proposed analysis data. **AI activity** shows recent
+provider attempts and results for the current session, without raw transport payloads.
+AI explanations can be wrong; they are not antivirus verdicts or proof that a task is safe.
+See the [security and privacy policy](SECURITY.md) for details.
 
-This is the actual XAML rendering, using synthetic processes and a synthetic analysis label.
+## Help and feedback
 
-- A familiar Task Manager-style process table with meaningful application grouping,
-  resource measurements, search, and a raw process-tree view.
-- Resize columns by dragging header edges; drag optional headers to reorder them, or use
-  **Choose columns** in the toolbar/header menu. Name remains visible and first. Process/service
-  layouts are saved separately. Optional columns include native executable name, local command line,
-  path, parent PID, verified publisher, signature, start time and window titles.
-- Ctrl/Shift selects multiple rows. Right-click offers applicable investigation, copy and export
-  commands. **Export** writes selected entries, filtered entries or the full inventory as CSV, JSON
-  or TSV; groups export their individual members once. Commands, paths/ownership and window captions
-  require separate local-export choices. CSV/TSV text is protected against spreadsheet formulas.
-- Processes and services explained through ownership, purpose, and supporting evidence.
-- Separate purpose, security, and optionality assessments, with confidence and unknown
-  outcomes when the evidence is insufficient.
-- Local rules and cached knowledge first, with automatic AI analysis for unresolved
-  cases. Validated rules are reused for matching processes, reducing repeated API calls.
-  Known-purpose results with hash evidence get an exact-binary rule even if the provider proposes
-  none; saved names and classifications can then match across restarts within their validated scope.
-- User-configured OpenAI or compatible API endpoints, optional loopback local models,
-  and separately enabled online research with source links.
-- ChatGPT-plan and OpenAI analysis can search within the same request when research is enabled.
-  Search-enabled requests use public identity metadata, excluding command lines and private paths.
-  An explicitly different research connection uses a separate step; API billing remains separate.
-  AI activity and learned rules show the research outcome; rejected rules explain their recorded cause.
-- Direct **Continue with ChatGPT** connection for eligible ChatGPT plans, with account-specific
-  models and protected renewable sessions. Live model discovery and targeted inference smoke checks passed.
-- Settings apply valid changes automatically. Configure independent connections, enable or disable
-  them, move them up/down in priority, and explicitly test the selected connection using synthetic
-  metadata. Fallback to another enabled connection is optional and off by default; API billing may apply.
-  Use Configure to edit a connection in its own dialog, or Remove to delete its profile from the list.
-- A native app icon and optional system-tray graph for CPU, memory, disk busy, network throughput
-  or busiest GPU engine. Choose the metric and minimize-to-tray behavior in Settings; closing still
-  exits. Missing counters show unavailable, and tray Exit always exits.
-- Optional **Restart as administrator** in Settings, with an Administrator title and fresh
-  per-session online-sharing consent. Normal startup stays unelevated; collection stays read-only
-  and protected processes can still deny access. See [the security assessment](SECURITY.md).
-- An **AI activity** page showing queried processes/services, provider/model, retries, returned
-  classifications and explanations, research evidence counts, and failures. The last 200 requests
-  stay in memory, with filtering, Pause recording and Clear; raw transport/debug data is omitted.
-  Failures explain what went wrong and what to do next, with specific safe validation reasons.
+See [support and troubleshooting](SUPPORT.md) for reporting a problem or requesting a
+feature. Include the app version, Windows build and reproduction steps. Remove personal
+paths, command lines, account details and sensitive screenshot content before posting.
+Follow [SECURITY.md](SECURITY.md) for suspected vulnerabilities.
 
-The table uses compact rows, resource totals, classification filters, and optional details.
-Disk/network are explicitly unavailable; GPU collection is deferred. Executable icons are
-loaded from Windows Shell and cached; inaccessible or missing assets use a fallback symbol.
-Live samples update cells while preserving sibling order and scroll position. Click a column
-or Refresh to reorder; use each row's chevron to expand/collapse independently of selection.
-Right/Left expand/collapse selected nodes; Left also returns from a child to its parent.
-Click anywhere in a column header to sort; repeat to reverse direction. Direction arrows and
-saved sort preferences reflect the current order. Names sort by their visible workload label.
-Both scrollbars stay inside the visible table viewport, with the header following horizontal scroll.
-Collection remains useful without an API key or network connection.
+Read the [changelog](CHANGELOG.md) for changes and the
+[verification notes](docs/verification.md) for known preview limitations.
 
-Only multiple related processes get an application group header. A single process appears
-directly with its name, PID, and resources. Membership changes preserve the top-level slot;
-selection follows a remaining child when its group becomes a single process.
+## For developers and contributors
 
-Visible-window captions add local context to process names, such as `Notepad — document.txt`.
-Established app names and specific host/script roles take priority over AI label suggestions.
-AI signer/metadata explanations stay in assessment details; concise suggestions can still name unknown executables.
-Foreground windows take priority; host/script roles remain visible. Details lists collected
-captions, window classes, and foreground/minimized state. Window metadata stays transient and
-local, never entering provider payloads, learned rules, or process identity/grouping.
-
-Generic child processes receive provisional local role labels when permitted metadata or
-command context identifies a script, MCP launcher, renderer, GPU worker, extension host, language server, or service
-host. Specific roles remain visible after a generic executable assessment arrives. Derived
-command labels are display-only and never enter provider payloads or persistence.
-
-A bundled catalog supplies 373 process/service definitions for Windows components, applications,
-and developer runtimes. These are shared definitions with reference links, gated by verified
-signer and product/original-name metadata. They do not declare a task safe or essential.
-Learned findings and fresh user corrections take precedence; purpose conflicts remain unresolved.
-Search the bundled catalog in Knowledge by executable, service, product, or publisher. Publisher-only
-references leave purpose unknown. Service rules verify the configured executable or service DLL;
-the host's signature cannot authenticate its DLL. Loaded-module state is not verified.
-Local command rules also recognize Python modules, .NET operations, PowerShell invocation modes,
-and language-server entry points. They never execute scripts or decode encoded payloads.
-Command lines remain available locally regardless of the online sharing mode.
-The Windows native host
-in VidVNC informed the WinUI shell, spacing, preferences, and component boundaries.
-
-## Privacy and command-line analysis
-
-Command lines are always collected locally when Windows permits it. Details shows the full
-command line and the path, original filename, version/product, verified signer, hash, parent PID,
-and creation time used for identification. Child-row names use host — hosted for scripts, packages, and worker roles; Python/VS Code and other application ownership groups remain intact.
-
-Settings controls online sharing with three explicit modes:
-
-| Mode | Behavior |
-| --- | --- |
-| Exclude from online analysis (default; stored as Off) | Full command lines remain available locally; exclude them and derived knowledge online |
-| Prefer local model; exclude online (stored as LocalOnly) | Also prefer a configured loopback model for full local analysis |
-| Include in online analysis | Permit the full, verbatim command line at the selected online analysis provider |
-
-Other online metadata remains sanitized. Full command lines can contain credentials or
-personal paths; the online option includes a payload preview and explicit disclosure.
-Raw command lines are excluded from the knowledge database, logs, rule literals,
-and online research queries. API access requires the selected
-provider's credentials; a ChatGPT subscription is not assumed to include API access.
-
-A separate checkbox controls online file paths and ownership, package, and service identifiers.
-These fields are excluded by default from both provider metadata and evidence. Enabling full
-command sharing sends the verbatim line, including any identifying data within it, independently
-of that metadata checkbox. Research still never receives command lines. Local rule scope is
-attached after provider responses, preserving application boundaries without transmitting it.
-
-AI assessments are explanations with evidence and uncertainty. They are not antivirus
-verdicts or authorization to change the computer.
-
-Settings follows the Windows 11 Task Manager card layout: Appearance, AI connections,
-Analysis and privacy, and Advanced, with expandable options and responsive controls.
-For ChatGPT plan usage, expand **ChatGPT account**, select **Continue with ChatGPT**, complete
-browser consent and choose an available model. Valid settings apply automatically.
-Use **Use another account** to register another account; sign-out disables automatic analysis
-for the connected profile. Plan usage shares the user's ChatGPT allowance; no API-key billing fallback occurs.
-API-key profiles remain separately billed. ChatGPT-plan and OpenAI connections support web search.
-
-Automatic analysis and research start disabled. Configure a model and connection in Settings,
-save API keys in Windows Credential Manager when using API-key profiles, and use the synthetic connection test before
-enabling automatic analysis. Default daily limits are 20 automatic jobs and 60 online-request
-allowance units, including retries and an extra unit reserved for research. This is an admission
-limit, not a monetary or strict remote tool-call cap. Research requires an eligible model/account;
-compatible/local providers currently supply analysis only.
-
-Preferences and SQLite knowledge live under `%LOCALAPPDATA%\ProcSight`. Usage accounting
-uses a separate database and survives knowledge resets. Local models must use loopback
-HTTP/HTTPS endpoints, with redirects disabled. Command lines above 32,768 characters are
-omitted rather than truncated. See [verification](docs/verification.md) for checked behavior
-and remaining desktop/live-provider validation.
-
-## Roadmap
-
-1. **Understand and investigate:** live processes/services, ownership, classifications,
-   local knowledge, AI fallback, optional research, and an inspectable rule library.
-2. **Process and service management:** explicitly initiated controls with identity,
-   permission, and impact checks.
-3. **Cleanup recommendations:** investigate startup items, optional software, and
-   possible leftovers using installation and dependency evidence.
-
-## Project documents
-
-- [Design](docs/superpowers/specs/2026-10-13-procsight-design.md)
-- [Implementation plan](docs/superpowers/plans/2026-10-13-procsight.md)
-- [Architecture and UML diagrams](ARCHITECTURE.md)
-- [Developer guide](DEVELOPERS.md)
-- [Dependency and license review](docs/DEPENDENCIES.md)
-- [Contributing](CONTRIBUTING.md)
-- [Support and troubleshooting](SUPPORT.md)
-- [Code of conduct](CODE_OF_CONDUCT.md)
-- [Agent instructions](AGENTS.md)
-- [Changelog](CHANGELOG.md)
-- [Security policy](SECURITY.md)
-
-See the developer guide for toolchain, verification, and contribution instructions.
+Building, debugging, signing packages and preparing releases are covered in the
+[developer guide](DEVELOPERS.md). Start with [CONTRIBUTING.md](CONTRIBUTING.md) if you want
+to help. Technical references include [architecture](ARCHITECTURE.md),
+[dependency and license review](docs/DEPENDENCIES.md), and
+[Windows UI conventions](docs/WINUI3-DESIGN.md).
 
 ## License
 
-ProcSight uses GitHub's standard **GNU Affero General Public License v3.0** template.
-See [LICENSE](LICENSE) for the complete terms. Third-party components retain their own
-licenses; their notices must accompany any distribution that includes them.
-
-## Rule inspection and collection availability
-
-**Rules & knowledge** lists bundled definitions and learned rules, with
-search and source/state filters. In process or service details, **Inspect rules…** distinguishes
-matched rules from rules whose assessments contributed to the result. Inspect a rule for its
-conditions, evidence, classifications, review dates, and recorded AI provider/model. Older learned
-rules explicitly lack provider/model history; provenance does not establish trust.
-
-Protected processes and services retain readable fields and show safe reasons for unavailable
-metadata, including access denied, missing files, or read failures. No elevation is required.
-
-The rules library uses compact selectable rows and a structured details pane. At narrow widths,
-select a rule to open details, then use **Back to rules**. Enable/disable applies to the selected
-learned rule; Delete and knowledge-clear actions live in command overflow and require confirmation.
-The [WinUI 3 design guide](docs/WINUI3-DESIGN.md) documents the native UI conventions.
-
-Process and service details use the same native typography, command toolbar and expander sections
-as rules management. Open **Command line** for the collected local invocation, or **Visible windows**
-for captions/classes. Assessments, executable metadata and signatures have separate sections.
-The pane retains its scroll position and expanded sections as live metadata refreshes; resource-only
-updates leave it intact. Rules are available directly from the details toolbar.
-
-Restricted processes retain a stable inspection lifetime on Windows builds exposing kernel process
-sequence numbers, even when creation-time access is denied. PID reuse starts a new lifetime. Missing
-identity metadata remains Unknown with an explicit **Analyze** option for a limited assessment; names
-alone do not establish identity or trust. Older builds use the conservative snapshot-scoped fallback.
-Services display configured implementation/host file icons where readable, with a native gear fallback.
+ProcSight is licensed under the [GNU AGPL v3.0](LICENSE). Third-party components retain
+their own licenses; see [third-party notices](THIRD_PARTY_NOTICES.md).

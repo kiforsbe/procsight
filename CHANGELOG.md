@@ -133,6 +133,8 @@ plans, implementation details and validation records belong in the project docum
 
 ### Changed
 
+- Refocused the README on package installation, everyday use, privacy and support.
+
 - Updated Windows App SDK, build tools and transitive dependencies; migrated deprecated xUnit v2 to supported v3 packages.
 
 - Reuse bounded native chart geometry and process projection rows to reduce UI allocation churn.
