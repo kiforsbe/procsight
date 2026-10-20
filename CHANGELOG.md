@@ -8,6 +8,7 @@ plans, implementation details and validation records belong in the project docum
 ### Added
 
 - Manual GitHub Actions verification, unsigned MSI downloads, and draft releases from existing version tags.
+- Generic script runners can show their immediate hosted script or plugin folder as a local workload name, including Galaxy plugins, while ambiguous arguments retain the runner name.
 
 ## [0.2.0] - 2026-10-18
 

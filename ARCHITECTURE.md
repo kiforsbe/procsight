@@ -1177,6 +1177,13 @@ Explicit sorts affect siblings while retaining ownership/tree hierarchy and stab
 [ProcessDetails](src/ProcSight.Application/Presentation/ProcessDetails.cs) formats transient local
 command lines and file/signature/lifetime metadata. [LocalCommandRules](src/ProcSight.Core/Rules/LocalCommandRules.cs)
 shares literal script/module/package parsing across hosts and provides known extension/worker hints.
+Generic runner basenames (runner, launcher, bootstrap, plugin/script runner and run-script variants)
+may delegate naming once to the immediately following positional script of the same runtime type.
+Specific entry-point roles retain precedence; options, inline/module payloads, nested runners and
+ambiguous paths never trigger delegation. A generic hosted entry such as `plugin.py` uses its
+bounded immediate folder name, stripping only an exact UUID suffix; structural folders give no hint.
+This is a generic local presentation heuristic with no client-specific path or platform table,
+not proof that the runner loaded the target. Folder/script text remains transient and private.
 Rows follow host — hosted; groups retain application ownership. PowerToys component names use
 verified catalog/executable metadata. Raw command values never enter rule literals or persistence.
 

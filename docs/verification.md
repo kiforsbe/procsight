@@ -732,6 +732,14 @@ verbatim local Details, opposite sort directions, and name sorting by displayed 
 A two-script local-model regression verifies invocation-specific learned rules cannot transfer
 between unrelated Python scripts; no raw command or argument is persisted.
 
+Generic runner regressions cover Python, Node.js and .NET delegation to the immediate script,
+existing known entry-point/extension names, and folder-derived generic plugin names (including
+synthetic Galaxy Steam/Xbox/Epic layouts). They cover UUID suffix removal and reject option values,
+later arguments, nested runners, generic structural folders, traversal and mismatched script types.
+Ordinary/specific scripts and inline/module payloads keep their previous behavior. These synthetic
+checks do not establish actual script loading or plugin identity/trust; live plugin UI acceptance
+remains manual.
+
 Single-member applications now render directly. Three additional portable regressions cover
 blank Windows descriptions, stable single/group ordering, and selected-child survival. The native
 groups fixture also removes siblings and verifies that the selected remaining row exposes its

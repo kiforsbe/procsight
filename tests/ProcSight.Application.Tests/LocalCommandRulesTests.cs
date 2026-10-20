@@ -6,6 +6,58 @@ using Xunit;
 namespace ProcSight.Application.Tests;
 public sealed class LocalCommandRulesTests
 {
+    private const string GalaxyPython=@"C:\Example Apps\GOG Galaxy\python\python.exe";
+    private const string GalaxyRunner=@"C:\Example Apps\GOG Galaxy\plugin_runner.py";
+    private const string SteamPlugin=@"C:\Users\Fixture\AppData\Local\GOG.com\Galaxy\plugins\installed\steam_11111111-2222-3333-4444-555555555555\plugin.py";
+    [Theory]
+    [InlineData(SteamPlugin,"steam — plugin.py")]
+    [InlineData(@"C:\Example Apps\GOG Galaxy\plugins\GalaxyPluginXbox\plugin.py","GalaxyPluginXbox — plugin.py")]
+    [InlineData(@"C:\Example Apps\GOG Galaxy\plugins\GalaxyPluginEpic\plugin.py","GalaxyPluginEpic — plugin.py")]
+    public void GenericRunnerNamesTheImmediatePlugin(string plugin,string workload)
+    {
+        var result=Label("python.exe",$"\"{GalaxyPython}\" -u \"{GalaxyRunner}\" \"{plugin}\" PRIVATE_TOKEN --type=renderer");
+        Assert.Equal("Python — "+workload,result.Label);
+        Assert.True(result.UsesCommandContext);
+        Assert.DoesNotContain("PRIVATE",result.Label);
+    }
+    [Theory]
+    [InlineData("python.exe","python.exe script_runner.py C:/Example/LibraryAdapter/plugin.py","Python — LibraryAdapter — plugin.py")]
+    [InlineData("python.exe","python.exe launcher.py C:/Example/sync_library.py","Python — sync_library.py")]
+    [InlineData("python.exe","python.exe SCRIPT_RUNNER.PY C:/Example/Adapter-11111111-2222-3333-4444-555555555555/plugin.py","Python — Adapter — plugin.py")]
+    [InlineData("node.exe","node.exe runner.js tsserver.js","Node.js — TypeScript language server")]
+    [InlineData("node.exe","node.exe bootstrap.mjs C:/Example/extensions/ms-python.vscode-pylance-2026.1/dist/server.bundle.js","Node.js — Pylance language server")]
+    [InlineData("dotnet.exe","dotnet.exe runner.dll MSBuild.dll",".NET — MSBuild project build engine")]
+    public void RunnerDelegationIsIndependentOfClientAndRuntime(string exe,string command,string expected)=>
+        Assert.Equal(expected,Label(exe,command).Label);
+    [Theory]
+    [InlineData("python.exe","python.exe plugin_runner.py --token C:/Example/LibraryAdapter/plugin.py","plugin_runner.py")]
+    [InlineData("python.exe","python.exe plugin_runner.py PRIVATE_TOKEN C:/Example/LibraryAdapter/plugin.py","plugin_runner.py")]
+    [InlineData("python.exe","python.exe plugin_runner.py plugin.py","plugin_runner.py")]
+    [InlineData("python.exe","python.exe plugin_runner.py C:/Example/plugins/plugin.py","plugin_runner.py")]
+    [InlineData("python.exe","python.exe plugin_runner.py C:/Example/Adapter/../Other/plugin.py","plugin_runner.py")]
+    [InlineData("python.exe","python.exe plugin_runner.py -- C:/Example/Adapter/plugin.py","plugin_runner.py")]
+    [InlineData("python.exe","python.exe plugin_runner.py token=C:/Example/Adapter/plugin.py","plugin_runner.py")]
+    [InlineData("python.exe","python.exe plugin_runner.py https://example.test/Adapter/plugin.py","plugin_runner.py")]
+    [InlineData("python.exe","python.exe plugin_runner.py //server/Adapter/plugin.py","plugin_runner.py")]
+    [InlineData("python.exe","python.exe plugin_runner.py C:/Example/11111111-2222-3333-4444-555555555555/plugin.py","plugin_runner.py")]
+    [InlineData("python.exe","python.exe plugin_runner.py C:/Example/Adapter/plugin.py:stream","plugin_runner.py")]
+    [InlineData("python.exe","python.exe worker.py C:/Example/LibraryAdapter/plugin.py","worker.py")]
+    [InlineData("python.exe","python.exe main.py C:/Example/LibraryAdapter/plugin.py","main.py")]
+    [InlineData("python.exe","python.exe plugin_runner.py runner.py C:/Example/LibraryAdapter/plugin.py","plugin_runner.py")]
+    [InlineData("node.exe","node.exe runner.js --token tsserver.js","runner.js")]
+    [InlineData("node.exe","node.exe extensionHostProcess.js tsserver.js","Extension host")]
+    [InlineData("python.exe","python.exe plugin_runner.py tsserver.js","plugin_runner.py")]
+    public void DelegationRejectsAmbiguousTargetsAndPreservesSpecificEntryPoints(string exe,string command,string expected)=>
+        Assert.Equal((exe=="node.exe"?"Node.js":"Python")+" — "+expected,Label(exe,command).Label);
+    [Theory]
+    [InlineData("python.exe","python.exe -c \"plugin_runner.py C:/Example/LibraryAdapter/plugin.py\"")]
+    [InlineData("python.exe","python.exe -m example_module plugin_runner.py C:/Example/LibraryAdapter/plugin.py")]
+    [InlineData("node.exe","node.exe -e \"runner.js tsserver.js\"")]
+    public void InlineAndModulePayloadsNeverDelegate(string exe,string command)
+    {
+        Assert.DoesNotContain("LibraryAdapter",Label(exe,command).Label);
+        Assert.DoesNotContain("TypeScript language server",Label(exe,command).Label);
+    }
     private static RoleLabel Label(string name,string command)
     {
         var p=Samples.Process(name:name) with { CommandLine=new(command,Samples.Now) };

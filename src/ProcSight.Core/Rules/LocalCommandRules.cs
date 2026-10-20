@@ -86,7 +86,10 @@ public static class LocalCommandRules
                     return null; // Unknown option arity cannot identify an entry point safely.
                 }
                 var extension=node?new[]{".js",".mjs",".cjs"}:python?[".py"]:new[]{".dll"};
-                return Script(arg,extension);
+                // Only generic runners can delegate to the immediate positional script.
+                var entry=Script(arg,extension);
+                return entry?.RuleId=="runtime-entry" && IsRunner(arg) && i+1<args.Length?
+                    HostedScript(args[i+1],extension) ?? entry:entry;
             }
             return null;
         }
@@ -94,6 +97,43 @@ public static class LocalCommandRules
         foreach(var rule in Switches)
             if(switches.Contains(rule.Token,StringComparer.OrdinalIgnoreCase)) return new(rule.Label,rule.Category,rule.Token);
         return null;
+    }
+    private static bool IsRunner(string path)
+    {
+        var basename=path.Replace('\\','/').Split('/').Last();
+        var dot=basename.LastIndexOf('.');
+        return dot>0 && basename[..dot].ToLowerInvariant() is
+            "runner" or "launcher" or "bootstrap" or "plugin_runner" or "plugin-runner" or
+            "script_runner" or "script-runner" or "run_script" or "run-script";
+    }
+    private static bool GenericEntry(string name)=>IsRunner(name) || name.ToLowerInvariant() is
+        "plugin.py" or "main.py" or "__main__.py" or "index.js" or "index.mjs" or "index.cjs" or
+        "main.js" or "main.mjs" or "main.cjs" or "plugin.js" or "plugin.mjs" or "plugin.cjs";
+    private static LocalCommandRole? HostedScript(string target,string[] extensions)
+    {
+        // No options, expansions, traversal, URLs, UNC paths, or recursive argument searching.
+        var path=target.Replace('\\','/');
+        if(path.StartsWith('-') || path.StartsWith('/') || path.Any(c=>char.IsControl(c)||c is
+            '=' or '"' or '%' or '!' or '&' or '|' or '<' or '>' or '?' or '*')) return null;
+        var parts=path.Split('/');
+        if(parts.Any(p=>p.Length==0 || p is "." or ".." || p.EndsWith('.') || p.EndsWith(' ')) ||
+            path.Contains(':') && !(path.Length>3 && char.IsAsciiLetter(path[0]) && path[1]==':' &&
+                path[2]=='/' && !path[2..].Contains(':'))) return null;
+        var role=Script(target,extensions);
+        if(role is null || role.RuleId!="runtime-entry") return role;
+        var basename=parts[^1];
+        if(IsRunner(basename)) return null; // Never follow nested runner chains.
+        if(!GenericEntry(basename)) return role;
+        if(parts.Length<2) return null;
+        var folder=parts[^2];
+        // Strip only an exact UUID suffix, never arbitrary instance text or command values.
+        if(folder.Length>37 && folder[^37] is '_' or '-' && Guid.TryParseExact(folder[^36..],"D",out _))
+            folder=folder[..^37];
+        if(folder.Length is 0 or >80 || !folder.Any(char.IsAsciiLetter) ||
+            !folder.All(c=>char.IsAsciiLetterOrDigit(c)||c is '-' or '_' or '.' or ' ') ||
+            Guid.TryParse(folder,out _) || folder.ToLowerInvariant() is
+                "src" or "dist" or "lib" or "bin" or "scripts" or "plugins" or "installed" or "app" or "python") return null;
+        return new("Hosted script","Worker","runtime-hosted-entry",folder+" — "+basename);
     }
     private static LocalCommandRole? Script(string path,string[] extensions)
     {
