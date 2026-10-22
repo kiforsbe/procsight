@@ -1,6 +1,7 @@
 # Shared Windows tooling integration and Settings version
 
-Date: 2026-10-22. Status: proposed for written-spec review; not implemented.
+Date: 2026-10-22. Status: direction approved; installation-time scope choice
+confirmed by the user. Implementation plan prepared for review; not implemented.
 
 ## Intent and scope
 
@@ -99,6 +100,56 @@ changing application session-ending behavior is a separate future change. Docume
 the retained close-before-servicing requirement. This avoids silently introducing
 shutdown requests into a collector with asynchronous ETW cleanup requirements.
 
+## Installation scope selection
+
+The user explicitly selected an MSI that offers **Just me** and **All users**,
+rather than selecting a single scope only in project configuration. Shared tools
+support fixed user, fixed machine and user-choice configurations. The consumer
+selects which modes its application supports and the initial scope; ProcSight
+selects user choice with Just me initially selected for a fresh installation.
+The existing v1 contract keeps its machine-only behavior.
+
+Use Windows Installer 5.0 single-package authoring and native MSI dialog controls,
+not a bootstrapper or executable custom action. In choice mode author ALLUSERS=2;
+Just me sets MSIINSTALLPERUSER=1 and All users clears it. Select scope before
+related-product discovery and costing, and provide explicit Continue/Cancel
+actions. Preserve an explicit unattended command-line choice. Maintenance keeps
+the registered context and does not offer a scope-changing operation.
+
+Use context-aware ProgramFiles64Folder and ProgramMenuFolder so Just me targets
+the current user's Programs/menu locations and All users targets Program Files
+and the common menu. The machine directory segment remains exactly ProcSight;
+identities and payload remain product-owned. The application itself still starts
+asInvoker, and explicit in-app administrator restart stays independent of install
+scope. Certificate trust remains a separately invoked machine-wide operation.
+
+Upgrades and removal act within the selected/registered context; selecting another
+scope is not a migration of the existing installation or its settings/credentials.
+Document that existing machine installations require All users for their upgrade.
+Do not promise cross-scope detection, automatic migration or removal of another
+user's installation. Native lifecycle and alternate-account UAC acceptance require
+a disposable test host and must be reported separately from table/costing tests.
+
+Author and inspect the summary privilege flags, scope properties, dialog controls,
+event ordering, directory parents, shortcut context and supported maintenance
+behavior. Reject malformed choice/default combinations. Exercise read-only
+preflight separately for both scope choices using disposable identities and target
+paths; never invoke the installation execute sequence during automated tests.
+
+Authoritative guidance checked on 2026-10-22:
+[MSIINSTALLPERUSER](https://learn.microsoft.com/en-us/windows/win32/msi/msiinstallperuser),
+[single-package authoring](https://learn.microsoft.com/en-us/windows/win32/msi/single-package-authoring)
+and [summary privilege flags](https://learn.microsoft.com/en-us/windows/win32/msi/word-count-summary).
+
+## Complete configured MSI inspection
+
+Inspection must compare directory names and parent relationships, product display
+metadata, Windows build launch conditions, complete upgrade rows and their action
+properties/ranges, scope and servicing configuration, file versions/hashes and
+component membership against expected inputs. Existing correct cabinet bytes do
+not compensate for changed installation or upgrade semantics. Mutation fixtures
+must reject changed semantics before native preflight or payload extraction.
+
 Extract shared public-certificate validation usable without elevation or store
 mutation. Enforce a public-only `.cer`, bounded size (1 MiB), actual certificate
 content type, current validity, explicit code-signing EKU and expected thumbprint
@@ -134,7 +185,7 @@ return fields consumed by release preparation and GitHub staging.
 
 Preserve .NET Runtime 10.0.13+ within 10.0 and debugger support. Preserve forced,
 profile-specific audited restore, all-severity vulnerability gates, lock files,
-24H2/x64 requirements, privilege checks and bundled runtime/license materials.
+24H2/x64 requirements, application privilege checks and bundled runtime/license materials.
 Packaging checks remain non-installing, with isolated-identity MSI preflight through
 InstallValidate, fixed binary version reading and exact payload inspection.
 Shared commands require PowerShell 7.4+; align affected entry-point checks and docs.
