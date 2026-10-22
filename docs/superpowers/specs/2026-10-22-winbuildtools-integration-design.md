@@ -60,16 +60,41 @@ Document this compatibility exception instead of retaining generic helper copies
 
 ## Shared compatibility additions
 
-Add explicit, validated configuration for legacy MSI identity derivation and exact
-install/menu directory names. Default behavior and identities for existing
-winbuildtools/Agenda consumers must remain unchanged. The legacy identity mode
-must preserve ProcSight's current product, upgrade and per-file component GUIDs,
-normalization and scope derivation for x64; reject unsupported architecture/mode
-combinations rather than inventing identities. Product-owned configuration carries
-the namespace and choices; shared tools must not import ProcSight code or policy.
+The user clarified the ownership boundary: all application identities and policy
+must come from the integrating repository. Do not implement a ProcSight-specific
+compatibility mode, recognize a product name, embed a product namespace or branch
+on the consumer repository. The current shared engine does not contain ProcSight
+product GUIDs: its incompatibility is the imposed derivation and folder-suffix
+convention, despite taking the namespace from caller configuration.
 
-Make Restart Manager policy explicit in shared configuration, retaining current
-shared defaults. ProcSight opts into its existing disabled policy during migration;
+Introduce a versioned, strict configuration contract for fully resolved,
+consumer-owned installer inputs. The consuming adapter supplies ProductCode,
+UpgradeCode and a complete mapping of normalized relative payload paths to
+component GUIDs, as well as exact install/menu directory names and an explicit
+Restart Manager policy. Shared authoring and inspection use those values directly;
+neither may derive a different identity or append a folder suffix. Fresh PackageCode
+and isolated-preflight GUIDs remain build/validation instance identities owned by
+the mechanism, rather than persistent product/component identities.
+
+The consumer owns any deterministic derivation needed to produce that resolved
+configuration. ProcSight's adapter uses its existing derivation to preserve
+product, upgrade and per-file component GUIDs for x64. Its checked-in inputs
+declare its namespace and paths; build-specific resolved configuration lives
+outside the payload. This is product compatibility data, not a local copy of MSI
+authoring, signing or inspection. Shared deterministic primitives may be exposed
+as utilities, but selection of their algorithm, scopes and inputs belongs to the
+consumer and is never inferred from its product name.
+
+Reject missing or extra component mappings, duplicate/colliding GUIDs, malformed
+paths and incompatible architecture/product data before writing an artifact.
+Internal MSI table identifiers can remain generic implementation details; they
+must consistently refer to the supplied component GUIDs and approved paths.
+Retain the published v1 contract as an explicitly documented compatibility entry
+point for existing consumers until deliberately migrated; do not reinterpret its
+identities or change Agenda's current installer ownership during this work. The
+new contract has no hidden product-identity or directory-naming defaults.
+
+ProcSight explicitly configures its existing disabled Restart Manager policy;
 changing application session-ending behavior is a separate future change. Document
 the retained close-before-servicing requirement. This avoids silently introducing
 shutdown requests into a collector with asynchronous ETW cleanup requirements.
@@ -132,7 +157,9 @@ actual distribution licenses for the affected graph. Record dated results and
 compatibility/security exceptions; do not treat an advisory scan as proof of safety
 or silently broaden this migration into unrelated dependency upgrades.
 
-Use synthetic fixtures for legacy GUID and directory continuity, unchanged default
+Use synthetic fixtures for consumer-supplied GUID and directory continuity,
+two differently configured products sharing identical payload paths, and changed
+component mappings being rejected during inspection. Also test unchanged v1
 Agenda identities, rejected configuration, certificate format/thumbprint/file
 replacement behavior, missing submodules and metadata compatibility. Run shared
 `verify.ps1 -Integration`, ProcSight `scripts/verify.ps1`, real unsigned MSI and
