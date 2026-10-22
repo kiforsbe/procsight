@@ -1,8 +1,11 @@
 # Dependency and licensing review
 
-Reviewed 2026-10-18 against nuget.org and actual restored package metadata/license files.
+Reviewed 2026-10-22 against nuget.org and actual restored package metadata/license files.
 This is a local development review, not release certification or legal clearance.
 The project remains AGPL v3.0; no license replacement or dependency exception is granted here.
+
+The [2026-10-22 detailed review](winbuildtools-dependency-review-2026-10-22.md) records
+SQLite patch validation, benchmark lock synchronization and host servicing findings.
 
 ## Selected set
 
@@ -16,7 +19,7 @@ registration metadata. Advisory data and latest versions can change after this d
 | WinUI / Windows App Runtime | 2.2.1 / 2.2.0 | 2.3.9 / 2.5.1 | Matches current stable SDK component family; retain split packages rather than importing unused AI/ML features. |
 | Windows SDK build tools | 10.0.26100.4654 | 10.0.28000.2705 | Build tooling only; target/minimum remains 10.0.26100.0. |
 | MSIX tools | 1.7.251221100 | 1.7.260930100 | Newer 1.7.261008100 is unlisted; excluded. |
-| SQLitePCLRaw | 2.1.13 | 3.0.5 | Updated bundle/provider as one family; native SQLite 3.54.0 selected centrally. |
+| SQLitePCLRaw | 2.1.13 | 3.0.5 | Updated bundle/provider as one family; native SQLite 3.54.1 selected centrally. |
 | WebView2 SDK | 1.0.3719.77 | 1.0.4258.31 | Transitive SDK update; no new browser-based authentication flow. |
 | Diagnostics client | 0.2.661903 | 0.2.750501 | TraceEvent dependency; sampler tests pass. |
 | Logging / DI abstractions | 8.0.3 / 8.0.2 | 10.0.13 | Compatible with the application's .NET 10 baseline. |
@@ -31,7 +34,7 @@ versions. New package-ID migrations require code/tooling review, not a blind ver
 The SQLite bundle brings configuration, managed core/provider and the native `SQLite`
 package. Current 3.0.5 metadata depends directly on `SQLite`, not `SourceGear.sqlite3`;
 older migration prose mentions the previous package name. The win-x64 assets graph has
-one native `e_sqlite3.dll`, from SQLite 3.54.0. No encryption/commercial SQLite package
+one native `e_sqlite3.dll`, from SQLite 3.54.1. No encryption/commercial SQLite package
 was added. Microsoft.Data.Sqlite 10.0.13 alone still requests the older 2.1.13 bundle.
 
 ## License and commercialization findings
@@ -107,7 +110,7 @@ License entries describe the inspected package metadata/files, not a relicensing
 | Microsoft.WindowsAppSDK.InteractiveExperiences | 2.1.9 | Microsoft Windows App SDK terms |
 | Microsoft.WindowsAppSDK.Runtime | 2.5.1 | Microsoft Windows App SDK terms |
 | Microsoft.WindowsAppSDK.WinUI | 2.3.9 | Microsoft Windows App SDK terms |
-| SQLite | 3.54.0 | Public domain |
+| SQLite | 3.54.1 | Public domain |
 | SQLitePCLRaw.bundle_e_sqlite3 | 3.0.5 | Apache-2.0 |
 | SQLitePCLRaw.config.e_sqlite3 | 3.0.5 | Apache-2.0 |
 | SQLitePCLRaw.core | 3.0.5 | Apache-2.0 |

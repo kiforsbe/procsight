@@ -2,6 +2,17 @@
 
 ## Current state
 
+The Settings footer displays the running App assembly's product version, excluding
+source-commit metadata. The synthetic `settings-version` fixture scrolls to the footer
+and checks its text, accessibility name, selection support and viewport bounds. See
+[footer validation](docs/settings-version-validation.md) for light/dark wide/narrow
+captures and remaining desktop acceptance.
+
+The [2026-10-22 dependency review](docs/winbuildtools-dependency-review-2026-10-22.md)
+updates native SQLite to 3.54.1 and synchronizes the benchmark locks with the centrally
+reviewed graph. It records package-license checks, builds/tests and unresolved host
+Git/PowerShell servicing findings; clean advisory feeds do not establish security.
+
 Resource shading now persists `MaximumOpacityPercent`, system/custom color selection and a validated
 RGB hex value. The legacy `IntensityPercent` field remains readable but the direct roof replaces its
 relative multiplier. Native fixtures check custom color on all resource columns, a shared CPU/Memory

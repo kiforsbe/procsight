@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System.Reflection;
 using ProcSight.Core.Models;
 using ProcSight.Application.Analysis;
 using ProcSight.Application.Settings;
@@ -67,6 +68,11 @@ public sealed partial class MainWindow
         panel.Children.Add(SettingsCard("\uE81C","AI activity","See actual provider attempts, returned assessments and failures",activity));
         panel.Children.Add(SettingsCard("\uE890","Payload preview","Review the current sharing policy",preview));
         panel.Children.Add(SettingsCard("\uE713","Knowledge storage","Preserve an unavailable database and create a clean replacement",recovery));
+        var version=typeof(App).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion.Split('+')[0];
+        var versionFooter=RuleText("ProcSight "+version,"CaptionTextBlockStyle",true);
+        versionFooter.Margin=new Thickness(0,16,0,0);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(versionFooter,"Application version: "+versionFooter.Text);
+        panel.Children.Add(versionFooter);
         PageContent.Children.Add(new ScrollViewer { Content=panel,HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled,HorizontalScrollMode=ScrollMode.Disabled });
     }
     private async Task RecoverKnowledgeAsync()

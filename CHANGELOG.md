@@ -9,6 +9,11 @@ plans, implementation details and validation records belong in the project docum
 
 - Manual GitHub Actions verification, unsigned MSI downloads, and draft releases from existing version tags.
 - Generic script runners can show their immediate hosted script or plugin folder as a local workload name, including Galaxy plugins, while ambiguous arguments retain the runner name.
+- Settings shows the running application version at the bottom of the page.
+
+### Changed
+
+- Updated native SQLite to 3.54.1 and refreshed benchmark dependency locks to match the reviewed application dependency set.
 
 ## [0.2.0] - 2026-10-18
 

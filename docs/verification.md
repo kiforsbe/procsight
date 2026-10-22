@@ -1,5 +1,14 @@
 # Development verification
 
+## Settings version and dependency refresh — 2026-10-22
+
+The [Settings fixture record](settings-version-validation.md) covers the running
+version footer with synthetic wide/narrow light/dark captures. The
+[dependency review](winbuildtools-dependency-review-2026-10-22.md) records live
+registry/license checks, SQLite 3.54.1, synchronized benchmark locks, the required
+update-script validation, benchmark builds and synthetic Rules/ComWrappers runs.
+Host Git/PowerShell findings and manual desktop/distribution limits remain explicit.
+
 ## Manual GitHub Actions build configuration (2026-10-18)
 
 The Windows build/MSI workflow passed actionlint 1.7.12 and PowerShell AST parsing of its

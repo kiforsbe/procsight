@@ -1387,6 +1387,11 @@ sequenceDiagram
 
 ## Native rules list/details presentation
 
+The [Settings page](src/ProcSight.App/MainWindow.Settings.cs) appends a selectable,
+accessible secondary-text footer derived from the running App assembly's informational
+version, excluding source-commit metadata. This uses the same native text styles as
+investigation details and requires neither MSIX identity nor a source checkout.
+
 The [design guide](docs/WINUI3-DESIGN.md) applies to the shell's shared native presentation.
 [MainWindow.Knowledge](src/ProcSight.App/MainWindow.Knowledge.cs) loads rule and evidence records
 on worker tasks, constructs a searchable source/state-filtered collection, preserves selected IDs

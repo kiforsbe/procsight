@@ -17,7 +17,7 @@ redistributable installer or promise compatibility of every future distribution.
 | Microsoft.Extensions.Logging.Abstractions / DependencyInjection.Abstractions / Microsoft.Bcl.AsyncInterfaces 10.0.13 | MIT, .NET Foundation and Contributors |
 | System.Reflection.TypeExtensions 4.7.0 | MIT, .NET Foundation and Contributors |
 | SQLitePCLRaw bundle/config/core/provider 3.0.5 | Apache-2.0; preserve package notices |
-| SQLite 3.54.0 native library | Public domain per package LICENSE.txt; see SQLite's copyright statement |
+| SQLite 3.54.1 native library | Public domain per package LICENSE.txt; see SQLite's copyright statement |
 | Microsoft.Web.WebView2 1.0.4258.31 | BSD-style three-clause terms in package LICENSE.txt; separate installed browser-runtime terms may apply |
 | xUnit v3 (mtp-off) 4.0.2 / analyzers 2.2.0 / Visual Studio runner 4.0.1 | Apache-2.0; test tooling |
 | Microsoft.NET.Test.Sdk and test-platform dependencies | Package-specific notices; test tooling |

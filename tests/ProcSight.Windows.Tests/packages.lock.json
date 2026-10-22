@@ -124,7 +124,7 @@
       "procsight.application": {
         "type": "Project",
         "dependencies": {
-          "ProcSight.Core": "[0.1.0, )"
+          "ProcSight.Core": "[0.2.0, )"
         }
       },
       "procsight.core": {
@@ -134,7 +134,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Diagnostics.Tracing.TraceEvent": "[4.0.0, )",
-          "ProcSight.Application": "[0.1.0, )",
+          "ProcSight.Application": "[0.2.0, )",
           "System.Management": "[10.0.13, )"
         }
       },

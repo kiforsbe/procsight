@@ -45,7 +45,7 @@
       "procsight.application": {
         "type": "Project",
         "dependencies": {
-          "ProcSight.Core": "[0.1.0, )"
+          "ProcSight.Core": "[0.2.0, )"
         }
       },
       "procsight.core": {
@@ -53,9 +53,9 @@
       },
       "SQLite": {
         "type": "CentralTransitive",
-        "requested": "[3.54.0, )",
-        "resolved": "3.54.0",
-        "contentHash": "aqx98DxxJq1GoRFQ/QJSEOL1bqugkxjZrcRpiLAV/4ujlZiazMUIZlk13BFvmpfwWyHDUa9Uvj6rvuI7Vxu5Ag=="
+        "requested": "[3.54.1, )",
+        "resolved": "3.54.1",
+        "contentHash": "PVpXeQFwnsQ1vXFEiZR3JYYdzmsPLtxObig62uHVfeVOVX8hAemTpr3bRC1n+eVvrohV2BQ/fuQpXaj59uVnHw=="
       },
       "SQLitePCLRaw.bundle_e_sqlite3": {
         "type": "CentralTransitive",

@@ -227,6 +227,10 @@ Settings account/model selectors share a row when there is room and stack at nar
 Keep Refresh models beside the model selector, group account actions compactly, and preserve
 native keyboard focus order when controls move between rows.
 
+Settings ends with selectable native caption text showing the running application version,
+using the secondary theme brush and an explicit accessibility name. Keep the footer inside
+the page's scrollable content and read build metadata rather than package identity or source files.
+
 Settings apply immediately: native toggles/selections apply directly, valid text edits debounce
 400 ms and flush on focus loss. Show incomplete values inline and retain the last valid setting.
 API keys commit only on Enter/focus loss, never per keystroke. Use the compact selectable connection

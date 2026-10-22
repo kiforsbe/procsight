@@ -224,6 +224,22 @@ public sealed partial class MainWindow
                     if(args[5]=="settings-expanded"&&PageContent.Children.FirstOrDefault() is Microsoft.UI.Xaml.Controls.ScrollViewer { Content:Microsoft.UI.Xaml.Controls.StackPanel settingsPanel })
                         settingsPanel.Children.OfType<Microsoft.UI.Xaml.Controls.Expander>().First().IsExpanded=true;
                     await Task.Delay(250); WindowRoot.UpdateLayout();
+                    if(PageContent.Children.FirstOrDefault() is not Microsoft.UI.Xaml.Controls.ScrollViewer { Content:Microsoft.UI.Xaml.Controls.StackPanel footerPanel } footerScroll||
+                        footerPanel.Children.LastOrDefault() is not Microsoft.UI.Xaml.Controls.TextBlock versionFooter)
+                        throw new InvalidOperationException("Settings must end with the application version footer.");
+                    var runningVersion=typeof(App).Assembly.GetName().Version??throw new InvalidOperationException("Running assembly version missing.");
+                    if(versionFooter.Text!=$"ProcSight {runningVersion.Major}.{runningVersion.Minor}.{runningVersion.Build}"||!versionFooter.IsTextSelectionEnabled||
+                        Microsoft.UI.Xaml.Automation.AutomationProperties.GetName(versionFooter)!="Application version: "+versionFooter.Text)
+                        throw new InvalidOperationException("Settings version footer must expose the running product version as accessible selectable text.");
+                    if(args[5]=="settings-version") {
+                        footerScroll.ChangeView(null,footerScroll.ScrollableHeight,null,true);
+                        await Task.Delay(250); WindowRoot.UpdateLayout();
+                        var footerPosition=versionFooter.TransformToVisual(footerScroll).TransformPoint(new global::Windows.Foundation.Point());
+                        if(footerPosition.Y<0||footerPosition.Y+versionFooter.ActualHeight>footerScroll.ActualHeight+1||
+                            footerPosition.X<0||footerPosition.X+versionFooter.ActualWidth>footerScroll.ActualWidth+1)
+                            throw new InvalidOperationException("Settings version footer cannot be fully reached within its scroll viewport.");
+                        File.WriteAllText(output+".checks","Settings footer matches the running assembly product version and is selectable, accessible and visible after scrolling.");
+                    }
                     Microsoft.UI.Xaml.Controls.Button? FindSettingsButton(DependencyObject root,string label) {
                         if(root is Microsoft.UI.Xaml.Controls.CommandBar bar&&bar.PrimaryCommands.OfType<Microsoft.UI.Xaml.Controls.AppBarButton>().FirstOrDefault(b=>b.Label==label) is { } action) return action;
                         if(root is Microsoft.UI.Xaml.Controls.Button button&&button.Content?.ToString()==label) return button;
