@@ -5,6 +5,8 @@ plans, implementation details and validation records belong in the project docum
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-23
+
 ### Added
 
 - Manual GitHub Actions verification, unsigned MSI downloads, and draft releases from existing version tags.
