@@ -292,8 +292,9 @@ Get-PfxCertificate -FilePath 'C:\path\to\artifacts\certificates\YOUR_40_HEX_THUM
 
 For drag-and-drop setup, drop the matching `.cer` onto
 [`scripts/trust-package-certificate.cmd`](scripts/trust-package-certificate.cmd) in File Explorer,
-then approve the administrator prompt. Keep it next to `trust-package-certificate.ps1`; PowerShell 7.4+
-must be installed. The console stays open to show success or errors. This helper trusts the
+then approve the administrator prompt. The helper uses the initialized shared tooling
+inside the source checkout; keep it next to `trust-package-certificate.ps1` and use
+PowerShell 7.4+. The console stays open to show success or errors. This helper trusts the
 certificate only; reopen the signed MSIX afterward to install the app.
 
 The PowerShell helper also supports a command-line call and a store-free preview:

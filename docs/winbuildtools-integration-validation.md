@@ -110,3 +110,20 @@ migration; choose All users to upgrade an existing machine installation.
 Keyboard, Narrator, high contrast and display/text scaling remain separate from
 the synthetic footer captures. Shared source tests and clean advisory reports do
 not establish executable safety, license clearance or release readiness.
+
+## ProcSight 0.3.0 source release — 2026-10-23
+
+The authoritative release script completed from the clean committed checkout,
+reran verification, synchronized all three live version files/changelog, built
+and inspected the exact-commit MSI, and created the annotated `v0.3.0` tag at
+`d25443c528a8c1413532e3e1c9ee2b1a3f449dd1`. Final metadata records
+SourceDirty=false, Signed=false and SignatureStatus=NotSigned. The MSI SHA-256 is
+`0C4275D3D103BAE92FD9CCDA916CC1338FE0ED3EE64A3FDE4CFF89D783B64034`.
+The runtime floor is unchanged, and all four synthetic Settings footer views
+were rechecked against the actual 0.3.0 assembly after release synchronization.
+
+Shared commit `9949d5cd95f426611ec137522d1ee76b4889677c` was published to the
+existing winbuildtools upstream before consumer publication. No new shared tag,
+GitHub Release, hosted workflow, installer execution or certificate mutation was
+part of this work. The MSI remains an unsigned local artifact; the source tag
+and successful synthetic checks do not establish installed lifecycle acceptance.

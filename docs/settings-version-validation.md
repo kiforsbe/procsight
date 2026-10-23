@@ -46,3 +46,11 @@ clips some right-hand action buttons in these captures; footer checks do not
 establish acceptance of that unrelated layout. Keyboard selection/copy,
 Narrator, high contrast and text/display scaling remain manual acceptance
 checks; screenshots and property assertions do not replace them.
+
+## Release-version recheck — 2026-10-23
+
+After the release script synchronized 0.3.0, the Debug fixture build again passed
+with zero warnings/errors. `settings-version` passed at Light/Dark and 1200/660
+widths, displaying `ProcSight 0.3.0` from its actual assembly metadata. Captures
+remain under ignored `artifacts/settings-version-0.3.0/`; the narrow Light view
+was independently inspected. Earlier layout/accessibility limits above remain.
