@@ -7,6 +7,13 @@ Direct user instructions take precedence over repository guidance.
 
 ## Current project state
 
+Shared installer, signing/certificate, SDK/process and artifact-metadata mechanisms come
+from the exact `external/winbuildtools` Git submodule. Coordinate generic tool changes in
+the winbuildtools project, commit/verify them there, then deliberately update this gitlink.
+Never patch a sibling fallback into builds or fetch a moving tool revision during packaging.
+Keep product identity, payload/privilege/audit policy and the WinUI build context here;
+publish the referenced tool commit before publishing a consumer change that requires it.
+
 The app requires .NET Runtime 10.0.13+ within 10.0 for the upstream COM-wrapper leak fix;
 preserve debugger support and the app FrameworkReference runtime floor for development and packaging.
 

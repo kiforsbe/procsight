@@ -52,9 +52,14 @@ silently resolved or represented as absent; no host software was changed.
 - An isolated Agenda checkout passed its installer-adapter and packaging-delegation
   suites against the candidate shared implementation. Only the temporary fixture's
   old hardcoded pin assertion was changed to name the candidate. The real Agenda
-  checkout, app version and recorded tool pin were untouched. Its first local
-  submodule initialization reported a transient `.git` write error, retried and
-  completed; candidate checkout and subsequent tests succeeded.
+  checkout, app version and recorded tool pin were untouched.
+- A fresh ProcSight recursive clone passed full verification (454 project tests)
+  with its recorded tool pin. After upstream publication, another fresh clone used
+  the canonical HTTPS tool URL without a local override and passed all 25 adapter
+  and 12 native consumer checks at exactly the published commit. This host's Git
+  repeatedly reported a `.git` pointer write permission error during initial
+  submodule setup; its automatic retry completed checkout and the checked pin/tests
+  passed. That host behavior remains unresolved and is not hidden as a clean log.
 - The [Settings footer record](settings-version-validation.md) covers four
   synthetic light/dark wide/narrow views and retains the 10.0.13 runtime floor.
 - Workflow actionlint and all 23 local PowerShell parsers passed. The affected
@@ -62,6 +67,8 @@ silently resolved or represented as absent; no host software was changed.
   connection-design Mermaid diagrams parsed and rendered with the already installed
   local Mermaid/browser tooling; the new ownership sequence was visually inspected.
   One existing certificate-sequence semicolon was changed to a comma to fix parsing.
+- Final independent consumer review found no remaining actionable code blockers
+  after the submodule-provenance guard and certificate-disposal corrections.
 
 ## Actual package checks
 
@@ -70,6 +77,13 @@ shared exact inspection. Expected files and the generated manifest were staged
 from the SDK package map before inspection, not copied from the unpacked artifact.
 The resulting unsigned development package is not directly installable without
 separate appropriate signing/trust. No signing or installation was performed.
+
+Store-profile build and shared exact inspection also passed in an isolated clone,
+with synthetic identity, version 1.0.0 and elevation disabled. The first long-path
+fixture failed in the WinUI compiler while writing XamlSaveStateFile.xml; an
+otherwise equivalent shorter fixture succeeded. The real app version and identity
+were not changed for this check. No Store API, upload, signing key or certification
+was used; Store packaging remains preparation only.
 
 The first full MSI build exposed an extensionless runtime LICENSE omitted from the
 shared allowlist. The adapter now supplies every already approved relative path
