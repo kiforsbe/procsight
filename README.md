@@ -5,9 +5,9 @@ list with readable workload names, system performance graphs and explanations of
 processes and services do.
 
 <p align="center">
-  <img src="docs/images/process-details-native.png" alt="ProcSight process list and investigation details in dark mode, using synthetic demonstration data" width="1100" />
+  <img src="docs/images/promo-screenshot.png" alt="ProcSight process list with live demonstration data" width="800" />
   <br />
-  <em>Process list and investigation details with synthetic demonstration data.</em>
+  <em>Process list with live demonstration data.</em>
 </p>
 
 **Development preview — no public release or download is available yet.**
