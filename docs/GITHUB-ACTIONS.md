@@ -41,7 +41,8 @@ no NuGet cache shared between builds, custom installer, cloud VM setup or self-h
 The installer bundles required app runtimes; the build does not launch the WinUI app.
 
 The build job has a 45-minute timeout, cancels older runs for the same tag and uses read-only
-repository permissions. Checkout does not persist credentials. All Actions are full-SHA pinned.
+repository permissions. Checkout recursively initializes the exact recorded winbuildtools
+submodule and does not persist credentials. All Actions are full-SHA pinned.
 The upload stage accepts only the inspected unsigned MSI and manifest, checks the staged hash,
 and excludes build logs, databases, local metadata and intermediate output. No private secrets,
 OAuth session, signing certificate, version rewrite, commit, tag or public release publication is used.

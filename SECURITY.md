@@ -73,10 +73,15 @@ Unsigned development artifacts are not installation-ready. Store preparation doe
 Microsoft approval for restricted capabilities or certification. Signing and installed lifecycle
 acceptance remain outstanding; no certificate or package is automatically trusted or installed.
 
-The MSI profile bundles the unpackaged app and runtimes under protected Program Files,
-using Windows Installer's per-machine elevation prompt. The app remains asInvoker; no
+The MSI profile bundles the unpackaged app and runtimes with native Just me / All users
+scope selection. Per-user installation uses the user's Programs/menu folders; All users
+uses protected Program Files and Windows Installer's elevation prompt. Existing machine
+installations require All users for their upgrade. Scope selection does not migrate or
+delete an installation in another context. The app remains asInvoker in both scopes; no
 installer action launches it or enables administrator mode. Authoring has no executable
 custom actions, certificate trust changes, forced app termination or user-data deletion.
+The consumer explicitly disables Restart Manager during this migration; close the app
+before servicing. Scope choice does not grant analysis or collector privileges.
 An advertised Start-menu shortcut can invoke Windows Installer repair before normal launch.
 Uninstall retains per-user settings and credentials, which use unpackaged namespaces rather
 than MSIX package-family storage. There is no automatic migration between formats.
@@ -90,7 +95,7 @@ custom-action tables are rejected, no transaction is initialized, and original d
 and installed registrations are preserved. Cleanup closes handles before deleting the bounded
 preflight directory. This isolation does not simulate real repair, upgrade or uninstall.
 
-Release preparation requires PowerShell 7+, a clean named branch and valid local Git identity.
+Release preparation requires PowerShell 7.4+, a clean named branch and valid local Git identity.
 It commits only synchronized version/changelog files, builds from that exact clean commit and checks
 artifact version/commit/hash before an annotated local tag. Tags are never moved and scripts do not
 publish. Review the selected source/dependencies before distributing a release: these consistency
@@ -222,7 +227,7 @@ No tokens, account IDs, emails, authorization URLs, callback parameters, HTTP bo
 are accepted by the log contract. A bounded background queue and one rotated file limit retention;
 logging failures never affect authentication. This does not persist AI activity or provider payloads.
 
-The explicit `scripts/trust-package-certificate.cmd` drop target delegates to its PowerShell 7
+The explicit `scripts/trust-package-certificate.cmd` drop target delegates to its PowerShell 7.4+
 companion. It accepts only public, currently valid code-signing certificates, displays their identity,
 and requests UAC to add machine-wide LocalMachine/TrustedPeople trust. It never uses Trusted Root
 or installs a package. Only drop a certificate whose source and package signer you have verified;

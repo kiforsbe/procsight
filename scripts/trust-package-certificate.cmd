@@ -4,7 +4,7 @@ if "%~1"=="" goto usage
 if not "%~2"=="" goto usage
 where pwsh.exe >nul 2>nul
 if errorlevel 1 (
-  echo PowerShell 7 is required. Install it, then drop the certificate again.
+  echo PowerShell 7.4 or later is required. Install it, then drop the certificate again.
   pause
   exit /b 1
 )

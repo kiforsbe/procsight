@@ -1,4 +1,4 @@
-#requires -Version 7.0
+#requires -Version 7.4
 [CmdletBinding(DefaultParameterSetName='Version')]
 param(
  [Parameter(Mandatory,ParameterSetName='Version')][Parameter(Mandatory,ParameterSetName='Resume')][string]$Version,
@@ -17,7 +17,7 @@ function Invoke-ReleaseGit([string[]]$Arguments) {
  return ($result -join "`n").Trim()
 }
 function Assert-CleanReleaseCheckout {
- if(Invoke-ReleaseGit @('status','--porcelain','--untracked-files=all')) { throw 'Release preparation requires a clean checkout and index, including untracked source files.' }
+ if(Invoke-ReleaseGit @('status','--porcelain','--untracked-files=all','--ignore-submodules=none')) { throw 'Release preparation requires a clean checkout and index, including untracked source files and modified shared tools.' }
 }
 Assert-CleanReleaseCheckout
 $null=Invoke-ReleaseGit @('symbolic-ref','--quiet','--short','HEAD')
@@ -56,7 +56,10 @@ if($FeedUri) {
 if($CertificateThumbprint) {
  if($Profile -eq 'Store') { throw 'Store preparation must not use a Direct signing certificate.' }
  $null=Get-ProcSightSdkTool 'signtool.exe'
- if(!$DryRun) { $null=Get-ProcSightSigningCertificate $CertificateThumbprint $inputs.Publisher -Production:$inputs.Production }
+ if(!$DryRun) {
+  $certificate=Get-ProcSightSigningCertificate $CertificateThumbprint $inputs.Publisher -Production:$inputs.Production
+  $certificate.Dispose()
+ }
 }
 if($inputs.Production -and $Profile -eq 'Direct' -and (!$CertificateThumbprint -or !$TimestampUri)) { throw 'Production Direct release requires trusted signing and TimestampUri.' }
 if($TimestampUri) { Assert-ProcSightFeedUri $TimestampUri }

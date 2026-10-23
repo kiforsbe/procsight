@@ -212,7 +212,7 @@ preparation does not authorize creating a remote repository, pushing, or choosin
 security-reporting address. Review current upstream Action dependencies/licenses/advisories and
 document any compatibility/security exceptions rather than implying an advisory-free toolchain.
 
-Packaging/release/verification scripts require PowerShell 7+ and reject older hosts before actions.
+Packaging/release/verification scripts require PowerShell 7.4+ and reject older hosts before actions.
 Certificate trust is an explicit user-invoked exception: `scripts/trust-package-certificate.cmd`
 accepts one dropped public `.cer` and its PowerShell companion requests UAC for LocalMachine
 TrustedPeople only. Preserve format/validity/code-signing checks, thumbprint continuity across
@@ -346,7 +346,8 @@ Name-only automatic assessment stays Unknown; explicit Analyze can assess the li
 Service icons use configured implementation, then host, as cosmetic sources only; they never imply
 loaded-module or publisher proof. Maintain stale-source checks in the shared off-thread icon pipeline.
 
-MSI packaging uses the Msi profile: self-contained unpackaged x64, per-machine Program Files,
+MSI packaging uses the Msi profile: self-contained unpackaged x64, with native Just me / All users
+scope selection and context-aware Programs/menu folders (Program Files for All users),
 Windows Installer Automation/MakeCab, no executable custom actions or automatic app launch.
 Preserve stable per-file component GUIDs/upgrade identity, transactional major upgrades, downgrade
 checks, bounded approved payload/hash inspection and audited restore. MSI uses central X.Y.Z

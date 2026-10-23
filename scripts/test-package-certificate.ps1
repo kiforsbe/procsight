@@ -46,6 +46,13 @@ try {
     # WhatIf must never request elevation or touch a certificate store.
     & (Join-Path $PSScriptRoot 'trust-package-certificate.ps1') -CertificatePath $path -WhatIf
     $checks++
+    # Guard the persistent-key boundary even if a future wrapper accidentally
+    # loses WhatIf propagation. A failing test must still never create a key.
+    function New-SelfSignedCertificate { throw 'WhatIf reached persistent key creation.' }
+    try {
+        & (Join-Path $PSScriptRoot 'new-package-certificate.ps1') -WhatIf
+        $checks++
+    } finally { Remove-Item Function:/New-SelfSignedCertificate }
     $cert.Dispose()
 } finally {
     $key.Dispose()

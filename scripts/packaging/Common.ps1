@@ -1,4 +1,6 @@
+#requires -Version 7.4
 . (Join-Path $PSScriptRoot '../release/Common.ps1')
+. (Join-Path $PSScriptRoot 'ProcSight.ps1')
 function Get-ProcSightPackageInputs {
  param([string]$Root,[ValidateSet('Direct','Store','Msi')][string]$Profile,[string]$IdentityFile,[string]$ElevationMode,[string]$VersionForValidation)
  if($ElevationMode -and $ElevationMode -notin @('Disabled','Approved')) { throw 'Invalid elevation mode.' }
@@ -20,17 +22,10 @@ function Get-ProcSightPackageInputs {
   Version="$version.0"; InstallerVersion=if($Profile -eq 'Msi'){$version}else{"$version.0"}; ProductVersion=$version; Production=[bool]$IdentityFile; AllowsElevation=($Profile -ne 'Store' -or $ElevationMode -eq 'Approved'); Profile=$Profile }
 }
 function Get-ProcSightSdkTool([string]$Name) {
- if($Name -notin @('makeappx.exe','signtool.exe')) { throw 'Unknown SDK tool.' }
- $sdkRoot=Join-Path ${env:ProgramFiles(x86)} 'Windows Kits/10/bin'
- $version=Get-ChildItem -LiteralPath $sdkRoot -Directory | Where-Object { $_.Name -match '^10\.0\.\d+\.0$' -and [version]$_.Name -ge [version]'10.0.26100.0' } | Sort-Object { [version]$_.Name } -Descending
- foreach($candidate in $version) { $path=Join-Path $candidate.FullName "x64/$Name"; if(Test-Path -LiteralPath $path) { return $path } }
- throw "Install Windows SDK 10.0.26100.0 or later with $Name (x64)."
+ Get-WbtSdkTool $Name
 }
 function Invoke-ProcSightTool([string]$Tool,[string[]]$Arguments) {
- $messages=@(& $Tool @Arguments 2>&1); $result=$LASTEXITCODE
- if($script:ProcSightToolLog) { $messages | Out-String | Add-Content -LiteralPath $script:ProcSightToolLog }
- if($result -ne 0) { $messages | Select-Object -Last 12 | Out-Host; throw "$([IO.Path]::GetFileName($Tool)) failed (exit $result)." }
- Write-Host "$([IO.Path]::GetFileName($Tool)): succeeded"
+ Invoke-WbtTool -Tool $Tool -Arguments $Arguments -LogPath $script:ProcSightToolLog
 }
 function Test-ProcSightPackageFile([string]$Name) {
  $name=$Name.Replace('\','/')
@@ -64,19 +59,17 @@ function Assert-ProcSightFeedUri([string]$Value) {
  if(![uri]::TryCreate($Value,[UriKind]::Absolute,[ref]$uri) -or $uri.Scheme -ne 'https' -or $uri.UserInfo -or $uri.Fragment) { throw 'Update locations must be absolute HTTPS URLs without userinfo or fragments.' }
 }
 function Assert-ProcSightSigningMetadata($Certificate,[string]$Publisher) {
- if($Certificate.Subject -cne $Publisher -or !$Certificate.HasPrivateKey -or $Certificate.NotBefore -gt (Get-Date) -or $Certificate.NotAfter -le (Get-Date) -or
-  '1.3.6.1.5.5.7.3.3' -notin $Certificate.UsageOids) { throw 'Select an unexpired code-signing certificate with private key and matching publisher.' }
+ Assert-WbtSigningMetadata $Certificate $Publisher
 }
 function Get-ProcSightSigningCertificate([string]$Thumbprint,[string]$Publisher,[switch]$Production) {
- if($Thumbprint -notmatch '^[a-fA-F0-9]{40}$') { throw 'CertificateThumbprint must identify an explicit certificate in CurrentUser\My.' }
- $cert=Get-Item -LiteralPath "Cert:\CurrentUser\My\$Thumbprint"
- $oids=@($cert.Extensions | Where-Object { $_ -is [Security.Cryptography.X509Certificates.X509EnhancedKeyUsageExtension] } | ForEach-Object { $_.EnhancedKeyUsages } | ForEach-Object { $_.Value })
- Assert-ProcSightSigningMetadata ([pscustomobject]@{Subject=$cert.Subject; HasPrivateKey=$cert.HasPrivateKey; NotBefore=$cert.NotBefore; NotAfter=$cert.NotAfter; UsageOids=$oids}) $Publisher
+ $cert=Get-WbtSigningCertificate -CertificateThumbprint $Thumbprint -Publisher $Publisher
+ try {
  if($Production) {
   $chain=[Security.Cryptography.X509Certificates.X509Chain]::new()
   try { $chain.ChainPolicy.RevocationMode='Online'; if(!$chain.Build($cert) -or $chain.ChainElements.Count -lt 2) { throw 'Production signing requires a trusted CA-issued code-signing certificate.' } } finally { $chain.Dispose() }
  }
  return $cert
+ } catch { $cert.Dispose(); throw }
 }
 function New-ProcSightAppInstaller($Inputs,[string]$FeedUri,[string]$PackageUri,[string]$Path) {
  Assert-ProcSightFeedUri $FeedUri; Assert-ProcSightFeedUri $PackageUri

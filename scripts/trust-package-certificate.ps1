@@ -1,41 +1,18 @@
-#requires -Version 7.0
+#requires -Version 7.4
 [CmdletBinding(SupportsShouldProcess)]
 param(
     [string]$CertificatePath,
     [string]$ExpectedThumbprint
 )
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'packaging/Common.ps1')
+. (Join-Path $script:ProcSightBuildToolsRoot 'signing/Certificates.ps1')
 
 function Read-ProcSightPublicSigningCertificate {
     param([Parameter(Mandatory)][string]$Path, [string]$ExpectedThumbprint)
-    $file = Get-Item -LiteralPath $Path
-    if ($file.PSIsContainer -or $file.Extension -ine '.cer' -or $file.Length -gt 1MB) {
-        throw 'Choose one public .cer certificate file, no larger than 1 MB.'
-    }
-    $bytes = [IO.File]::ReadAllBytes($file.FullName)
-    if ([Security.Cryptography.X509Certificates.X509Certificate2]::GetCertContentType($bytes) -ne
-        [Security.Cryptography.X509Certificates.X509ContentType]::Cert) {
-        throw 'Only a public certificate is accepted; private-key containers are not supported.'
-    }
-    $cert = [Security.Cryptography.X509Certificates.X509Certificate2]::new($bytes)
-    try {
-        if ($cert.HasPrivateKey -or $cert.NotBefore -gt (Get-Date) -or $cert.NotAfter -le (Get-Date)) {
-            throw 'The certificate must be public-only and currently valid.'
-        }
-        $codeSigning = $false
-        foreach ($extension in $cert.Extensions) {
-            if ($extension -is [Security.Cryptography.X509Certificates.X509EnhancedKeyUsageExtension]) {
-                foreach ($usage in $extension.EnhancedKeyUsages) {
-                    if ($usage.Value -eq '1.3.6.1.5.5.7.3.3') { $codeSigning = $true }
-                }
-            }
-        }
-        if (!$codeSigning) { throw 'The certificate does not explicitly allow code signing.' }
-        if ($ExpectedThumbprint -and $cert.Thumbprint -cne $ExpectedThumbprint) {
-            throw 'The certificate changed during administrator approval. Nothing was imported.'
-        }
-        return $cert
-    } catch { $cert.Dispose(); throw }
+    $arguments=@{Path=$Path}
+    if($ExpectedThumbprint) { $arguments.ExpectedThumbprint=$ExpectedThumbprint }
+    Read-WbtPublicSigningCertificate @arguments
 }
 
 # Dot-sourcing exposes validation for synthetic, store-free tests.
@@ -67,12 +44,8 @@ try {
         } catch { throw 'Administrator approval was cancelled or could not be started. No trust change was completed.' }
         if ($process.ExitCode -ne 0) { throw 'Certificate trust failed. Retry from an administrator PowerShell window to see the detailed error.' }
     } else {
-        $store = [Security.Cryptography.X509Certificates.X509Store]::new('TrustedPeople', 'LocalMachine')
-        try {
-            $store.Open([Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
-            # Import the validated object, never reopen a possibly replaced input file.
-            $store.Add($certificate)
-        } finally { $store.Dispose() }
+        # The shared helper imports the validated object, not the mutable file.
+        $null=Import-WbtPublicSigningCertificate -Certificate $certificate -ExpectedThumbprint $certificate.Thumbprint -Confirm:$false
     }
     Write-Host 'Certificate trusted in Local Machine > Trusted People. Reopen your signed MSIX to install it.'
 } finally { $certificate.Dispose() }

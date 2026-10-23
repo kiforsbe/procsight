@@ -1,5 +1,12 @@
 # Development verification
 
+## Shared Windows tooling integration — 2026-10-23
+
+See the [integration validation record](winbuildtools-integration-validation.md)
+for the exact tool commit, MSI identity/scope checks, shared and consumer suites,
+actual MSIX packaging, Agenda compatibility, review findings and manual limits.
+The native Settings footer and dependency patch have their own linked records.
+
 ## Settings version and dependency refresh — 2026-10-22
 
 The [Settings fixture record](settings-version-validation.md) covers the running

@@ -1,6 +1,12 @@
 # Third-party components
 
 ProcSight source is licensed under [AGPL-3.0](LICENSE). Dependency licenses remain separate.
+
+The pinned [winbuildtools source checkout](external/winbuildtools/README.md) is MIT
+licensed. Preserve its [license](external/winbuildtools/LICENSE) and
+[provenance notice](external/winbuildtools/NOTICE.md) with source distributions.
+It is build tooling, not an added application runtime; its license does not replace
+the terms of Windows tools or bundled Microsoft/runtime binaries.
 The repository pins package versions and tracks NuGet lock files; it does not contain a
 redistributable installer or promise compatibility of every future distribution.
 

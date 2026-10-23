@@ -139,7 +139,24 @@ manually bump individual product version fields or infer Store readiness from th
 
 ## Local release preparation
 
-Packaging, verification and release scripts require **PowerShell 7+ (`pwsh`)**. Run the commands
+Initialize the exact shared tooling checkout before verification or packaging:
+
+```powershell
+git submodule update --init --recursive
+```
+
+The [product adapter](scripts/packaging/ProcSight.ps1) consumes
+[winbuildtools](external/winbuildtools/README.md) from that recorded commit. Missing
+tools fail early; no sibling checkout or latest-download fallback is used.
+MSI product inputs live in [packaging/msi.json](packaging/msi.json); the adapter
+supplies literal compatibility GUIDs and approved payload paths to the shared engine.
+Signing, certificate validation/key creation/trust, SDK discovery, process diagnostics
+and final hash/signature measurement also use this checkout. Product audit/privilege/
+resource/license checks and the isolated WinUI MSBuild context remain local.
+The generic single-project .NET helper is not used to replace solution verification
+or the established profile-specific intermediate layout.
+
+Packaging, verification and release scripts require **PowerShell 7.4+ (`pwsh`)**. Run the commands
 below inside pwsh; Windows PowerShell 5.1 is rejected before any script actions occur.
 
 Start from a clean branch, with populated Unreleased notes and configured Git author/committer.
@@ -176,7 +193,7 @@ command; `-Resume` applies only after a prepared release commit exists.
 
 ## MSI packaging
 
-Run from PowerShell 7 on Windows with the existing .NET/Windows SDK prerequisites:
+Run from PowerShell 7.4+ on Windows with the existing .NET/Windows SDK prerequisites:
 
 ```powershell
 ./scripts/test-msi.ps1
@@ -197,32 +214,40 @@ limits major/minor to 255 and patch to 65534; MSI preflight rejects larger versi
 release edits. Release preparation uses the same verification, changelog, release commit
 and annotated tag flow, without pushing or publishing. DryRun creates none of those.
 
-The native installer uses standard progress UI, installs per-machine under Program Files,
+The native installer offers Just me / All users before costing; Just me is initially
+selected for new installations. It uses context-aware Programs and Start-menu folders,
+with Program Files for All users. It retains existing product/upgrade/component GUIDs,
 registers an advertised Start-menu shortcut to the executable key path, removes older MSI
 versions transactionally and rejects downgrades. It has no executable custom actions,
 automatic launch, forced process termination, certificate import or user-data cleanup.
-Close ProcSight before installation/upgrade. Remove through Windows Settings. MSI runs
+Close ProcSight before installation/upgrade. Select the same scope as the installed
+version, including All users for existing machine installations. Unattended setup can use
+`ALLUSERS=2 MSIINSTALLPERUSER=1` (Just me) or `ALLUSERS=2 MSIINSTALLPERUSER=""`
+(All users). Maintenance keeps the registered context; changing scope does not migrate
+the installation. Remove through Windows Settings. MSI runs
 without package identity and uses the existing unpackaged per-user data/credentials;
 MSIX data is separate and is not migrated.
 
-`test-msi.ps1` creates synthetic databases/cabinets, runs the native read-only AppSearch
-and costing/InstallValidate actions, and checks the removal plan, component membership and uninstall action
-ordering. [AppSearch requires Signature](https://learn.microsoft.com/en-us/windows/win32/msi/appsearch-action)
+`test-msi.ps1` checks ProcSight's literal GUID/folder continuity, scope/servicing choices,
+approved payload and unchanged installed registrations through the shared engine.
+Run `./external/winbuildtools/verify.ps1 -Integration` when updating the tool pin;
+its suites own generic table/cabinet mutation, scope UI and isolated native preflight
+coverage. [AppSearch requires Signature](https://learn.microsoft.com/en-us/windows/win32/msi/appsearch-action)
 even for a raw registry lookup. Packaging runs read-only search, costing and InstallValidate
 against a disposable full-payload copy before accepting the original MSI. That copy has fresh
 product, upgrade, package and component GUIDs, and temporary costing targets, so installed
 ProcSight versions cannot collide with fixture identities. The original MSI remains byte-for-byte
 unchanged and receives separate identity/mapping/payload checks. Preflight refuses custom-action
 tables and removes its owned temporary directory after closing engine handles. File versions come from Windows Installer's fixed
-binary-version reader, never descriptive vendor strings. The regression fixture temporarily
-copies the required .NET 10 runtime's msquic.dll as nonexecuted input; no binary is tracked. CreateFolder explicitly
+binary-version reader, never descriptive vendor strings. Synthetic fixtures never execute
+payload files or track machine binaries. CreateFolder explicitly
 owns only app/menu directories so RemoveFolders removes them only when empty. The test
 never installs a product. Actual install, repair, upgrade, downgrade and uninstall,
 Windows Installer ICE validation and clean-machine runtime acceptance remain manual checks.
 
 ## MSIX packaging
 
-Windows SDK 10.0.26100.0+ x64 MakeAppx/SignTool are discovered explicitly. Packaging uses the pinned
+Windows SDK 10.0.26100.0+ x64 MakeAppx/SignTool are discovered by shared tooling. Packaging uses the pinned
 Microsoft.Windows.SDK.BuildTools.MSIX package and opt-in single-project profiles in packaging/.
 Ordinary builds remain unpackaged; isolated packaging intermediates/output live in artifacts/packages.
 
@@ -236,7 +261,7 @@ installs/elevates an application.
 
 ### Install a signed development package
 
-Create a signing certificate **once**, in ordinary PowerShell 7 as your development user:
+Create a signing certificate **once**, in ordinary PowerShell 7.4+ as your development user:
 
 ```powershell
 ./scripts/new-package-certificate.ps1
@@ -267,7 +292,7 @@ Get-PfxCertificate -FilePath 'C:\path\to\artifacts\certificates\YOUR_40_HEX_THUM
 
 For drag-and-drop setup, drop the matching `.cer` onto
 [`scripts/trust-package-certificate.cmd`](scripts/trust-package-certificate.cmd) in File Explorer,
-then approve the administrator prompt. Keep it next to `trust-package-certificate.ps1`; PowerShell 7
+then approve the administrator prompt. Keep it next to `trust-package-certificate.ps1`; PowerShell 7.4+
 must be installed. The console stays open to show success or errors. This helper trusts the
 certificate only; reopen the signed MSIX afterward to install the app.
 
@@ -336,8 +361,10 @@ not publish or certify a package.
 Public Direct packages require a production IdentityFile, a trusted CA-issued code-signing certificate
 and explicit HTTPS TimestampUri. Optional FeedUri and PackageUri must both be supplied; generated
 .appinstaller files check on launch without blocking activation. No feed is hosted automatically.
-Each output includes release-artifacts.json with source commit, version, primary package hash and
-signing state. Inspect tool-output.log for local build diagnostics. Source/binary packaging preserves
+Each output includes the shared artifact-metadata.json and additive release-artifacts.json
+with source commit/dirty state, version, primary package hash and actual signature status/signer.
+The release record retains Profile, PackageVersion and the Commit compatibility alias.
+Inspect tool-output.log for local build diagnostics. Source/binary packaging preserves
 ProcSight's AGPL and collects available dependency/runtime licence and notice files under Licenses.
 
 Packaging tests use synthetic identities/certificate metadata and do not change real certificate

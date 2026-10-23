@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 2,
+  "identityNamespace": "ProcSight.Msi",
+  "architecture": "x64",
+  "product": {
+    "id": "ProcSight",
+    "name": "ProcSight",
+    "manufacturer": "ProcSight",
+    "upgradeCode": "{4DF99DE9-8E63-E6C5-2DC5-4E08D8C0D228}"
+  },
+  "installation": {
+    "scope": "choice",
+    "defaultScope": "user",
+    "directoryName": "ProcSight",
+    "menuDirectoryName": "ProcSight",
+    "minimumWindowsBuild": 26100,
+    "restartManager": "disabled"
+  },
+  "application": { "executable": "ProcSight.App.exe" },
+  "shortcuts": [{ "name": "ProcSight", "location": "startMenu" }],
+  "payload": {
+    "requiredFiles": [
+      "ProcSight.App.exe", "ProcSight.App.dll", "ProcSight-LICENSE.txt",
+      "ProcSight-THIRD-PARTY-NOTICES.txt", "Assets/Package/StoreLogo.png"
+    ],
+    "allowedExtensions": [".dll", ".exe", ".winmd", ".pri", ".xbf", ".mui", ".png", ".ico", ".svg", ".txt", ".manifest", ".md", ".html", ".rtf"],
+    "allowedFiles": ["ProcSight.App.deps.json", "ProcSight.App.runtimeconfig.json"]
+  }
+}

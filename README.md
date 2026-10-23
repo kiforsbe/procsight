@@ -40,16 +40,20 @@ this repository's GitHub Releases when a release is published.
 
 ### MSI installer
 
-If you have been supplied an MSI preview, close ProcSight, double-click the `.msi`, and
-approve Windows' administrator prompt. It installs to **Program Files\ProcSight** for all
-users and adds **ProcSight** to the Start menu. The required runtimes are included.
+If you have been supplied an MSI preview, close ProcSight and double-click the `.msi`.
+Choose **Just me** (initially selected) for your user account or **All users** for a
+machine-wide installation. Just me uses your local Programs folder; All users uses
+**Program Files\ProcSight** and requires Windows administrator approval. Both add
+**ProcSight** to the corresponding Start menu and include the required runtimes.
 The app starts normally; administrator mode remains an explicit in-app choice.
 
 **No certificate import is required for MSI.** Unsigned installers can still trigger
 publisher/reputation warnings or be blocked by Smart App Control or device policy.
 Only install files from a source you trust.
 
-Install a newer MSI to upgrade. Remove it through **Settings → Apps → Installed apps**.
+Install a newer MSI in the same scope to upgrade; choose All users for an existing
+machine-wide installation. Choosing another scope does not migrate the installation.
+Remove it through **Settings → Apps → Installed apps**.
 User settings and credentials are retained. MSI and MSIX use separate settings/account
 storage; switching formats does not migrate them automatically. Installer lifecycle
 acceptance testing is still pending.
@@ -153,6 +157,10 @@ Building, debugging, signing packages and preparing releases are covered in the
 to help. Technical references include [architecture](ARCHITECTURE.md),
 [dependency and license review](docs/DEPENDENCIES.md), and
 [Windows UI conventions](docs/WINUI3-DESIGN.md).
+
+Source checkout must include the pinned winbuildtools submodule. Clone recursively
+or run `git submodule update --init --recursive` before verification/packaging;
+build scripts do not download missing tools or follow upstream branch updates.
 
 ## License
 

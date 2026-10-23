@@ -13,6 +13,7 @@ plans, implementation details and validation records belong in the project docum
 
 ### Changed
 
+- Packaging uses pinned winbuildtools with project-owned installer identities and a native Just me / All users MSI choice.
 - Updated native SQLite to 3.54.1 and refreshed benchmark dependency locks to match the reviewed application dependency set.
 
 ## [0.2.0] - 2026-10-18

@@ -80,7 +80,8 @@ sequenceDiagram
 
 The [Windows workflow](.github/workflows/windows-build.yml) checks out source without persisted
 credentials at the requested existing version tag, verifies its commit and central version,
-installs the SDK selected by the tagged global.json, runs verify.ps1 and then package.ps1 with
+initializes its exact winbuildtools submodule recursively, installs the SDK selected by
+the tagged global.json, runs verify.ps1 and then package.ps1 with
 the Msi profile on an ephemeral windows-2025 runner. Existing locked restore, vulnerability gates,
 MSI preflight and payload inspection remain the authoritative build checks. A narrow staging step
 copies only the unsigned MSI and release-artifacts.json and verifies its SHA-256 before upload.
@@ -116,10 +117,19 @@ runtimes and Store packaging declares runtime dependencies. Package trust, Store
 actual installed elevation/upgrade/uninstall behavior have not been established by synthetic tests.
 
 The [MSI profile](packaging/Msi.pubxml) publishes a self-contained unpackaged app.
-[Native MSI authoring](scripts/packaging/Msi.ps1) creates a per-machine x64 database and
-embedded cabinet using Windows Installer Automation and MakeCab. Stable per-file component
-GUIDs and one upgrade GUID support transactional major upgrades; the product GUID changes
-with the central three-part version. A Windows-build launch condition enforces 24H2.
+[The product adapter](scripts/packaging/ProcSight.ps1) resolves
+[project-owned MSI inputs](packaging/msi.json) into explicit identities, exact install/menu
+names, scope and servicing policy. The pinned [shared MSI engine](external/winbuildtools/msi/Authoring.ps1)
+creates the x64 database and embedded cabinet using Windows Installer Automation and MakeCab.
+ProcSight's original product/upgrade/component GUID derivation stays in the adapter so
+shared tools receive literal identities and never recognize ProcSight policy. The MSI offers
+Just me / All users with native Windows Installer context selection; a fresh install initially
+selects Just me. Context-aware folders resolve to user Programs/menu locations or machine
+Program Files/common menu locations. An existing machine installation requires All users
+for its upgrade; scope selection does not migrate installations, credentials or settings.
+Stable per-file component GUIDs and one upgrade GUID support same-context transactional
+major upgrades; the product GUID changes with the central three-part version.
+A Windows-build launch condition enforces 24H2.
 AppSearch includes its required empty Signature table for the raw Windows-build registry
 lookup. CreateFolder binds only app/menu directories to the main component; RemoveFolders
 removes them only when empty. Synthetic native engine checks run search and costing without
@@ -131,22 +141,25 @@ and only the disposable copy is rewritten/removed. Custom-action tables are reje
 preflight. This is validation isolation, not an installation or proof of installed lifecycle. File table versions come from Windows Installer's
 fixed PE version reader; vendor display strings are not used as installer versions.
 The advertised Start-menu shortcut targets the main feature's executable key path.
-No executable custom actions, app launch, user-data cleanup or certificate import are authored.
+ProcSight explicitly keeps Restart Manager disabled until separate session-ending
+acceptance; close the app before servicing. No executable custom actions, app launch,
+user-data cleanup or certificate import are authored.
 Inspection reopens the database, checks identity/components and extracts the cabinet to compare
 every file's SHA-256 with the approved publish payload. Installed lifecycle/ICE acceptance is pending.
 
 ```mermaid
 flowchart LR
-    Source[Versioned source and locked dependencies] --> Audit[Solution and profile vulnerability gates]
+    Source[Versioned source and pinned shared tooling] --> Audit[Solution and profile vulnerability gates]
     Audit --> Publish[Self-contained unpackaged publish]
-    Publish --> Native[Windows Installer database and embedded cabinet]
+    Publish --> Adapter[Product adapter: approve payload and resolve literal identities]
+    Adapter --> Native[Shared Windows Installer authoring and embedded cabinet]
     Native --> Inspect[Original database and payload hash inspection]
     Native --> Clone[Disposable copy with fresh installer identities]
     Clone --> Engine[Search, costing and InstallValidate with temporary targets]
     Engine --> Artifact
     Inspect --> Artifact[MSI and version / commit / hash manifest]
-    Artifact --> Consent[User installation with Windows UAC]
-    Consent --> Files[Program Files and Start-menu shortcut]
+    Artifact --> Consent[Native Just me / All users choice]
+    Consent --> Files[Context-specific Programs folder and Start-menu shortcut]
     Files --> App[Normal privilege app and per-user data]
 ```
 
@@ -158,6 +171,39 @@ of process analysis and uses nuget.org metadata, never local inventory or provid
 [Explicit updates](scripts/update-dependencies.ps1) modify only approved central pins and tracked
 lock files, with byte backups restored on failed validation; generated assets are refreshed after
 ordinary failure. Package-ID migrations and license/API compatibility still require human review.
+
+Reusable mechanisms come from the exact Git submodule at
+[external/winbuildtools](external/winbuildtools/README.md). Scripts never fetch tools
+or search sibling checkouts. The product adapter delegates SDK discovery, process
+diagnostics, signing/verification and final hash/signature metadata. WinUI MSIX
+profiles retain their isolated SDK resource generation; the adapter stages expected
+payload/manifest from the SDK package map and invokes shared exact inspection,
+independently of the unpacked artifact. Solution orchestration and the established
+profile-specific MSBuild context remain local compatibility choices. Shared metadata
+stays in its own sidecar; the consumer adds Profile, PackageVersion and the legacy
+Commit alias to a separate release record without replacing measured fields.
+
+The UML sequence view shows mechanism versus product-policy ownership:
+
+```mermaid
+sequenceDiagram
+    participant Consumer as ProcSight product adapter
+    participant Build as Isolated WinUI build
+    participant Shared as Pinned winbuildtools
+    participant Output as Local package and metadata
+    Consumer->>Build: Audited locked restore and product publish inputs
+    Build-->>Consumer: Payload or SDK MSIX map and artifact
+    Consumer->>Consumer: Approve files, identities and privilege declarations
+    Consumer->>Shared: Explicit MSI configuration or MSIX expected inputs
+    Shared->>Shared: Author and inspect tables, scope and exact payload
+    opt Explicit signing request
+        Consumer->>Shared: Selected signer and trust policy
+        Shared->>Shared: Sign and verify final artifact
+    end
+    Shared->>Output: Final measured hash and signature sidecar
+    Consumer->>Output: Add product fields in separate release manifest
+    Note over Consumer,Output: Packaging does not install products or import trust
+```
 
 The explicit [certificate drop target](scripts/trust-package-certificate.cmd) invokes
 [public-certificate validation and trust](scripts/trust-package-certificate.ps1) separately from
@@ -180,7 +226,7 @@ sequenceDiagram
     Admin->>Admin: Revalidate certificate and thumbprint
     Admin->>Store: Add validated in-memory certificate
     Admin-->>Helper: Exit status
-    Helper-->>User: Result; signed MSIX can now be retried
+    Helper-->>User: Result, signed MSIX can now be retried
 ```
 
 [PackageContext](src/ProcSight.Windows/Security/PackageContext.cs) reads identity/family/path from

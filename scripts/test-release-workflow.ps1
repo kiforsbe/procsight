@@ -10,6 +10,13 @@ function Rejected([scriptblock]$action,[string]$case='') { $failed=$false; try {
 New-Item -ItemType Directory -Path (Join-Path $fixture 'src/ProcSight.App') -Force | Out-Null
 try {
  Copy-Item -LiteralPath (Join-Path $sourceRoot 'scripts') -Destination (Join-Path $fixture 'scripts') -Recurse
+ # Synthetic release orchestration still loads the same pinned helper contracts;
+ # copy only tool source, never its .git metadata, artifacts or local settings.
+ $fixtureTools=Join-Path $fixture 'external/winbuildtools'
+ $null=New-Item -ItemType Directory -Path $fixtureTools -Force
+ foreach($part in @('common','msi','msix','signing','VERSION')) {
+  Copy-Item -LiteralPath (Join-Path $sourceRoot "external/winbuildtools/$part") -Destination (Join-Path $fixtureTools $part) -Recurse
+ }
  Copy-Item -LiteralPath (Join-Path $sourceRoot 'Version.props') -Destination (Join-Path $fixture 'Version.props')
  foreach($name in @('app.manifest','Package.appxmanifest')) { Copy-Item -LiteralPath (Join-Path $sourceRoot "src/ProcSight.App/$name") -Destination (Join-Path $fixture "src/ProcSight.App/$name") }
  # Verification runs after release preparation has already advanced the source version.
